@@ -1,0 +1,105 @@
+"use client";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link"; // Import Link
+
+import { Button } from "@/components/ui/button";
+import { AdminBookList } from "@/app/feature/books-admin/components/adminBookList";
+import { Pagination } from "@/app/share/components/ui/pagination/pagination";
+import { getBooks, deleteBook } from "@/app/feature/books/api/books.api";
+import { Book } from "@/app/feature/books/types/books.type";
+
+export default function BooksPage() {
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+
+  const pageParam = searchParams.get("page");
+  const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1;
+  const pageSize = 10;
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["books", page],
+    queryFn: () => getBooks({ page, limit: pageSize }),
+    placeholderData: (prev) => prev,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteBook,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["books"] });
+      toast.success("Đã xóa sách!");
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Xóa thất bại");
+    },
+  });
+
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
+  };
+
+  const handleEdit = (book: Book) => {
+    toast.info("Tính năng Edit nên chuyển sang trang riêng tương tự Create");
+    // router.push(`/admin/books/${book.id}/edit`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[50vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[50vh] flex-col items-center justify-center text-destructive">
+        <p>Không thể tải dữ liệu.</p>
+        <Button
+          variant="outline"
+          onClick={() => window.location.reload()}
+          className="mt-4"
+        >
+          Thử lại
+        </Button>
+      </div>
+    );
+  }
+
+  const books = data?.data;
+  const meta = data?.meta;
+
+  return (
+    <div className="container mx-auto p-6 space-y-8 max-w-7xl">
+      <div className="flex items-center justify-between border-b pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Trang quản lý sách
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Danh sách các sách trong hệ thống
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/books-admin/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Upload sách mới
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <AdminBookList
+        books={books!}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        isDeleting={deleteMutation.isPending}
+      />
+
+      {meta && <Pagination meta={meta} />}
+    </div>
+  );
+}

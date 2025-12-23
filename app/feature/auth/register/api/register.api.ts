@@ -1,5 +1,5 @@
 import { axiosClient } from "@/lib/api";
-import { RegisterFields } from "@/lib/validation/auth/registerSchema";
+import { RegisterFields } from "@/app/schema/registerSchema";
 import { RegisterResponse } from "../types/register.type";
 
 export async function Register(

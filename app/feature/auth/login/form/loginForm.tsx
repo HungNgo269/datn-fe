@@ -8,7 +8,7 @@ import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { LoginFields, LoginSchema } from "@/lib/validation/auth/loginSchema";
+import { LoginFields, LoginSchema } from "@/app/schema/loginSchema";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useTokenStore } from "@/app/store/useTokenStore";
 
@@ -39,7 +39,15 @@ export default function LoginForm() {
       await queryClient.invalidateQueries({ queryKey: ["user"] });
 
       toast.success("Đăng nhập thành công!");
-      router.push("/books");
+      console.log("hi123", data.user.roles);
+
+      if (data.user.roles.includes("admin")) {
+        console.log("hi", data.user.roles);
+        router.push("/books-admin");
+        return;
+      }
+      router.push("/");
+      return;
     },
   });
 
@@ -55,7 +63,8 @@ export default function LoginForm() {
         <header className="space-y-1 text-center">
           <h2 className="text-2xl font-bold">Đăng Nhập Vào NextBook</h2>
           <p className="text-muted-foreground">
-            Nhập thông tin tài khoản của bạn để truy cập
+            Nhập thông tin tài khoản của bạn để truy cập admin@example.com
+            user@example.com 123456
           </p>
         </header>
 

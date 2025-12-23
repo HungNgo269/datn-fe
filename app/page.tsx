@@ -1,7 +1,8 @@
 import { Suspense } from "react";
-import { HeaderWrapper } from "@/app/share/components/ui/header/headerWrapper";
 import Header from "./share/components/ui/header/header";
 import CategoryBookWrapper from "./feature/categories/components/categoryBookWrapper";
+import BannerComponent from "./feature/banner/components/banner";
+import PopularBook from "./feature/books-popular/components/popularBook";
 // import Header from "@/app/ui/user/headerCustomer/headerMain";
 // import BestSellerContainer from "@/app/ui/user/books/bestSellerContainer";
 // import NewBookList from "@/app/ui/user/books/newBookList";
@@ -23,14 +24,14 @@ interface PageProps {
 export default async function HomePage({ searchParams }: PageProps) {
   const page = (await searchParams)?.page;
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden ">
       <header className="ml-auto mr-auto w-full  ">
         <Suspense>
-          <HeaderWrapper>
-            <Header></Header>
-          </HeaderWrapper>
+          <Header></Header>
         </Suspense>
       </header>
+      <BannerComponent></BannerComponent>
+
       <div className="w-full mx-auto mt-10 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
         <div className="hidden md:block">
           <Suspense>
@@ -38,20 +39,19 @@ export default async function HomePage({ searchParams }: PageProps) {
           </Suspense>
         </div>
       </div>
-      {/* <SlideWrapper />
       <div className="w-full mx-auto mt-10 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
-        <div className="block md:hidden">
+        {/* <div className="block md:hidden">
           <SwipperBestSeller />
         </div>
         <div className="hidden md:block">
           <Suspense>
             <BestSellerContainer />
           </Suspense>
-        </div>
+        </div> */}
 
         <div className="flex  justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
           <div className="md:w-[700px] lg:w-[800px] xl:w-[850px]  flex flex-col gap-5">
-            <div className="block md:hidden">
+            {/* <div className="block md:hidden">
               <SwipperNewBook />
             </div>
             <div className="hidden md:block">
@@ -62,23 +62,22 @@ export default async function HomePage({ searchParams }: PageProps) {
             </Suspense>
             <Suspense>
               <BookRecommend></BookRecommend>
-            </Suspense>
+            </Suspense> */}
           </div>
           <div className="flex flex-col gap-5 w-[200px] md:w-[250px] xl:w-[300px]">
-            <MostPopularBook />
+            <PopularBook />
           </div>
         </div>
         <div className="hidden sm:block">
-          <Suspense>
+          {/* <Suspense>
             <SectionComponent></SectionComponent>
-          </Suspense>
+          </Suspense> */}
         </div>
-      </div> */}
-      {/* o */}
+      </div>
       <div className="w-full ">
         {/* <Suspense>
           <FooterComponent></FooterComponent>
-        </Suspense> */}
+        </Suspense>  */}
       </div>
     </div>
   );
