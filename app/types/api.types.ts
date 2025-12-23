@@ -1,3 +1,22 @@
+export interface BackendResponse<T> {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: T;
+  timestamp: string;
+  path: string;
+}
+
+export type ServiceResult<T> =
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
 export interface PaginationMeta {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
@@ -12,7 +31,7 @@ export interface PaginatedData<T> {
   meta: PaginationMeta;
 }
 
-export interface BackendResponse<T> {
+export interface BackendResponsePagination<T> {
   success: boolean;
   statusCode: number;
   message: string;
@@ -21,7 +40,7 @@ export interface BackendResponse<T> {
   path: string;
 }
 
-export type ServiceResult<T> =
+export type ServiceResultPagination<T> =
   | {
       success: true;
       data: T[];

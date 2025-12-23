@@ -8,10 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import {
-  RegisterFields,
-  RegisterSchema,
-} from "@/lib/validation/auth/registerSchema";
+import { RegisterFields, RegisterSchema } from "@/app/schema/registerSchema";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

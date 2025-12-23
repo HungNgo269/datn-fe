@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   ForgotPasswordFields,
   ForgotPasswordSchema,
-} from "@/lib/validation/auth/forgotPasswordSchema";
+} from "@/app/schema/forgotPasswordSchema";
 import { ForgotPassword } from "../api/forgotPassword.api";
 
 export default function ForgotPasswordForm() {

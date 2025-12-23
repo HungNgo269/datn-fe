@@ -1,36 +1,65 @@
-import { config } from "@/app/config/env.config";
-import { Book } from "../types/books.type";
+import { handlePaginatedRequest, handleRequest } from "@/lib/handleApiRequest";
+import {
+  Book,
+  BookCardProps,
+  CreateBookDto,
+  PresignedUrlResponse,
+} from "../types/books.type";
+import { axiosClient } from "@/lib/api";
+import { BookFields } from "@/app/schema/bookSchema";
 
-export async function getBooks(): Promise<Book[]> {
-  try {
-    const response = await fetch(`${config.backendURL}/books`, {
-      next: { revalidate: 60 },
-    });
+export async function getBooks(params: { page: number; limit: number }) {
+  return handlePaginatedRequest<Book>(() =>
+    axiosClient.get("/books", { params })
+  );
+}
+export async function getBookByCategory(
+  page?: number,
+  limit?: number,
+  filter?: string,
+  categoryId?: number,
+  search?: string,
+  authorId?: number
+) {
+  const params = new URLSearchParams();
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch books");
-    }
+  if (page !== undefined) params.append("page", page.toString());
+  if (limit !== undefined) params.append("limit", limit.toString());
+  if (filter) params.append("filter", filter);
+  if (categoryId !== undefined)
+    params.append("categoryId", categoryId.toString());
+  if (search) params.append("search", search);
+  if (authorId !== undefined) params.append("authorId", authorId.toString());
 
-    return response.json();
-  } catch (error) {
-    console.error("Error fetching books:", error);
-    return [];
-  }
+  const queryString = params.toString();
+  const url = `/books${queryString ? `?${queryString}` : ""}`;
+
+  return handlePaginatedRequest<Book>(() => axiosClient.get(url));
+}
+export async function getBookBySlug(slug: string) {
+  return handleRequest<Book>(() => axiosClient.get(`/books/${slug}`));
 }
 
-export async function getBookById(id: string): Promise<Book | null> {
-  try {
-    const response = await fetch(`${config.backendURL}/books/${id}`, {
-      cache: "no-store",
-    });
+export async function getBookById(id: number) {
+  return handleRequest<Book>(() => axiosClient.get(`/books/${id}`));
+}
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch book");
-    }
+export async function createBook(payload: CreateBookDto) {
+  return handleRequest<Book>(() => axiosClient.post("/admin/books", payload));
+}
 
-    return response.json();
-  } catch (error) {
-    console.error("Error fetching book:", error);
-    return null;
-  }
+export async function updateBook(id: number, payload: Partial<BookFields>) {
+  return handleRequest<Book>(() =>
+    axiosClient.patch(`/admin/books/${id}`, payload)
+  );
+}
+
+export async function deleteBook(id: number) {
+  return handleRequest<boolean>(() => axiosClient.delete(`/admin/books/${id}`));
+}
+
+export async function getPresignedUrl(filename: string, type: string) {
+  return handleRequest<PresignedUrlResponse>(() =>
+    axiosClient.post("/storage/presigned-url", { filename, type })
+  );
 }

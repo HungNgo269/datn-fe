@@ -1,5 +1,4 @@
 "use client";
-
 import { Category } from "../types/listCategories";
 
 interface CategorySelectorProps {
@@ -14,28 +13,32 @@ export default function CategorySelector({
   onCategoryChange,
 }: CategorySelectorProps) {
   return (
-    <div className="flex flex-row justify-start items-center gap-0.5 md:overflow-hidden ">
-      {categories.map((category: Category, index) => (
-        <div key={category.id} className="flex flex-row justify-center gap-0.5">
-          <button
-            onClick={() => onCategoryChange(category.id)}
-            className={`
-              hover:cursor-pointer text-nowrap ${
-                selectedCategory === category.id
-                  ? " text-primary"
-                  : " lg:text-base text-foreground"
-              }`}
-          >
-            {category.name}
-          </button>
+    <div className="flex flex-row flex-wrap items-center gap-2 md:gap-0 md:overflow-hidden font-medium">
+      {categories.map((category, index) => {
+        const isActive = selectedCategory === category.id;
+        return (
+          <div key={category.id} className="flex items-center">
+            <button
+              onClick={() => onCategoryChange(category.id)}
+              className={`text-nowrap transition-colors hover:text-primary hover:cursor-pointer
+                ${
+                  isActive
+                    ? "text-primary font-medium"
+                    : "text-foreground lg:text-base"
+                }`}
+            >
+              {category.name}
+            </button>
 
-          <div className="flex justify-center items-center">
+            {/* Dấu chấm ngăn cách */}
             {index < categories.length - 1 && (
-              <span className="text-gray-500 text-xs text-center">•</span>
+              <span className="mx-2 text-gray-400 text-xs hidden md:inline-block">
+                •
+              </span>
             )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

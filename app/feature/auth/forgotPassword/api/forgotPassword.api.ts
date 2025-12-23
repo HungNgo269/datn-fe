@@ -1,5 +1,5 @@
 import { axiosClient } from "@/lib/api";
-import { ForgotPasswordFields } from "@/lib/validation/auth/forgotPasswordSchema";
+import { ForgotPasswordFields } from "@/app/schema/forgotPasswordSchema";
 type ForgotPasswordPayload = ForgotPasswordFields & {
   token: string;
 };

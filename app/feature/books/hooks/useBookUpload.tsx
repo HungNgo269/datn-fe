@@ -1,61 +1,81 @@
 "use client";
 
 import { useState } from "react";
-import {
-  createBook,
-  getPresignedUrl,
-  uploadFileToCloud,
-} from "../actions/books.action";
-import { useTokenStore } from "@/app/store/useTokenStore";
+import { createBook, getPresignedUrl } from "../api/books.api";
+import { BookUploadData, CreateBookDto } from "../types/books.type";
+import { uploadFileToCloud } from "../helper";
+
+interface UploadProgress {
+  stage: "cover" | "file" | "saving" | "complete";
+  message: string;
+}
 
 export function useBookUpload() {
-  const token = useTokenStore.getState().token;
   const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState<string>("");
+  const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const uploadBook = async (file: File, title: string) => {
+
+  const uploadBook = async (data: BookUploadData) => {
     setIsUploading(true);
     setError(null);
-    setProgress("Getting upload URL...");
+    setProgress(null);
 
     try {
-      const presignedResult = await getPresignedUrl(file.name, "book", token!);
-      console.log("check presignedResult", presignedResult);
-      if (!presignedResult.success || !presignedResult.data) {
-        throw new Error(presignedResult.error || "Failed to get upload URL");
+      let coverImageKey = "";
+      // Upload cover image nếu có
+      if (data.cover) {
+        setProgress({
+          stage: "cover",
+          message: "Đang upload ảnh bìa...",
+        });
+
+        const coverPresigned = await getPresignedUrl(data.cover.name, "cover");
+        console.log("coverPresigned", coverPresigned);
+
+        await uploadFileToCloud(coverPresigned.uploadUrl, data.cover);
+        coverImageKey = coverPresigned.key;
+        console.log("coverImageKey", coverImageKey);
       }
 
-      setProgress("Uploading file...");
+      // Upload book file
+      setProgress({
+        stage: "file",
+        message: "Đang upload file sách...",
+      });
 
-      const uploadResult = await uploadFileToCloud(
-        presignedResult.data.uploadUrl,
-        file
-      );
-      console.log(" uploadFileToCloud", uploadResult);
+      const filePresigned = await getPresignedUrl(data.file.name, "book");
+      await uploadFileToCloud(filePresigned.uploadUrl, data.file);
 
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error || "Failed to upload file");
-      }
+      setProgress({
+        stage: "saving",
+        message: "Đang lưu thông tin sách vào hệ thống...",
+      });
 
-      setProgress("Creating book record...");
+      const bookPayload: CreateBookDto = {
+        title: data.title,
+        slug: data.slug,
+        sourceKey: filePresigned.key,
+        coverImage: coverImageKey,
 
-      const createResult = await createBook(
-        {
-          title,
-          sourceKey: presignedResult.data.key,
-          coverImage: "",
-        },
-        token!
-      );
+        authorIds: data.authorIds,
+        categoryIds: data.categoryIds,
+        description: data.description ?? "",
+        price: data.price ?? 0,
+        freeChapters: data.freeChapters ?? 0,
+        // status: data.status ?? "DRAFT",
+        // isActive: data.isActive ?? true,
+      };
+      const result = await createBook(bookPayload);
 
-      if (!createResult.success || !createResult.data) {
-        throw new Error(createResult.error || "Failed to create book");
-      }
+      setProgress({
+        stage: "complete",
+        message: "Upload thành công!",
+      });
 
-      setProgress("Complete!");
-      return { success: true, data: createResult.data };
+      return { success: true, data: result };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Upload failed";
+      const errorMessage =
+        err instanceof Error ? err.message : "Upload thất bại";
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -63,5 +83,10 @@ export function useBookUpload() {
     }
   };
 
-  return { uploadBook, isUploading, progress, error };
+  return {
+    uploadBook,
+    isUploading,
+    progress,
+    error,
+  };
 }

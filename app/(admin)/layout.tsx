@@ -30,22 +30,34 @@ export default function AdminLayout({
     {
       name: "Analytics",
       icon: <BarChart3 className="w-5 h-5" />,
-      path: "/analytics",
+      path: "/analytics-admin",
     },
     {
       name: "Books",
       icon: <BookOpen className="w-5 h-5" />,
-      path: "/books",
+      path: "/books-admin",
+    },
+
+    {
+      name: "Categories",
+      icon: <BookOpen className="w-5 h-5" />,
+      path: "/categories-admin",
     },
     {
-      name: "Dashboard",
-      icon: <LayoutDashboard className="w-5 h-5" />,
-      path: "/dashboard",
+      name: "Authors",
+      icon: <Users className="w-5 h-5" />,
+      path: "/authors-admin",
     },
+    {
+      name: "Banners",
+      icon: <Users className="w-5 h-5" />,
+      path: "/banners-admin",
+    },
+
     {
       name: "Users",
       icon: <Users className="w-5 h-5" />,
-      path: "/users",
+      path: "/users-admin",
     },
   ];
   const userRole = useAuthStore.getState().user?.roles;
@@ -145,17 +157,8 @@ export default function AdminLayout({
           </h1>
         </header>
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="hidden lg:block mb-6">
-              <h2 className="text-3xl font-bold text-foreground">{active}</h2>
-              <p className="text-muted-foreground mt-1">
-                Manage your {active.toLowerCase()} here
-              </p>
-            </div>
-
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              {children}
-            </div>
+          <div className="max-w-full mx-auto">
+            <div className=" p-6">{children}</div>
           </div>
         </main>
       </div>

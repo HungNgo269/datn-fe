@@ -1,38 +1,28 @@
-import { config } from "@/app/config/env.config";
+import {
+  handleActionPaginatedRequest,
+  handleActionRequest,
+} from "@/lib/handleActionRequest";
 import { Category } from "../types/listCategories";
-import { BackendResponse, ServiceResult } from "@/app/types/api.types";
+import { Book } from "../../books/types/books.type";
 
-export async function getCategories(
-  page: number,
-  limit: number
-): Promise<ServiceResult<Category>> {
-  try {
-    const url = new URL(`${config.backendURL}/categories`);
+export async function getCategories(page: number, limit: number) {
+  return handleActionPaginatedRequest<Category>("/categories", {
+    params: { page, limit },
+    revalidate: 15,
+  });
+}
 
-    if (page > 0) url.searchParams.append("page", page.toString());
-    if (limit > 0) url.searchParams.append("limit", limit.toString());
+export async function getCategoryById(id: number) {
+  return handleActionRequest<Category>(`/categories/${id}`, {
+    revalidate: 60,
+  });
+}
 
-    const response = await fetch(url.toString(), {
-      next: { revalidate: 15 },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const rawData: BackendResponse<Category> = await response.json();
-
-    return {
-      success: true,
-      data: rawData.data.data,
-      meta: rawData.data.meta,
-    };
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    return {
-      success: false,
-      error:
-        error instanceof Error ? error.message : "Failed to fetch categories",
-    };
-  }
+export async function createCategory(data: Partial<Category>) {
+  return handleActionRequest<Category>("/categories", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    revalidate: false, // No cache
+  });
 }
