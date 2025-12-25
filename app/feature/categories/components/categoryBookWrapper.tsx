@@ -1,4 +1,4 @@
-import { getBookByCategoryAction } from "../../books/action/books.action";
+import { getBooksAction } from "../../books/action/books.action";
 import { Book } from "../../books/types/books.type";
 import { getCategories } from "../actions/categories.action";
 import BookCategoryContainer from "./categoryBookContainer";
@@ -11,13 +11,7 @@ export default async function CategoryBookWrapper() {
 
   if (defaultCategoryId) {
     try {
-      const res = await getBookByCategoryAction(
-        1,
-        10,
-        "",
-        defaultCategoryId,
-        ""
-      );
+      const res = await getBooksAction(1, 10, "", defaultCategoryId, "");
       console.log("ers", res);
       initialBooks = res.data;
     } catch (e) {

@@ -87,7 +87,7 @@ export function BookCardSkeleton({ variant = "lg" }: { variant?: Variant }) {
   );
 }
 
-export function PopularBookSkeleton() {
+export function TrendingBookSkeleton() {
   return (
     <div className="space-y-3">
       {[...Array(5)].map((_, index) => (

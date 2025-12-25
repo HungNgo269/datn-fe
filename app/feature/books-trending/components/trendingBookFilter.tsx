@@ -2,15 +2,15 @@
 
 import { sort_OPTIONS_time, TimeFrame } from "@/lib/timeCount";
 
-interface PopularBookFilterProps {
+interface TrendingBookFilterProps {
   value: TimeFrame;
   onFilterChange: (timeframe: TimeFrame) => void;
 }
 
-export default function PopularBookFilter({
+export default function TrendingBookFilter({
   value,
   onFilterChange,
-}: PopularBookFilterProps) {
+}: TrendingBookFilterProps) {
   return (
     <div className="flex items-center gap-3">
       <div className="relative min-w-fit flex flex-row gap-1">

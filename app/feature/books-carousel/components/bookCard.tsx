@@ -29,42 +29,55 @@ export default function BookCard({
 }) {
   const image = MAP[variant];
   return (
-    <div className={`flex flex-col ${image.card}`}>
-      <Link
-        prefetch={true}
-        href={`/books/${book.slug}`}
-        aria-label={book.title}
-      >
-        <div
-          className={`relative overflow-hidden rounded-[8px] group ${image.imgWrap}`}
-        >
-          <ImageCard
-            bookImage={book.coverImage}
-            bookName={book.title}
-            key={book.id}
-          />
-        </div>
-      </Link>
-
-      <div className="flex flex-col mt-3 h-fit justify-between">
+    book && (
+      <div className={`flex flex-col ${image.card}`}>
         <Link
           prefetch={true}
           href={`/books/${book.slug}`}
           aria-label={book.title}
         >
-          <span
-            className={`line-clamp-1  font-semibold cursor-pointer w-fit hover:underline hover:text-primary ${image.title}`}
+          <div
+            className={`relative overflow-hidden rounded-[8px] group ${image.imgWrap}`}
           >
-            {book.title}
-          </span>
+            <ImageCard
+              bookImage={book.coverImage}
+              bookName={book.title}
+              key={book.id}
+            />
+          </div>
         </Link>
 
-        <span
-          className={`line-clamp-1 font-medium text-muted-foreground cursor-pointer w-fit hover:underline ${image.author}`}
-        >
-          {book.authors}
-        </span>
-        {/* {book?.rating ? (
+        <div className="flex flex-col mt-3 h-fit justify-between">
+          <Link
+            prefetch={true}
+            href={`/books/${book.slug}`}
+            aria-label={book.title}
+          >
+            <span
+              className={`line-clamp-1  font-semibold cursor-pointer w-fit hover:underline hover:text-primary ${image.title}`}
+            >
+              {book.title}
+            </span>
+          </Link>
+
+          <div className="flex flex-row items-center overflow-hidden max-w-full">
+            <div className="text-xs text-muted-foreground truncate">
+              {/* {book.authors &&
+              book.authors.map((author, index) => (
+                <span key={author.author.id}>
+                  <Link
+                    prefetch={true}
+                    href={`${book.viewCount}`}
+                    className="hover:underline"
+                  >
+                    {author.author.name}
+                  </Link>
+                  {index < book.authors.length - 1 && ", "}
+                </span>
+              ))} */}
+            </div>
+          </div>
+          {/* {book?.rating ? (
           <span
             className={`line-clamp-1 font-medium text-muted-foreground cursor-pointer w-fit ${image.author}`}
           >
@@ -73,7 +86,8 @@ export default function BookCard({
         ) : (
           ""
         )} */}
+        </div>
       </div>
-    </div>
+    )
   );
 }

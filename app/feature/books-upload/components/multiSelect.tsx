@@ -68,7 +68,8 @@ export function MultiSelect<T extends FieldValues>({
     return (
         <div className="space-y-2">
             <Label>
-                {label} {required && <span className="text-red-500">*</span>}
+                {label}{" "}
+                {required && <span className="text-destructive">*</span>}
             </Label>
 
             <Controller

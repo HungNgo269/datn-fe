@@ -10,6 +10,8 @@ export const THEMES = [
     fgClass: "text-reader-light-fg",
     borderClass: "border-gray-200",
     label: "Sáng",
+    bgVar: "--reader-light",
+    fgVar: "--reader-light-fg",
   },
   {
     id: "sepia",
@@ -17,6 +19,8 @@ export const THEMES = [
     fgClass: "text-reader-sepia-fg",
     borderClass: "border-amber-200/50",
     label: "Vàng",
+    bgVar: "--reader-sepia",
+    fgVar: "--reader-sepia-fg",
   },
   {
     id: "gray",
@@ -24,6 +28,8 @@ export const THEMES = [
     fgClass: "text-reader-gray-fg",
     borderClass: "border-gray-300",
     label: "Xám",
+    bgVar: "--reader-gray",
+    fgVar: "--reader-gray-fg",
   },
   {
     id: "dark",
@@ -31,6 +37,8 @@ export const THEMES = [
     fgClass: "text-reader-dark-fg",
     borderClass: "border-zinc-800",
     label: "Tối",
+    bgVar: "--reader-dark",
+    fgVar: "--reader-dark-fg",
   },
 ];
 

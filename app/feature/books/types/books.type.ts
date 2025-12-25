@@ -18,7 +18,7 @@ export interface Book {
 }
 export interface AuthorsList {
   bookId: number;
-  categoryId: 2;
+  categoryId: number;
   assignedAt: Date | string;
   author: AuthorInfo;
 }
@@ -26,11 +26,11 @@ export interface AuthorInfo {
   id: number;
   name: string;
   slug: string;
-  avatar?: null;
+  avatar?: string;
   bio?: string;
   isActive?: boolean;
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export interface CategoriesList {
@@ -68,8 +68,7 @@ export interface BookCardProps {
   slug: string;
   coverImage: string;
   viewCount?: number;
-  authors: string;
-  price?: number;
+  authors: AuthorsList[];
 }
 export interface BookUploadData {
   file: File;
@@ -102,11 +101,33 @@ export interface PresignedUrlResponse {
   key: string;
   uploadUrl: string;
 }
+export enum BookSortBy {
+  CREATED_AT = "createdAt",
+  UPDATED_AT = "updatedAt",
+  TITLE = "title",
+  VIEW_COUNT = "viewCount",
+}
 
-export interface BookCardProps {
-  id: number;
-  title: string;
-  authors: string;
-  coverImage: string;
-  price?: number;
+export enum SortOrder {
+  ASC = "asc",
+  DESC = "desc",
+}
+
+export enum AccessType {
+  FREE = "free",
+  PURCHASE = "purchase",
+  MEMBERSHIP = "membership",
+}
+
+export interface GetBooksParams {
+  search?: string;
+  category?: string;
+  author?: string;
+  sortBy?: BookSortBy;
+  sortOrder?: SortOrder;
+  accessType?: AccessType;
+  minPrice?: number;
+  maxPrice?: number;
+  page?: number;
+  limit?: number;
 }

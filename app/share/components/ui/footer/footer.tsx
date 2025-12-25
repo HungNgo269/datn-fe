@@ -35,20 +35,6 @@ export default function FooterComponent() {
               >
                 <Twitter className="h-5 w-5" />
               </Link>
-              <Link
-                prefetch={true}
-                href="https://discord.com"
-                aria-label="Discord"
-                target="_blank"
-                className="text-muted-foreground hover:text-primary transition-colors p-1"
-              >
-                <Image
-                  src={"/discord.png"}
-                  alt="discord"
-                  width={20}
-                  height={20}
-                />
-              </Link>
             </div>
           </div>
 

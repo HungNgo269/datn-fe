@@ -44,7 +44,6 @@ type User = {
   status: string;
 };
 
-// Sample user data
 const initialUsers: User[] = [
   {
     id: 1,

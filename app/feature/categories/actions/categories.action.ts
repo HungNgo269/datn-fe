@@ -17,7 +17,11 @@ export async function getCategoryById(id: number) {
     revalidate: 60,
   });
 }
-
+export async function getCategoryBySlugAction(slug: string) {
+  return handleActionRequest<Category>(`/categories/slug/${slug}`, {
+    revalidate: 60,
+  });
+}
 export async function createCategory(data: Partial<Category>) {
   return handleActionRequest<Category>("/categories", {
     method: "POST",

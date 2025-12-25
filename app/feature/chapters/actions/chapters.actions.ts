@@ -3,7 +3,7 @@ import { handleActionRequest } from "@/lib/handleActionRequest";
 
 export async function getChaptersOfBook(slug: string) {
   return handleActionRequest<ChapterCardProps[]>(`/books/${slug}/chapters`, {
-    revalidate: 10,
+    cache: "no-store",
   });
 }
 
@@ -13,16 +13,12 @@ export async function getChaptersDetails(
 ) {
   return handleActionRequest<ChapterContent>(
     `/books/${bookSlug}/chapters/${chapterSlug}`,
-    {
-      next: { revalidate: 5 },
-    }
+    { cache: "no-store" }
   );
 }
 
 export async function getChaptersContent(url: string) {
-  const res = await fetch(url, {
-    next: { revalidate: 5 },
-  });
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Không tải được sách: ${res.status}`);
   }

@@ -18,26 +18,35 @@ export default function RecommendBookContent({
         >
           <Link
             prefetch={true}
-            href={`book/${book.id}`}
+            href={`/books/${book.slug}`}
             className="relative min-w-[60px] h-full overflow-hidden rounded-[4px] group "
           >
             <ImageCard bookImage={book?.coverImage} bookName={book.title} />
           </Link>
-          <div className="flex flex-col justify-center h-full">
+          <div className="flex flex-col justify-center h-full xl:max-w-[250px] lg:max-w-[150px] md:max-w-[150px] max-w-full">
             <Link
               prefetch={true}
-              href={`books/${book.slug}`}
+              href={`/books/${book.slug}`}
               className="text-sm font-semibold cursor-pointer hover:underline hover:text-primary line-clamp-2"
             >
               {book.title}
             </Link>
-            <Link
-              prefetch={true}
-              href={`${book.viewCount}`}
-              className="text-sm hover:underline"
-            >
-              {book.viewCount}
-            </Link>
+            <div className="flex flex-row items-center overflow-hidden max-w-full">
+              <div className="text-xs text-muted-foreground truncate">
+                {book.authors.map((author, index) => (
+                  <span key={author.author.id}>
+                    <Link
+                      prefetch={true}
+                      href={`${author.author.slug}`}
+                      className="hover:underline"
+                    >
+                      {author.author.name}
+                    </Link>
+                    {index < book.authors.length - 1 && ", "}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       ))}

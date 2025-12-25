@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
           "ebook.82d37924634f3d2eb54a2930e0512f78.r2.cloudflarestorage.com",
       },
     ],
+    minimumCacheTTL: 60,
   },
 };
 

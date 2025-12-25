@@ -75,10 +75,10 @@ export default function BookCarousel({
                   key={book?.id || `skel-${index}-${bIndex}`}
                   className="w-full"
                 >
-                  {book ? (
-                    <BookCard book={book} variant={variant} />
-                  ) : (
+                  {isLoading ? (
                     <BookCardSkeleton variant={variant} />
+                  ) : (
+                    book && <BookCard book={book} variant={variant} />
                   )}
                 </div>
               ))}

@@ -30,7 +30,7 @@ export default function BookDesc({
         }}
       >
         <div
-          className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
+          className="prose prose-sm max-w-none text-foreground leading-relaxed"
           dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
 

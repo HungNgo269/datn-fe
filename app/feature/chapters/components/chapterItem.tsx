@@ -6,10 +6,10 @@ interface ChapterItemProps {
   chapter: ChapterCardProps;
   basePath: string;
 }
-
 export function ChapterItem({ chapter, basePath }: ChapterItemProps) {
+  console.log("chaper", chapter);
   return (
-    <div className="flex items-center justify-between group rounded-md bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 px-4 py-4 transition-colors">
+    <div className="flex items-center justify-between group rounded-md bg-card border border-border hover:bg-card/70 px-4 py-4 transition-colors">
       <div className="flex flex-row items-center gap-2 min-w-0 flex-1">
         <Link
           prefetch={true}
@@ -17,7 +17,7 @@ export function ChapterItem({ chapter, basePath }: ChapterItemProps) {
           className={`${
             chapter.is_viewed
               ? "text-foreground/60"
-              : "text-primary font-medium"
+              : "text-foreground font-medium"
           } text-md hover:text-primary/80 truncate flex-1`}
         >
           <span className="mr-2">

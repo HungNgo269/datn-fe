@@ -30,7 +30,6 @@ export default function CategorySelector({
               {category.name}
             </button>
 
-            {/* Dấu chấm ngăn cách */}
             {index < categories.length - 1 && (
               <span className="mx-2 text-gray-400 text-xs hidden md:inline-block">
                 •

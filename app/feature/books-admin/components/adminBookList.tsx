@@ -101,7 +101,7 @@ export function AdminBookList({
                         />
                       </div>
                       <div className="p-3 bg-popover">
-                        <h4 className="font-semibold text-sm line-clamp-2">
+                        <h4 className="font-semibold text-sm line-clamp-2 max-w-[300px]">
                           {book.title}
                         </h4>
                         {book.authors.map((author) => (
@@ -119,7 +119,7 @@ export function AdminBookList({
                   </HoverCard>
                 </TableCell>
 
-                <TableCell className="font-medium text-foreground">
+                <TableCell className="font-medium text-foreground  truncate max-w-[300px]">
                   {book.title}
                 </TableCell>
 

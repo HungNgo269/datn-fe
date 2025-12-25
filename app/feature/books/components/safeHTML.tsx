@@ -5,7 +5,6 @@ interface SafeHTMLProps {
   htmlContent: string;
   className?: string;
 }
-// ôi github đẳng cấp thế
 export function SafeHTML({ htmlContent, className }: SafeHTMLProps) {
   return (
     <div

@@ -71,7 +71,7 @@ export default function BookCategoryContainer({
             selectedCategory={selectedCategory || 0}
             onCategoryChange={handleCategoryChange}
           />
-          <ViewMoreButton url={`/book?tag=${selectedCategorySlug}&page=1`} />
+          <ViewMoreButton url={`/books?tag=${selectedCategorySlug}&page=1`} />
         </div>
 
         <BookCarousel books={mappedBooks} variant="lg" isLoading={loading} />

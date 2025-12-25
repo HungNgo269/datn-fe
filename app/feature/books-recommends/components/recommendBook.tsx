@@ -2,10 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  PopularBookSkeleton,
-  RecommendBookSkeleton,
-} from "@/app/share/components/ui/skeleton/skeleton";
+import { RecommendBookSkeleton } from "@/app/share/components/ui/skeleton/skeleton";
 import { TimeFrame } from "@/lib/timeCount";
 import { getTrendingBooks } from "../api/recommendBook.api";
 import RecommendBookContent from "./recommendBookContent";

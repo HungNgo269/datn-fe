@@ -13,6 +13,12 @@ export async function getCategoryById(id: number) {
   return handleRequest<Category>(() => axiosClient.get(`/categories/${id}`));
 }
 
+export async function getCategoryBySlug(slug: string) {
+  return handleRequest<Category>(() =>
+    axiosClient.get(`/categories/slug/${slug}`)
+  );
+}
+
 export async function createCategory(payload: CategoryFields) {
   return handleRequest<Category>(() =>
     axiosClient.post("/categories", payload)

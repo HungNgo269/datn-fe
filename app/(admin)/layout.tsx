@@ -10,6 +10,9 @@ import {
   Users,
   ChevronLeft,
   Menu,
+  GalleryHorizontal,
+  UserPen,
+  ChartBarStacked,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,11 +30,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const listItems: MenuItem[] = [
-    {
-      name: "Analytics",
-      icon: <BarChart3 className="w-5 h-5" />,
-      path: "/analytics-admin",
-    },
+    // {
+    //   name: "Analytics",
+    //   icon: <BarChart3 className="w-5 h-5" />,
+    //   path: "/analytics-admin",
+    // },
     {
       name: "Books",
       icon: <BookOpen className="w-5 h-5" />,
@@ -40,17 +43,17 @@ export default function AdminLayout({
 
     {
       name: "Categories",
-      icon: <BookOpen className="w-5 h-5" />,
+      icon: <ChartBarStacked className="w-5 h-5" />,
       path: "/categories-admin",
     },
     {
       name: "Authors",
-      icon: <Users className="w-5 h-5" />,
+      icon: <UserPen className="w-5 h-5" />,
       path: "/authors-admin",
     },
     {
       name: "Banners",
-      icon: <Users className="w-5 h-5" />,
+      icon: <GalleryHorizontal className="w-5 h-5" />,
       path: "/banners-admin",
     },
 

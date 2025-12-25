@@ -1,152 +1,89 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
-import ReaderSettings, { FONTS, THEMES } from "./readerSetting";
+import { useRouter } from "next/navigation";
+
+import ReaderFrame from "./ReaderFrame";
+
+import ReaderSettings, { THEMES } from "./readerSetting";
+import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
+import ReaderTopBar from "./ReaderTopBar";
+import ReaderPageNavigation from "./ReaderPageNavigation";
+import ReaderChaptersList from "./ReaderChaptersList";
+import ReaderNoteDialog from "./ReaderNoteDialog";
+import { useReaderHtml } from "../hook/useReaderHTML";
+import { useReaderPagination } from "../hook/useReaderPagination";
 
 interface Props {
   initialHtml: string;
   title: string;
+  bookSlug?: string;
+  chapterSlug?: string;
+  chapters?: ChapterCardProps[];
+  currentChapterOrder?: number;
+  nextChapterSlug?: string | null;
 }
 
-export default function IframeBookReader({ initialHtml, title }: Props) {
+export default function IframeBookReader({
+  initialHtml,
+  title,
+  bookSlug,
+  chapterSlug,
+  chapters = [],
+  nextChapterSlug,
+}: Props) {
+  const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
   const [ready, setReady] = useState(false);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-
   const [showSettings, setShowSettings] = useState(false);
+  const [showChaptersList, setShowChaptersList] = useState(false);
   const [fontSize, setFontSize] = useState(18);
   const [fontId, setFontId] = useState("sans");
   const [themeId, setThemeId] = useState("light");
+  const [containerBg, setContainerBg] = useState("transparent");
+  const [loading, setLoading] = useState(false);
+  const processedHtml = useReaderHtml({
+    initialHtml,
+    fontSize,
+    fontId,
+    themeId,
+  });
 
-  const PADDING_X_PX = 400;
+  const {
+    currentPage,
+    totalPages,
+    isPositionRestored,
+    next,
+    prev,
+    goToPage,
+    calculateTotalPages,
+  } = useReaderPagination({
+    iframeRef,
+    storageKey: `reading-pos-${bookSlug}-${chapterSlug}`,
+    ready,
+  });
 
-  const currentFontFamily =
-    FONTS.find((f: { id: string }) => f.id === fontId)?.value || "sans-serif";
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
+  const [selectedText, setSelectedText] = useState("");
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [notes, setNotes] = useState<
+    Array<{ page: number; text: string; note: string }>
+  >([]);
 
-  const processHtml = useCallback(
-    (html: string) => {
-      let fixedHtml = html.replace(/\.\.\/fonts\//g, "/fonts/");
-      const spacerHtml = '<div id="force-new-page-spacer"></div>';
-
-      if (fixedHtml.includes("</body>")) {
-        fixedHtml = fixedHtml.replace("</body>", `${spacerHtml}</body>`);
-      } else {
-        fixedHtml += spacerHtml;
-      }
-
-      const injectionStyles = `
-        <style>
-          html {
-            height: 100vh;
-            width: 100%;
-            overflow: hidden !important;
-          }
-          
-          body {
-            margin: 0 !important;
-            height: 100vh !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-            padding: 40px ${PADDING_X_PX / 2}px !important;
-            
-            /* Column Logic chuẩn của bạn */
-            column-width: calc(100vw - ${PADDING_X_PX}px - 1px) !important;
-            column-gap: ${PADDING_X_PX}px !important;
-            column-fill: auto !important;
-            
-            /* Dynamic Styles */
-            font-size: ${fontSize}px !important;
-            font-family: ${currentFontFamily} !important;
-            line-height: 1.6 !important;
-            text-align: justify !important;
-            
-            /* Màu mặc định (sẽ bị JS override sau, nhưng cần để tránh FOUC) */
-            background-color: transparent; 
-            transition: background-color 0.3s, color 0.3s;
-          }
-
-          #force-new-page-spacer {
-            break-before: column !important;
-            -webkit-column-break-before: always !important;
-            width: 0px; height: 1px; margin: 0; padding: 0; visibility: hidden;
-          }
-
-          img, figure, table {
-            max-width: 100% !important;
-            break-inside: avoid !important;
-            display: block;
-            margin: 0 auto !important;
-          }
-          
-          ::-webkit-scrollbar { display: none; }
-        </style>
-      `;
-
-      if (fixedHtml.includes("</head>")) {
-        return fixedHtml.replace("</head>", `${injectionStyles}</head>`);
-      }
-      return injectionStyles + fixedHtml;
-    },
-    [fontSize, currentFontFamily]
-  );
-
-  const calculatePagination = () => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentWindow) return;
-
-    const doc = iframe.contentWindow.document.documentElement;
-    const clientWidth = iframe.clientWidth;
-
-    if (clientWidth > 0) {
-      const rawTotal = Math.ceil(doc.scrollWidth / clientWidth);
-      setTotalPages(Math.max(1, rawTotal - 1));
-    }
-  };
+  const getThemeColor = useCallback((varName: string) => {
+    if (typeof window === "undefined") return "";
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(varName)
+      .trim();
+  }, []);
 
   useEffect(() => {
-    if (ready && iframeRef.current?.contentWindow) {
-      const theme =
-        THEMES.find((t: { id: string }) => t.id === themeId) || THEMES[0];
-      const body = iframeRef.current.contentWindow.document.body;
-
-      body.style.backgroundColor = theme.bgClass;
-      body.style.color = theme.fgClass;
-    }
-  }, [themeId, ready]);
-
-  const handleIframeLoad = () => {
-    setReady(true);
-    const theme =
-      THEMES.find((t: { id: string }) => t.id === themeId) || THEMES[0];
-    if (iframeRef.current?.contentWindow) {
-      const body = iframeRef.current.contentWindow.document.body;
-      body.style.backgroundColor = theme.bgClass;
-      body.style.color = theme.fgClass;
-    }
-    setTimeout(calculatePagination, 300);
-  };
-
-  const goToPage = (page: number) => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentWindow) return;
-
-    const viewportWidth = iframe.clientWidth;
-    iframe.contentWindow.scrollTo({
-      left: (page - 1) * viewportWidth,
-      behavior: "instant",
-    });
-    setCurrentPage(page);
-  };
-
-  const next = () => {
-    if (currentPage < totalPages) goToPage(currentPage + 1);
-  };
-  const prev = () => {
-    if (currentPage > 1) goToPage(currentPage - 1);
-  };
+    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
+    const bgColor = getThemeColor(theme.bgVar);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (bgColor) setContainerBg(bgColor);
+  }, [themeId, getThemeColor]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -155,84 +92,150 @@ export default function IframeBookReader({ initialHtml, title }: Props) {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [currentPage, totalPages]);
+  }, [next, prev]);
+
+  useEffect(() => {
+    if (!ready || !iframeRef.current?.contentWindow) return;
+    const handleSelection = () => {
+      const selection = iframeRef.current?.contentWindow?.getSelection();
+      setSelectedText(selection?.toString().trim() || "");
+    };
+    const doc = iframeRef.current.contentWindow.document;
+    doc.addEventListener("mouseup", handleSelection);
+    doc.addEventListener("keyup", handleSelection);
+    return () => {
+      doc.removeEventListener("mouseup", handleSelection);
+      doc.removeEventListener("keyup", handleSelection);
+    };
+  }, [ready]);
+  useEffect(() => {
+    if (ready && isPositionRestored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(true);
+      const timer = setTimeout(() => {
+        const newTotal = calculateTotalPages();
+
+        let targetPage = currentPage;
+        if (targetPage > newTotal && newTotal > 0) {
+          targetPage = newTotal;
+        }
+
+        goToPage(targetPage);
+      }, 150);
+      setLoading(false);
+
+      return () => clearTimeout(timer);
+    }
+  }, [fontSize, fontId, ready, isPositionRestored]);
+
+  const handleIframeLoad = () => setReady(true);
+
+  const handleBookmark = () => {
+    setBookmarks((prev) =>
+      prev.includes(currentPage)
+        ? prev.filter((p) => p !== currentPage)
+        : [...prev, currentPage]
+    );
+  };
+
+  const saveNote = (noteText: string) => {
+    if (selectedText && noteText.trim()) {
+      setNotes([
+        ...notes,
+        { page: currentPage, text: selectedText, note: noteText },
+      ]);
+      setSelectedText("");
+      setShowNoteDialog(false);
+      iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+    }
+  };
+
+  const handleNoteClick = () => {
+    if (selectedText) setShowNoteDialog(true);
+    else alert("Vui lòng bôi đen văn bản để tạo ghi chú");
+  };
+
+  const isBookmarked = bookmarks.includes(currentPage);
 
   return (
     <div className="flex flex-col h-full w-full relative overflow-hidden bg-muted transition-colors duration-300">
-      <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 shadow-sm z-20 relative">
-        <button
-          onClick={prev}
-          disabled={currentPage === 1}
-          className="p-2 hover:bg-muted rounded text-foreground disabled:opacity-30 transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-
-        <div className="text-center">
-          <h1 className="font-semibold text-foreground text-sm md:text-base line-clamp-1 max-w-[150px] md:max-w-md">
-            {title}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Trang {currentPage} / {totalPages || "--"}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className={`p-2 rounded transition-colors ${
-              showSettings ? "bg-muted" : "hover:bg-muted"
-            } text-foreground`}
-          >
-            <Settings className="w-5 h-5" />
-          </button>
-
-          <button
-            onClick={next}
-            disabled={currentPage === totalPages}
-            className="p-2 hover:bg-muted rounded text-foreground disabled:opacity-30 ml-2 transition-colors"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
-
-        <ReaderSettings
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          fontSize={fontSize}
-          setFontSize={setFontSize}
-          currentTheme={themeId}
-          setTheme={setThemeId}
-          currentFont={fontId}
-          setFont={setFontId}
-        />
-      </div>
+      <ReaderTopBar
+        title={title}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onBackToBook={() => bookSlug && router.push(`/books/${bookSlug}`)}
+        onNextChapter={() => {
+          if (nextChapterSlug && bookSlug)
+            router.push(`/books/${bookSlug}/chapter/${nextChapterSlug}`);
+          else if (bookSlug) router.push(`/books/${bookSlug}`);
+        }}
+        nextChapterSlug={nextChapterSlug}
+        onToggleSettings={() => setShowSettings(!showSettings)}
+        onToggleChapters={() => setShowChaptersList(!showChaptersList)}
+        onToggleNotes={handleNoteClick}
+        isBookmarked={isBookmarked}
+        onToggleBookmark={handleBookmark}
+      />
 
       <div className="flex-1 relative w-full h-full overflow-hidden">
-        <div
-          className="absolute inset-0 -z-10"
-          style={{
-            backgroundColor: THEMES.find(
-              (t: { id: string }) => t.id === themeId
-            )?.bgClass,
-          }}
-        />
-
-        <iframe
-          ref={iframeRef}
-          srcDoc={processHtml(initialHtml)}
+        <ReaderFrame
+          iframeRef={iframeRef}
+          content={processedHtml}
           onLoad={handleIframeLoad}
-          className="w-full h-full border-none block"
-          sandbox="allow-scripts allow-same-origin"
-          title="Reader"
+          isReady={isPositionRestored}
+          themeId={themeId}
+          bgStyle={containerBg}
         />
 
-        {!ready && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-            <div className="w-8 h-8 border-4 border-muted border-t-success rounded-full animate-spin"></div>
-          </div>
-        )}
+        <ReaderPageNavigation
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPrev={prev}
+          onNext={next}
+        />
+
+        {loading ||
+          !ready ||
+          (!isPositionRestored && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
+              <div className="w-8 h-8 border-4 border-muted border-t-green-500 rounded-full animate-spin"></div>
+            </div>
+          ))}
       </div>
+
+      <ReaderSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        fontSize={fontSize}
+        setFontSize={setFontSize}
+        currentTheme={themeId}
+        setTheme={setThemeId}
+        currentFont={fontId}
+        setFont={setFontId}
+      />
+
+      {showChaptersList && (
+        <ReaderChaptersList
+          chapters={chapters}
+          currentChapterSlug={chapterSlug}
+          currentPage={currentPage}
+          onClose={() => setShowChaptersList(false)}
+          onChapterClick={(slug) =>
+            bookSlug && router.push(`/books/${bookSlug}/chapter/${slug}`)
+          }
+        />
+      )}
+
+      <ReaderNoteDialog
+        isOpen={showNoteDialog}
+        selectedText={selectedText}
+        onClose={() => {
+          setShowNoteDialog(false);
+          setSelectedText("");
+          iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+        }}
+        onSave={saveNote}
+      />
     </div>
   );
 }

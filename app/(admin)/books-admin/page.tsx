@@ -15,10 +15,10 @@ import { Book } from "@/app/feature/books/types/books.type";
 export default function BooksPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-
+  const router = useRouter();
   const pageParam = searchParams.get("page");
   const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1;
-  const pageSize = 10;
+  const pageSize = 5;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["books", page],
@@ -43,7 +43,7 @@ export default function BooksPage() {
 
   const handleEdit = (book: Book) => {
     toast.info("Tính năng Edit nên chuyển sang trang riêng tương tự Create");
-    // router.push(`/admin/books/${book.id}/edit`);
+    router.push(`/books-admin/edit/${book.slug}`);
   };
 
   if (isLoading) {
@@ -73,7 +73,7 @@ export default function BooksPage() {
   const meta = data?.meta;
 
   return (
-    <div className="container mx-auto p-6 space-y-8 max-w-7xl">
+    <div className=" mx-auto p-6 space-y-8 max-w-full">
       <div className="flex items-center justify-between border-b pb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">

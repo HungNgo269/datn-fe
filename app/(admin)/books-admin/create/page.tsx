@@ -2,46 +2,53 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ChevronLeft } from "lucide-react";
+import { Loader2, ChevronLeft, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { useBookUpload } from "@/app/feature/books/hooks/useBookUpload";
 import {
-  Step1Data,
-  Step2Data,
+  BookFormState,
+  Step1FormData,
+  Step2FormData,
 } from "@/app/feature/books-upload/schema/uploadBookSchema";
 import { Step1Form } from "@/app/feature/books-upload/components/step1Form";
 import { Step2Form } from "@/app/feature/books-upload/components/step2Form";
+import { BookUploadData } from "@/app/feature/books/types/books.type";
 
 export default function CreateBookPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [step1Data, setStep1Data] = useState<Step1Data | null>(null);
+  const [formData, setFormData] = useState<BookFormState>({
+    title: "",
+    slug: "",
+    file: undefined,
+    cover: undefined,
+    authorIds: [],
+    categoryIds: [],
+    price: 0,
+    freeChapters: 0,
+    description: "",
+  });
+  const { submitBook, isUploading, progress, error } = useBookUpload();
 
-  const { uploadBook, isUploading, progress, error } = useBookUpload();
-
-  const handleStep1Submit = (data: Step1Data) => {
-    setStep1Data(data);
+  const handleStep1Next = (data: Step1FormData) => {
+    setFormData((prev) => ({ ...prev, ...data }));
     setCurrentStep(2);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleStep2Submit = async (data: Step2Data) => {
-    if (!step1Data) return;
-
-    const uploadData = { ...step1Data, ...data };
-    const result = await uploadBook(uploadData);
+  const handleStep2Submit = async (data: Step2FormData) => {
+    const finalData = { ...formData, ...data };
+    const result = await submitBook(finalData, "create");
 
     if (result?.success) {
       toast.success("Upload sách thành công!");
       router.push("/books-admin");
     } else {
-      toast.error(result?.error || "Upload thất bại");
+      toast.error(result?.error || "Có lỗi xảy ra trong quá trình upload.");
     }
   };
-
   const handleCancel = () => {
     if (confirm("Bạn có chắc muốn hủy upload? Dữ liệu sẽ không được lưu.")) {
       router.back();
@@ -49,9 +56,9 @@ export default function CreateBookPage() {
   };
 
   return (
-    <div className="bg-background ">
-      <div className="container max-w-5xl mx-auto">
-        <div className="flex items-center gap-4 mb-4">
+    <div className="bg-background min-h-screen pb-10">
+      <div className="container max-w-5xl mx-auto pt-6">
+        <div className="flex items-center gap-4 mb-6">
           <Link href="/books-admin">
             <Button
               variant="ghost"
@@ -63,7 +70,8 @@ export default function CreateBookPage() {
             </Button>
           </Link>
         </div>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               Upload Sách Mới
@@ -73,22 +81,22 @@ export default function CreateBookPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-muted/50 p-2 rounded-lg border">
+          <div className="flex items-center gap-3 bg-muted/50 p-1.5 rounded-lg border">
             <div
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                 currentStep === 1
                   ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground hover:text-foreground/80"
               }`}
             >
               1. File & Bìa
             </div>
             <div className="h-4 w-px bg-border"></div>
             <div
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                 currentStep === 2
                   ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground hover:text-foreground/80"
               }`}
             >
               2. Thông tin chi tiết
@@ -99,34 +107,61 @@ export default function CreateBookPage() {
 
       <div className="container max-w-5xl mx-auto">
         <div className="max-w-3xl mx-auto mb-8">
-          {progress && (
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              <p className="text-sm font-medium text-primary">
-                {progress.message}
-              </p>
+          {isUploading && progress && (
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <p className="text-sm font-medium text-primary">
+                  {progress.message}
+                </p>
+              </div>
+              <div className="w-full bg-primary/20 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-primary h-full transition-all duration-500 ease-in-out"
+                  style={{
+                    width:
+                      progress.stage === "cover"
+                        ? "25%"
+                        : progress.stage === "file"
+                        ? "60%"
+                        : progress.stage === "saving"
+                        ? "90%"
+                        : "100%",
+                  }}
+                />
+              </div>
             </div>
           )}
 
-          {error && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 animate-in fade-in slide-in-from-top-2">
-              <p className="text-sm font-medium text-destructive">{error}</p>
+          {error && !isUploading && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 animate-in fade-in slide-in-from-top-2 mt-4 flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+              <p className="text-sm font-medium text-destructive">
+                {error}. Vui lòng kiểm tra và nhấn nút Hoàn tất & Đăng bên dưới
+                để thử lại.
+              </p>
             </div>
           )}
         </div>
 
-        <div className="bg-card border rounded-sm p-6 md:p-8">
+        <div className="bg-card border rounded-xl shadow-sm p-6 md:p-8">
           {currentStep === 1 && (
-            <Step1Form onNext={handleStep1Submit} onCancel={handleCancel} />
+            <Step1Form
+              onNext={handleStep1Next}
+              onCancel={handleCancel}
+              defaultValues={formData}
+              isEdit={false}
+            />
           )}
 
-          {currentStep === 2 && step1Data && (
+          {currentStep === 2 && (
             <Step2Form
-              step1Data={step1Data}
+              step1Data={formData}
+              defaultValues={formData}
               onBack={() => setCurrentStep(1)}
-              onCancel={handleCancel}
               onSubmit={handleStep2Submit}
               isSubmitting={isUploading}
+              onCancel={handleCancel}
             />
           )}
         </div>
