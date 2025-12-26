@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { useBookUpload } from "@/app/feature/books/hooks/useBookUpload";
+import { useBookSubmit } from "@/app/feature/books/hooks/useBookSubmit";
 import {
   BookFormState,
   Step1FormData,
@@ -15,7 +15,6 @@ import {
 } from "@/app/feature/books-upload/schema/uploadBookSchema";
 import { Step1Form } from "@/app/feature/books-upload/components/step1Form";
 import { Step2Form } from "@/app/feature/books-upload/components/step2Form";
-import { BookUploadData } from "@/app/feature/books/types/books.type";
 
 export default function CreateBookPage() {
   const router = useRouter();
@@ -31,7 +30,7 @@ export default function CreateBookPage() {
     freeChapters: 0,
     description: "",
   });
-  const { submitBook, isUploading, progress, error } = useBookUpload();
+  const { submitBook, isSubmitting, statusMessage, error } = useBookSubmit();
 
   const handleStep1Next = (data: Step1FormData) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -43,7 +42,9 @@ export default function CreateBookPage() {
     const result = await submitBook(finalData, "create");
 
     if (result?.success) {
-      toast.success("Upload sách thành công!");
+      toast.success(
+        "Upload sách thành công!, Hãy chờ một chút để chúng tôi cập nhật sách"
+      );
       router.push("/books-admin");
     } else {
       toast.error(result?.error || "Có lỗi xảy ra trong quá trình upload.");
@@ -107,12 +108,12 @@ export default function CreateBookPage() {
 
       <div className="container max-w-5xl mx-auto">
         <div className="max-w-3xl mx-auto mb-8">
-          {isUploading && progress && (
+          {isSubmitting && statusMessage && (
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
               <div className="flex items-center gap-3">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <p className="text-sm font-medium text-primary">
-                  {progress.message}
+                  {statusMessage}
                 </p>
               </div>
               <div className="w-full bg-primary/20 h-1.5 rounded-full overflow-hidden">
@@ -120,11 +121,11 @@ export default function CreateBookPage() {
                   className="bg-primary h-full transition-all duration-500 ease-in-out"
                   style={{
                     width:
-                      progress.stage === "cover"
+                      statusMessage === "cover"
                         ? "25%"
-                        : progress.stage === "file"
+                        : statusMessage === "file"
                         ? "60%"
-                        : progress.stage === "saving"
+                        : statusMessage === "saving"
                         ? "90%"
                         : "100%",
                   }}
@@ -133,7 +134,7 @@ export default function CreateBookPage() {
             </div>
           )}
 
-          {error && !isUploading && (
+          {error && !isSubmitting && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 animate-in fade-in slide-in-from-top-2 mt-4 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
               <p className="text-sm font-medium text-destructive">
@@ -160,7 +161,7 @@ export default function CreateBookPage() {
               defaultValues={formData}
               onBack={() => setCurrentStep(1)}
               onSubmit={handleStep2Submit}
-              isSubmitting={isUploading}
+              isSubmitting={isSubmitting}
               onCancel={handleCancel}
             />
           )}

@@ -4,19 +4,16 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-import { Button } from "@/components/ui/button";
-import { Category } from "@/app/feature/categories/types/listCategories";
-import { CategoryDialog } from "@/app/feature/categories/components/adminCategoryDialog";
-import {
-  deleteCategory,
-  getCategories,
-} from "@/app/feature/categories/api/categories.api";
-import { AdminCategoryList } from "@/app/feature/categories/components/adminCategoryList";
-import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { useSearchParams } from "next/navigation";
 
-export default function CategoriesPage() {
+import { Button } from "@/components/ui/button";
+import { Pagination } from "@/app/share/components/ui/pagination/pagination";
+import { deleteBanner, getBanners } from "@/app/feature/banner/api/banner.api";
+import { Banner } from "@/app/feature/banner/types/banner.types";
+import { AdminBannerList } from "@/app/feature/banner/components/adminBannerList";
+import { BannerDialog } from "@/app/feature/banner/components/adminBannerDialog";
+
+export default function BannersPage() {
   const queryClient = useQueryClient();
 
   const pageParams = useSearchParams().get("page");
@@ -25,21 +22,19 @@ export default function CategoriesPage() {
   const pageSize = 10;
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
+  const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["categories", page],
-    queryFn: () => getCategories({ page, limit: pageSize }),
+    queryKey: ["banners", page],
+    queryFn: () => getBanners({ page, limit: pageSize }),
     placeholderData: (previousData) => previousData,
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteCategory,
+    mutationFn: deleteBanner,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast.success("Đã xóa danh mục!");
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      toast.success("Đã xóa banner!");
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Xóa thất bại");
@@ -47,12 +42,12 @@ export default function CategoriesPage() {
   });
 
   const handleCreate = () => {
-    setSelectedCategory(null);
+    setSelectedBanner(null);
     setIsDialogOpen(true);
   };
 
-  const handleEdit = (category: Category) => {
-    setSelectedCategory(category);
+  const handleEdit = (banner: Banner) => {
+    setSelectedBanner(banner);
     setIsDialogOpen(true);
   };
 
@@ -71,23 +66,21 @@ export default function CategoriesPage() {
   if (isError) {
     return (
       <div className="p-10 text-destructive text-center">
-        Không thể tải dữ liệu
+        Không thể tải dữ liệu banner
       </div>
     );
   }
 
-  const categories = data?.data;
+  const banners = data?.data;
   const meta = data?.meta;
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Quản lý Thể loại
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý Banners</h1>
           <p className="text-muted-foreground">
-            Danh sách các thể loại sách trong hệ thống
+            Thiết lập các banner quảng cáo, sự kiện trên trang chủ và sidebar
           </p>
         </div>
         <Button onClick={handleCreate}>
@@ -95,8 +88,8 @@ export default function CategoriesPage() {
         </Button>
       </div>
 
-      <AdminCategoryList
-        categories={categories!}
+      <AdminBannerList
+        banners={banners!}
         onEdit={handleEdit}
         onDelete={handleDelete}
         isDeleting={deleteMutation.isPending}
@@ -104,10 +97,10 @@ export default function CategoriesPage() {
 
       {meta && <Pagination meta={meta} />}
 
-      <CategoryDialog
+      <BannerDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        categoryToEdit={selectedCategory}
+        bannerToEdit={selectedBanner}
       />
     </div>
   );

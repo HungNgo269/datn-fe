@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,13 +7,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import Cookies from "js-cookie";
+
 import { RegisterFields, RegisterSchema } from "@/app/schema/registerSchema";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Register } from "./api/register.api";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import { useTokenStore } from "@/app/store/useTokenStore";
+import { Register } from "./api/register.api";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -35,7 +35,11 @@ export default function RegisterForm() {
         throw new Error("Đăng nhập thất bại");
       }
       useAuthStore.getState().setUser(data.user);
-      useTokenStore.getState().setToken(data.accessToken);
+      Cookies.set("accessToken", data.accessToken, {
+        expires: 15 * 60 * 1000,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
       await queryClient.invalidateQueries({ queryKey: ["user"] });
 
       toast.success("Đăng ký thành công!");
@@ -115,7 +119,7 @@ export default function RegisterForm() {
               <div className="flex items-center space-x-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-destructive" />
                 <p className="text-sm text-destructive">
-                  Đã xảy ra lỗi trong quá trình đăng ký. Vui lòng thử lại.
+                  {registerMutation.error.message}
                 </p>
               </div>
             )}

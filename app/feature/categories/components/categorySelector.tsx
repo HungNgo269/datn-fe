@@ -31,7 +31,7 @@ export default function CategorySelector({
             </button>
 
             {index < categories.length - 1 && (
-              <span className="mx-2 text-gray-400 text-xs hidden md:inline-block">
+              <span className="mx-2 text-muted-foreground text-xs hidden md:inline-block">
                 •
               </span>
             )}

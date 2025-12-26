@@ -10,10 +10,10 @@ export default function Error({
   return (
     <div className="flex flex-col items-center justify-center p-8">
       <h2 className="text-xl font-bold">Đã xảy ra lỗi!</h2>
-      <p className="text-gray-600">{error.message}</p>
+      <p className="text-muted-foreground">{error.message}</p>
       <button
         onClick={reset}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
       >
         Thử lại
       </button>

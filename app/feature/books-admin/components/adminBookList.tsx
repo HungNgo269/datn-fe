@@ -31,6 +31,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
+import Link from "next/link";
 
 interface BookListProps {
   books: Book[];
@@ -52,15 +53,14 @@ export function AdminBookList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Cover</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead className="text-center">Chapters</TableHead>
-            <TableHead className="text-center">Upload Date</TableHead>
-            <TableHead className="text-center">Status</TableHead>
-            <TableHead className="text-center">Price (VND)</TableHead>
-
-            <TableHead className="text-center">Actions</TableHead>
+            <TableHead className="w-[100px]">Ảnh bìa</TableHead>
+            <TableHead>Tên tác phẩm</TableHead>
+            <TableHead>Tác giả</TableHead>
+            <TableHead className="text-center">Số chương</TableHead>
+            <TableHead className="text-center">Ngày đăng tải</TableHead>
+            <TableHead className="text-center">Trạng thái</TableHead>
+            <TableHead className="text-center">Giá</TableHead>
+            <TableHead className="text-center">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -104,15 +104,23 @@ export function AdminBookList({
                         <h4 className="font-semibold text-sm line-clamp-2 max-w-[300px]">
                           {book.title}
                         </h4>
-                        {book.authors.map((author) => (
-                          <p
-                            key={author.author.id}
-                            className="text-xs text-muted-foreground mt-1"
-                          >
-                            {author.author.name}
-                          </p>
-                        ))}
-
+                        <div className="flex flex-row items-center overflow-hidden max-w-full">
+                          <div className="text-xs text-muted-foreground truncate">
+                            {book.authors &&
+                              book.authors.map((author, index) => (
+                                <span key={author.author.id}>
+                                  <Link
+                                    prefetch={true}
+                                    href={`${book.viewCount}`}
+                                    className="hover:underline"
+                                  >
+                                    {author.author.name}
+                                  </Link>
+                                  {index < book.authors.length - 1 && ", "}
+                                </span>
+                              ))}
+                          </div>
+                        </div>
                         <div className="mt-2 flex gap-2"></div>
                       </div>
                     </HoverCardContent>
@@ -124,14 +132,23 @@ export function AdminBookList({
                 </TableCell>
 
                 <TableCell className="text-muted-foreground">
-                  {book.authors.map((author) => (
-                    <p
-                      key={author.author.id}
-                      className="text-xs text-muted-foreground mt-1"
-                    >
-                      {author.author.name}
-                    </p>
-                  ))}
+                  <div className="flex flex-row items-center overflow-hidden max-w-full">
+                    <div className="text-xs text-muted-foreground truncate">
+                      {book.authors &&
+                        book.authors.map((author, index) => (
+                          <span key={author.author.id}>
+                            <Link
+                              prefetch={true}
+                              href={`${book.viewCount}`}
+                              className="hover:underline"
+                            >
+                              {author.author.name}
+                            </Link>
+                            {index < book.authors.length - 1 && ", "}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground text-center">
                   {book.totalChapters}

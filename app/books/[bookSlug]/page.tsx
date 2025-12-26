@@ -52,7 +52,7 @@ export default async function BookPage({ params }: PageProps) {
         <div className="min-h-screen relative flex flex-col bg-background">
           <div className="container relative z-10 mx-auto  pt-8 md:pt-16 max-w-[1200px] flex-grow">
             <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start mb-16">
-              <div className="w-[160px] md:w-[220px] lg:w-[240px] flex-shrink-0 mx-auto md:mx-0 shadow-2xl rounded-lg overflow-hidden border border-white/10">
+              <div className="w-[160px] md:w-[220px] lg:w-[240px] flex-shrink-0 mx-auto md:mx-0 shadow-2xl rounded-lg overflow-hidden border border-border">
                 <div className="aspect-[3/4] relative">
                   {book.coverImage && (
                     <ImageCard
@@ -117,7 +117,7 @@ export default async function BookPage({ params }: PageProps) {
                       href={`/book/${bookSlug}/${firstChapter.id}`}
                       className="w-full sm:w-auto flex-1 sm:flex-none"
                     >
-                      <Button className="w-full sm:w-[180px] h-12 text-base font-bold bg-muted border-primary border text-black hover:bg-gray-200 rounded-sm shadow-none">
+                      <Button className="w-full sm:w-[180px] h-12 text-base font-bold bg-muted border-primary border text-foreground hover:bg-muted/80 rounded-sm shadow-none">
                         <BookOpen className="w-5 h-5 mr-2" />
                         Đọc tập 1
                       </Button>

@@ -1,4 +1,5 @@
-import { useTokenStore } from "@/app/store/useTokenStore";
+import Cookies from "js-cookie";
+
 import axios, {
   AxiosError,
   AxiosResponse, //   AxiosResponse, //   AxiosError, // , {
@@ -13,7 +14,7 @@ export const axiosClient = axios.create({
 });
 axiosClient.interceptors.request.use(
   (config) => {
-    const accessToken = useTokenStore.getState().token;
+    const accessToken = Cookies.get("accessToken");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -88,7 +89,6 @@ axiosClient.interceptors.response.use(
     //       try {
     //         const newAccessToken = await authApi.refreshToken();
 
-    //         useTokenStore.getState().setAccessToken(newAccessToken);
     //         processQueue(null, newAccessToken);
 
     //         if (originalRequest.headers) {

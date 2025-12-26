@@ -27,7 +27,7 @@ export function ChapterRating() {
       <div className="flex flex-col md:flex-row gap-8 items-center md:items-start bg-muted/20 p-6 rounded-xl">
         <div className="text-center space-y-2">
           <div className="text-5xl font-bold text-primary">4.8</div>
-          <div className="flex text-yellow-500 justify-center">
+          <div className="flex text-warning justify-center">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star key={i} className="w-5 h-5 fill-current" />
             ))}
@@ -72,7 +72,7 @@ export function ChapterRating() {
                 {review.date}
               </span>
             </div>
-            <div className="flex text-yellow-500 mb-2">
+            <div className="flex text-warning mb-2">
               {[...Array(review.rating)].map((_, i) => (
                 <Star key={i} className="w-3 h-3 fill-current" />
               ))}

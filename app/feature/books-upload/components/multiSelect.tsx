@@ -82,10 +82,8 @@ export function MultiSelect<T extends FieldValues>({
                                 variant="outline"
                                 role="combobox"
                                 aria-expanded={open}
-                                className={`w-full justify-between h-auto min-h-[40px] ${
-                                    !selectedValues.length
-                                        ? "text-muted-foreground"
-                                        : ""
+                                className={`w-full bg-foreground justify-between h-auto min-h-[40px] ${
+                                    !selectedValues.length ? "text-muted" : ""
                                 }`}
                             >
                                 {selectedValues.length > 0
@@ -197,7 +195,7 @@ export function MultiSelect<T extends FieldValues>({
             />
 
             {error && (
-                <p className="text-sm text-red-600 font-medium">{error}</p>
+                <p className="text-sm text-destructive font-medium">{error}</p>
             )}
         </div>
     );

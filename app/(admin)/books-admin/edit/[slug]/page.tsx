@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Step1Form } from "@/app/feature/books-upload/components/step1Form";
 import { Step2Form } from "@/app/feature/books-upload/components/step2Form";
 
-import { useBookUpload } from "@/app/feature/books/hooks/useBookUpload";
 import { getBookBySlug } from "@/app/feature/books/api/books.api";
 import { Book } from "@/app/feature/books/types/books.type";
 import {
@@ -18,6 +17,7 @@ import {
   Step1FormData,
   Step2FormData,
 } from "@/app/feature/books-upload/schema/uploadBookSchema";
+import { useBookSubmit } from "@/app/feature/books/hooks/useBookSubmit";
 
 export default function EditBookPage() {
   const params = useParams();
@@ -28,7 +28,7 @@ export default function EditBookPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<BookFormState | null>(null);
 
-  const { submitBook, isUploading, progress, error } = useBookUpload();
+  const { submitBook, isSubmitting, statusMessage, error } = useBookSubmit();
 
   useEffect(() => {
     if (!bookSlug) return;
@@ -53,7 +53,6 @@ export default function EditBookPage() {
           file: book.sourceKey ? "current_file_placeholder" : undefined,
           currentSourceKey: book.sourceKey,
           currentCoverKey: book.coverImage,
-          // Step 2 Data
           authorIds: book.authors.map((a) => a.author.id),
           categoryIds: book.categories.map((c) => c.category.id),
 
@@ -162,7 +161,7 @@ export default function EditBookPage() {
                   ? "bg-background shadow-sm text-foreground"
                   : "text-muted-foreground hover:text-foreground/80 cursor-pointer"
               }`}
-              onClick={() => !isUploading && setCurrentStep(1)}
+              onClick={() => !isSubmitting && setCurrentStep(1)}
             >
               1. File & Bìa
             </div>
@@ -182,12 +181,12 @@ export default function EditBookPage() {
 
       <div className="container max-w-5xl mx-auto">
         <div className="max-w-3xl mx-auto mb-8">
-          {isUploading && progress && (
+          {isSubmitting && statusMessage && (
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
               <div className="flex items-center gap-3">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <p className="text-sm font-medium text-primary">
-                  {progress.message}
+                  {statusMessage}
                 </p>
               </div>
               <div className="w-full bg-primary/20 h-1.5 rounded-full overflow-hidden">
@@ -195,11 +194,11 @@ export default function EditBookPage() {
                   className="bg-primary h-full transition-all duration-500 ease-in-out"
                   style={{
                     width:
-                      progress.stage === "cover"
+                      statusMessage === "cover"
                         ? "25%"
-                        : progress.stage === "file"
+                        : statusMessage === "file"
                         ? "60%"
-                        : progress.stage === "saving"
+                        : statusMessage === "saving"
                         ? "90%"
                         : "100%",
                   }}
@@ -208,7 +207,7 @@ export default function EditBookPage() {
             </div>
           )}
 
-          {error && !isUploading && (
+          {error && !isSubmitting && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 animate-in fade-in slide-in-from-top-2 mt-4 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
               <p className="text-sm font-medium text-destructive">
@@ -235,7 +234,7 @@ export default function EditBookPage() {
               onBack={() => setCurrentStep(1)}
               onCancel={handleCancel}
               onSubmit={handleStep2Submit}
-              isSubmitting={isUploading}
+              isSubmitting={isSubmitting}
             />
           )}
         </div>

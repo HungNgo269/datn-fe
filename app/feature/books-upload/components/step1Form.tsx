@@ -137,6 +137,7 @@ export function Step1Form({
                             className="bg-muted text-muted-foreground"
                             {...form.register("slug")}
                             readOnly
+                            disabled
                         />
                         {form.formState.errors.slug && (
                             <p className="text-sm text-destructive">

@@ -1,20 +1,8 @@
 import { axiosClient } from "@/lib/api";
-import { ForgotPasswordFields } from "@/app/schema/forgotPasswordSchema";
-type ForgotPasswordPayload = ForgotPasswordFields & {
-  token: string;
-};
-export async function ForgotPassword(
-  payload: ForgotPasswordPayload
-): Promise<string | null> {
-  try {
-    const response = await axiosClient.post(`auth/forgot-password`, payload);
+import { handleRequest } from "@/lib/handleApiRequest";
 
-    if (!response?.data) {
-      throw new Error("Đăng nhập thất bại");
-    }
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi đăng nhập:", error);
-    return null;
-  }
+export async function ForgotPassword(email: string) {
+  return handleRequest<string | null>(() =>
+    axiosClient.post(`auth/forgot-password`, email)
+  );
 }

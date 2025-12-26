@@ -1,12 +1,7 @@
 import { handlePaginatedRequest, handleRequest } from "@/lib/handleApiRequest";
-import {
-  Book,
-  BookCardProps,
-  CreateBookDto,
-  PresignedUrlResponse,
-} from "../types/books.type";
+import { Book, CreateBookDto } from "../types/books.type";
 import { axiosClient } from "@/lib/api";
-import { BookFields } from "@/app/schema/bookSchema";
+import { BookFields } from "@/app/feature/books/schema/bookSchema";
 
 export async function getBooks(params: { page: number; limit: number }) {
   return handlePaginatedRequest<Book>(() =>
@@ -56,10 +51,4 @@ export async function updateBook(id: number, payload: Partial<BookFields>) {
 
 export async function deleteBook(id: number) {
   return handleRequest<boolean>(() => axiosClient.delete(`/admin/books/${id}`));
-}
-
-export async function getPresignedUrl(filename: string, type: string) {
-  return handleRequest<PresignedUrlResponse>(() =>
-    axiosClient.post("/storage/presigned-url", { filename, type })
-  );
 }

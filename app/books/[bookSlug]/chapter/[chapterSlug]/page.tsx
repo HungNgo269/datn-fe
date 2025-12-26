@@ -31,7 +31,7 @@ export default async function ChapterPage({ params }: PageProps) {
     : null;
 
   return (
-    <div className="h-screen w-screen bg-gray-900">
+    <div className="h-screen w-screen bg-background">
       <IframeBookReader 
         initialHtml={chapterContent} 
         title={response.title}

@@ -67,7 +67,7 @@ export default function AdminLayout({
   if (!userRole?.includes("admin")) {
     //logout
   }
-  const [active, setActive] = useState("Analytics");
+  const [active, setActive] = useState("Books");
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

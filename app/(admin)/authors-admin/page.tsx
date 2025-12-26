@@ -4,20 +4,22 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
-
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { useSearchParams } from "next/navigation";
 import { deleteAuthor, getAuthors } from "@/app/feature/author/api/authors.api";
 import { AdminAuthorList } from "@/app/feature/author/components/adminAuthorList";
 import { AuthorDialog } from "@/app/feature/author/components/adminAuthorDialog";
-import { AuthorInfo } from "@/app/feature/books/types/books.type";
+import { AuthorInfo } from "@/app/feature/author/types/authors.types";
+import Search from "@/app/share/components/ui/search/adminSearch";
 
 export default function AuthorsPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
 
-  const pageParams = useSearchParams().get("page");
+  const pageParams = searchParams.get("page");
+  const queryParams = searchParams.get("q") || "";
+
   const parsedPage = parseInt(pageParams || "1", 10);
   const page = Math.max(1, parsedPage);
   const pageSize = 10;
@@ -26,7 +28,7 @@ export default function AuthorsPage() {
   const [selectedAuthor, setSelectedAuthor] = useState<AuthorInfo | null>(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["authors", page],
+    queryKey: ["authors", page, queryParams],
     queryFn: () => getAuthors({ page, limit: pageSize }),
     placeholderData: (previousData) => previousData,
   });
@@ -35,7 +37,7 @@ export default function AuthorsPage() {
     mutationFn: deleteAuthor,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      toast.success("Đã xóa danh mục!");
+      toast.success("Đã xóa tác giả!");
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Xóa thất bại");
@@ -46,31 +48,20 @@ export default function AuthorsPage() {
     setSelectedAuthor(null);
     setIsDialogOpen(true);
   };
-
   const handleEdit = (author: AuthorInfo) => {
     setSelectedAuthor(author);
     setIsDialogOpen(true);
   };
-
   const handleDelete = (id: number) => {
     deleteMutation.mutate(id);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-10">
-        <Loader2 className="animate-spin" />
-      </div>
-    );
-  }
-
-  if (isError) {
+  if (isError)
     return (
       <div className="p-10 text-destructive text-center">
         Không thể tải dữ liệu
       </div>
     );
-  }
 
   const authors = data?.data;
   const meta = data?.meta;
@@ -81,7 +72,7 @@ export default function AuthorsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Quản lý Tác Giả</h1>
           <p className="text-muted-foreground">
-            Danh sách các thể loại sách trong hệ thống
+            Danh sách các tác giả trong hệ thống
           </p>
         </div>
         <Button onClick={handleCreate}>
@@ -89,14 +80,25 @@ export default function AuthorsPage() {
         </Button>
       </div>
 
-      <AdminAuthorList
-        authors={authors!}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        isDeleting={deleteMutation.isPending}
-      />
+      {/* <div className="w-full md:w-1/3">
+        <Search placeholder="Tìm kiếm tác giả..." />
+      </div> */}
 
-      {meta && <Pagination meta={meta} />}
+      {isLoading ? (
+        <div className="flex justify-center p-10">
+          <Loader2 className="animate-spin" />
+        </div>
+      ) : (
+        <>
+          <AdminAuthorList
+            authors={authors || []}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            isDeleting={deleteMutation.isPending}
+          />
+          {meta && <Pagination meta={meta} />}
+        </>
+      )}
 
       <AuthorDialog
         open={isDialogOpen}

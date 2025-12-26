@@ -1,3 +1,6 @@
+import { AuthorInfo } from "../../author/types/authors.types";
+import { CategoryInfo } from "../../categories/types/listCategories";
+
 export interface Book {
   id: number;
   title: string;
@@ -22,38 +25,12 @@ export interface AuthorsList {
   assignedAt: Date | string;
   author: AuthorInfo;
 }
-export interface AuthorInfo {
-  id: number;
-  name: string;
-  slug: string;
-  avatar?: string;
-  bio?: string;
-  isActive?: boolean;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
-}
 
 export interface CategoriesList {
   bookId: number;
   categoryId: 2;
   assignedAt: Date | string;
   category: CategoryInfo;
-}
-
-export interface CategoryInfo {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  parentId?: number;
-  isActive: boolean;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
-
-export interface PresignedUrlResponse {
-  uploadUrl: string;
-  key: string;
 }
 
 export enum BookStatus {
@@ -97,10 +74,6 @@ export interface CreateBookDto {
   // isActive: boolean;
 }
 
-export interface PresignedUrlResponse {
-  key: string;
-  uploadUrl: string;
-}
 export enum BookSortBy {
   CREATED_AT = "createdAt",
   UPDATED_AT = "updatedAt",

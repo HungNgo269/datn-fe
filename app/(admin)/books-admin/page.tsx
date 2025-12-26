@@ -4,13 +4,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link"; // Import Link
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { AdminBookList } from "@/app/feature/books-admin/components/adminBookList";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { getBooks, deleteBook } from "@/app/feature/books/api/books.api";
 import { Book } from "@/app/feature/books/types/books.type";
+import Search from "@/app/share/components/ui/search/adminSearch";
 
 export default function BooksPage() {
   const queryClient = useQueryClient();
@@ -42,7 +43,6 @@ export default function BooksPage() {
   };
 
   const handleEdit = (book: Book) => {
-    toast.info("Tính năng Edit nên chuyển sang trang riêng tương tự Create");
     router.push(`/books-admin/edit/${book.slug}`);
   };
 
@@ -82,6 +82,9 @@ export default function BooksPage() {
           <p className="text-muted-foreground mt-1">
             Danh sách các sách trong hệ thống
           </p>
+          {/* <div className="mt-3 flex items-center justify-between gap-2 md:mt-6">
+            <Search placeholder="Search book..." />
+          </div> */}
         </div>
         <div className="flex gap-2">
           <Link href="/books-admin/create">

@@ -53,7 +53,7 @@ export function UploadBookButton({
                 />
             </div>
             {selectedFile && (
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-sm text-muted-foreground mt-1">
                     ✓ Đã chọn:{" "}
                     {selectedFile instanceof File
                         ? selectedFile.name

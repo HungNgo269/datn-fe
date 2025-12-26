@@ -1,7 +1,7 @@
 import { handlePaginatedRequest, handleRequest } from "@/lib/handleApiRequest";
 
 import { axiosClient } from "@/lib/api";
-import { BookFields } from "@/app/schema/bookSchema";
+import { BookFields } from "@/app/feature/books/schema/bookSchema";
 import {
   Book,
   BookCardProps,

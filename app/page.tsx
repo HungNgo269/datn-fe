@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Header from "./share/components/ui/header/header";
 import CategoryBookWrapper from "./feature/categories/components/categoryBookWrapper";
-import BannerComponent from "./feature/banner/components/banner";
+import BannerComponent from "./feature/banner/components/bannerHomeSlider";
 import SwipperNewBook from "./feature/books-new/components/newBookSwipperWrapper";
 import NewBookList from "./feature/books-new/components/newBookList";
 import PopularBook from "./feature/books-popular/components/popularBook";
@@ -20,13 +20,8 @@ import FooterComponent from "./share/components/ui/footer/footer";
 // import Swipper from "@/app/ui/user/swipper/swipper";
 // import SwipperNewBook from "@/app/ui/user/swipper/swipperNewBook";
 // import SwipperBestSeller from "@/app/ui/user/swipper/swipperBestSeller";
-//ALL SEO,skeleton created by codex
-interface PageProps {
-  searchParams?: Promise<{ page?: string }>;
-}
 
-export default async function HomePage({ searchParams }: PageProps) {
-  const page = (await searchParams)?.page;
+export default async function HomePage() {
   return (
     <div className="overflow-x-hidden ">
       <header className="ml-auto mr-auto w-full  ">

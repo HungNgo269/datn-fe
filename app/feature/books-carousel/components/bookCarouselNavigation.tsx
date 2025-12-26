@@ -48,7 +48,7 @@ export default function BookCarouselNavigation({
           <Button
             variant="outline"
             size="icon"
-            className="bg-white/90 hover:bg-white border-gray-200 shadow-lg rounded-full  cursor-pointer  pointer-events-auto"
+            className="bg-background/90 hover:bg-background border-border shadow-lg rounded-full cursor-pointer pointer-events-auto"
             onClick={onPrevSlide}
             aria-label="Previous slide"
           >
@@ -62,7 +62,7 @@ export default function BookCarouselNavigation({
           <Button
             variant="outline"
             size="icon"
-            className="bg-white/90 hover:bg-white border-gray-200 shadow-lg rounded-full   cursor-pointer pointer-events-auto"
+            className="bg-background/90 hover:bg-background border-border shadow-lg rounded-full cursor-pointer pointer-events-auto"
             onClick={onNextSlide}
             aria-label="Next slide"
           >

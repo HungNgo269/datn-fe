@@ -6,17 +6,24 @@ import { ArrowLeft, Check, Loader2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
+
 import {
     Step2Schema,
     Step2FormData,
     Step1FormData,
     BookFormState,
 } from "../schema/uploadBookSchema";
-import { MOCK_AUTHORS, MOCK_CATEGORIES } from "./constant";
-import { MultiSelect } from "./multiSelect";
 
-import dynamic from "next/dynamic";
-import "react-quill-new/dist/quill.snow.css";
+import { getAuthorsSearch } from "@/app/feature/author/api/authors.api"; // Ví dụ đường dẫn
+import { getCategorySearch } from "@/app/feature/categories/api/categories.api"; // Ví dụ đường dẫn
+import {
+    AsyncCreatableSelect,
+    Option,
+} from "@/components/ui/AsyncCreatableSelect";
+import { useAuthorSubmit } from "../../author/hooks/useAuthorSubmit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
     ssr: false,
@@ -54,7 +61,6 @@ export function Step2Form({
     onSubmit,
     isSubmitting,
 }: Step2FormProps) {
-    // Extract only Step2 fields from defaultValues (in case BookFormState is passed)
     const step2Defaults: Step2FormData = {
         authorIds: defaultValues?.authorIds ?? [],
         categoryIds: defaultValues?.categoryIds ?? [],
@@ -62,11 +68,87 @@ export function Step2Form({
         price: defaultValues?.price ?? 0,
         freeChapters: defaultValues?.freeChapters ?? 0,
     };
+    const { submitAuthor } = useAuthorSubmit();
 
     const form = useForm<Step2FormData>({
         resolver: zodResolver(Step2Schema),
         defaultValues: step2Defaults,
     });
+    const handleCreateAuthor = async (inputValue: string): Promise<Option> => {
+        try {
+            // Giả sử submitAuthor trả về object Author đầy đủ { id: 123, name: "Nguyen Nhat Anh", ... }
+            const newAuthor = await submitAuthor(
+                { name: inputValue },
+                "create"
+            );
+            console.log("new");
+            // Lưu ý: Bạn cần check lại chữ ký hàm submitAuthor của bạn nhận tham số gì.
+            // Nếu nó là submitAuthor(name: string, option: string), thì gọi như sau:
+            // const newAuthor = await submitAuthor(inputValue, "create");
+
+            if (!newAuthor || !newAuthor.data?.id) {
+                throw new Error("Không lấy được ID tác giả mới");
+            }
+
+            toast.success(`Đã tạo tác giả: ${inputValue}`);
+
+            // Trả về đúng format Option cho Select component
+            return {
+                value: newAuthor.data?.id, // ID số từ database
+                label: newAuthor.data?.name || inputValue,
+            };
+        } catch (error) {
+            toast.error("Lỗi khi tạo tác giả mới");
+            throw error; // Ném lỗi để component con biết mà dừng loading
+        }
+    };
+    // --- XỬ LÝ SEARCH API ---
+
+    // 1. Hàm Adapter cho Authors
+    const fetchAuthorOptions = async (query: string): Promise<Option[]> => {
+        try {
+            // Gọi API: response trả về là object { data: AuthorInfo[], total: number, ... }
+            // do handlePaginatedRequest đã xử lý wrapper bên ngoài.
+            const response = await getAuthorsSearch({
+                page: 1,
+                limit: 20,
+                q: query,
+            });
+
+            // Lấy mảng data trực tiếp từ response.data
+            const authors = response.data || [];
+
+            // Map sang format Option { value, label }
+            return authors.map((author) => ({
+                value: author.id, // ID là number
+                label: author.name,
+            }));
+        } catch (error) {
+            console.error("Lỗi search author:", error);
+            return [];
+        }
+    };
+    // 2. Hàm Adapter cho Categories
+    const fetchCategoryOptions = async (query: string): Promise<Option[]> => {
+        try {
+            // Tương tự với Categories
+            const response = await getCategorySearch({
+                page: 1,
+                limit: 20,
+                q: query,
+            });
+
+            const categories = response.data || [];
+
+            return categories.map((cat) => ({
+                value: cat.id, // ID là number
+                label: cat.name,
+            }));
+        } catch (error) {
+            console.error("Lỗi search category:", error);
+            return [];
+        }
+    };
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -85,27 +167,63 @@ export function Step2Form({
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                <div className="space-y-1 md:col-span-2">
-                    <MultiSelect
+                {/* --- TRƯỜNG TÁC GIẢ --- */}
+                <div className="space-y-1 md:col-span-3">
+                    <Label>
+                        Tác Giả <span className="text-destructive">*</span>
+                    </Label>
+                    <Controller
+                        control={form.control}
                         name="authorIds"
-                        label="Tác Giả"
-                        options={MOCK_AUTHORS}
-                        control={form.control}
-                        error={form.formState.errors.authorIds?.message}
-                        required
+                        render={({ field }) => (
+                            <AsyncCreatableSelect
+                                label="tác giả"
+                                placeholder="Tìm hoặc thêm tác giả..."
+                                value={field.value}
+                                onChange={field.onChange}
+                                fetchOptions={fetchAuthorOptions}
+                                // CHỈNH SỬA Ở ĐÂY:
+                                onCreateOption={handleCreateAuthor}
+                            />
+                        )}
                     />
+                    <p className="text-[0.8rem] text-muted-foreground">
+                        Nhập tên để tìm kiếm. Nếu chưa có, nhấn Tạo mới.
+                    </p>
+                    {form.formState.errors.authorIds && (
+                        <p className="text-sm text-destructive font-medium">
+                            {form.formState.errors.authorIds.message}
+                        </p>
+                    )}
                 </div>
-                <div className="space-y-1 md:col-span-2">
-                    <MultiSelect
+
+                {/* --- TRƯỜNG THỂ LOẠI --- */}
+                <div className="space-y-1 md:col-span-3">
+                    <Label>
+                        Thể Loại <span className="text-destructive">*</span>
+                    </Label>
+                    <Controller
+                        control={form.control}
                         name="categoryIds"
-                        label="Thể Loại"
-                        options={MOCK_CATEGORIES}
-                        control={form.control}
-                        error={form.formState.errors.categoryIds?.message}
-                        required
+                        render={({ field }) => (
+                            <AsyncCreatableSelect
+                                label="thể loại"
+                                placeholder="Chọn thể loại..."
+                                value={field.value}
+                                onChange={field.onChange}
+                                fetchOptions={fetchCategoryOptions}
+                            />
+                        )}
                     />
+                    {form.formState.errors.categoryIds && (
+                        <p className="text-sm text-destructive font-medium">
+                            {form.formState.errors.categoryIds.message}
+                        </p>
+                    )}
                 </div>
-                <div className="space-y-1">
+
+                {/* --- GIÁ --- */}
+                <div className="space-y-1 md:col-span-3">
                     <Label htmlFor="price">Giá (VND)</Label>
                     <div className="relative">
                         <Input
@@ -129,7 +247,8 @@ export function Step2Form({
                     )}
                 </div>
 
-                <div className="space-y-1">
+                {/* --- SỐ CHƯƠNG FREE --- */}
+                <div className="space-y-1 md:col-span-3">
                     <Label htmlFor="freeChapters">Số Chương Miễn Phí</Label>
                     <Input
                         id="freeChapters"
@@ -149,6 +268,7 @@ export function Step2Form({
                 </div>
             </div>
 
+            {/* --- MÔ TẢ --- */}
             <div className="space-y-2">
                 <Label htmlFor="description">Mô Tả</Label>
                 <Controller
@@ -158,7 +278,7 @@ export function Step2Form({
                         <div className="prose-sm">
                             <ReactQuill
                                 theme="snow"
-                                value={field.value || ""} // Fallback empty string
+                                value={field.value || ""}
                                 onChange={field.onChange}
                                 modules={quillModules}
                                 readOnly={isSubmitting}
@@ -175,7 +295,7 @@ export function Step2Form({
                 )}
             </div>
 
-            {/* Footer Actions */}
+            {/* --- FOOTER BUTTONS --- */}
             <div className="flex justify-between items-center pt-6 border-t border-border mt-8 sticky bottom-0 bg-background/95 backdrop-blur py-4 z-10">
                 <Button
                     type="button"

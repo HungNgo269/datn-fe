@@ -7,10 +7,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-
+import Cookies from "js-cookie";
 import { LoginFields, LoginSchema } from "@/app/schema/loginSchema";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import { useTokenStore } from "@/app/store/useTokenStore";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,15 +33,18 @@ export default function LoginForm() {
         throw new Error("Đăng nhập thất bại");
       }
       useAuthStore.getState().setUser(data.user);
-      useTokenStore.getState().setToken(data.accessToken);
 
       await queryClient.invalidateQueries({ queryKey: ["user"] });
 
+      Cookies.set("accessToken", data.accessToken, {
+        expires: 15 * 60 * 1000,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
       toast.success("Đăng nhập thành công!");
       console.log("hi123", data.user.roles);
 
       if (data.user.roles.includes("admin")) {
-        console.log("hi", data.user.roles);
         router.push("/books-admin");
         return;
       }

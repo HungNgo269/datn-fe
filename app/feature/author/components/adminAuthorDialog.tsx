@@ -17,15 +17,19 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { AuthorFields, AuthorSchema } from "@/app/schema/authorSchema";
-import { createAuthor, updateAuthor } from "../api/authors.api";
-import { AuthorInfo } from "../../books/types/books.type";
+import {
+  AuthorFields,
+  AuthorSchema,
+  AuthorSubmitData,
+} from "@/app/feature/author/schema/authorSchema";
 import { generateSlug } from "../../books/helper";
 import { UploadBookButton } from "../../books-upload/components/uploadBookButton";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import { ImagePreview } from "../../books-upload/components/ImagePreview";
-import { Checkbox } from "@/components/ui/checkbox"; // Sử dụng Checkbox của shadcn cho đẹp hơn
+import { Checkbox } from "@/components/ui/checkbox";
+import { AuthorInfo } from "../types/authors.types";
+import { useAuthorSubmit } from "../hooks/useAuthorSubmit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
@@ -58,6 +62,7 @@ export function AuthorDialog({
   authorToEdit,
 }: AuthorDialogProps) {
   const [coverPreview, setAvatarPreview] = useState<string | null>(null);
+  const { submitAuthor } = useAuthorSubmit();
 
   const queryClient = useQueryClient();
   const isEditMode = !!authorToEdit;
@@ -68,12 +73,11 @@ export function AuthorDialog({
       name: "",
       slug: "",
       bio: "",
-      avatar: "",
+      avatar: undefined,
       isActive: true,
     },
   });
 
-  // Reset form khi mở dialog hoặc thay đổi authorToEdit
   useEffect(() => {
     if (open) {
       if (authorToEdit) {
@@ -82,11 +86,10 @@ export function AuthorDialog({
           slug: authorToEdit.slug,
           bio: authorToEdit.bio || "",
           isActive: authorToEdit.isActive,
+          avatar: authorToEdit.avatar || undefined,
         });
-        if (typeof authorToEdit.avatar === "string") {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setAvatarPreview(authorToEdit.avatar);
-        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setAvatarPreview(authorToEdit.avatar || null);
       } else {
         form.reset({
           name: "",
@@ -101,7 +104,7 @@ export function AuthorDialog({
   }, [open, authorToEdit, form]);
 
   const handleAvatarChange = (file: File) => {
-    form.setValue("avatar", file);
+    form.setValue("avatar", file, { shouldValidate: true });
     const reader = new FileReader();
     reader.onloadend = () => setAvatarPreview(reader.result as string);
     reader.readAsDataURL(file);
@@ -111,13 +114,14 @@ export function AuthorDialog({
     form.setValue("avatar", undefined);
     setAvatarPreview(null);
   };
-
   const mutation = useMutation({
-    mutationFn: (values: AuthorFields) => {
-      if (isEditMode && authorToEdit) {
-        return updateAuthor(authorToEdit.id, values);
+    mutationFn: async (values: AuthorSubmitData) => {
+      const result = await submitAuthor(values, isEditMode ? "edit" : "create");
+
+      if (!result.success) {
+        throw new Error(result.error || "Lỗi xử lý");
       }
-      return createAuthor(values);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
@@ -130,9 +134,13 @@ export function AuthorDialog({
       toast.error(error instanceof Error ? error.message : "Có lỗi xảy ra");
     },
   });
+  const onSubmit = (formData: AuthorFields) => {
+    const submitData: AuthorSubmitData = {
+      ...formData,
+      id: authorToEdit?.id,
+    };
 
-  const onSubmit = (data: AuthorFields) => {
-    mutation.mutate(data);
+    mutation.mutate(submitData);
   };
 
   return (
@@ -146,7 +154,6 @@ export function AuthorDialog({
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
-            {/* Cột bên trái: Thông tin chính */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -177,6 +184,8 @@ export function AuthorDialog({
                   </Label>
                   <Input
                     id="slug"
+                    readOnly
+                    disabled
                     {...form.register("slug")}
                     placeholder="nguyen-nhat-anh"
                   />
@@ -242,7 +251,6 @@ export function AuthorDialog({
                         <ImagePlus className="w-6 h-6" />
                       </div>
                       <span className="text-sm font-medium">Chưa có ảnh</span>
-                      <span className="text-xs">Kéo thả hoặc chọn ảnh</span>
                     </div>
                   )}
                 </div>

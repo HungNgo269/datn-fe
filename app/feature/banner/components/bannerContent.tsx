@@ -22,7 +22,7 @@ export default function BannerContent({
           <div key={banner.id} className="w-full flex-shrink-0 relative">
             <Link
               prefetch={true}
-              href={banner.linkUrl}
+              href={banner.linkUrl!}
               className="block w-full h-full group"
             >
               <div className="relative w-full h-full">
@@ -30,6 +30,7 @@ export default function BannerContent({
                   src={banner.imageUrl}
                   alt={banner?.title || "banner name"}
                   fill
+                  quality="100"
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                   priority={banner.id === 1}
                 />

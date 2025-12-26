@@ -9,7 +9,7 @@ import HeaderBackground from "./headerBackground";
 
 export default async function Header() {
   return (
-    <div className="h-[66px] fixed top-0 left-0  w-screen z-21 text-black">
+    <div className="h-[66px] fixed top-0 left-0 w-screen z-21 text-foreground">
       <HeaderBackground />
 
       <div className="relative z-10 w-full">

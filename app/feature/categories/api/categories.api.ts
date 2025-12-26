@@ -33,3 +33,13 @@ export async function updateCategory(id: number, payload: CategoryFields) {
 export async function deleteCategory(id: number) {
   return handleRequest<boolean>(() => axiosClient.delete(`/categories/${id}`));
 }
+
+export async function getCategorySearch(params: {
+  page: number;
+  limit: number;
+  q: string;
+}) {
+  return handlePaginatedRequest<Category>(() =>
+    axiosClient.get("/categories/search", { params })
+  );
+}

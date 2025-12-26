@@ -8,7 +8,7 @@ interface BookListProps {
 export function BookList({ books }: BookListProps) {
   if (!books || books.length === 0) {
     return (
-      <div className="w-full py-10 text-center text-gray-500">
+      <div className="w-full py-10 text-center text-muted-foreground">
         No books found matching your criteria.
       </div>
     );
