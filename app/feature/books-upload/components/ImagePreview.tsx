@@ -18,7 +18,7 @@ export function ImagePreview({ src, alt, onRemove }: ImagePreviewProps) {
         className="object-cover transition-transform group-hover:scale-105"
       />
 
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      <div className="absolute inset-0 image-preview-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
         <Button
           type="button"
           variant="destructive"

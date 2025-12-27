@@ -3,12 +3,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChapterComments } from "./chapterComments";
 import { ChapterRating } from "./chapterRating";
-
 interface ChapterTabsProps {
+  bookId: number; // <-- Nhận bookId
   children: React.ReactNode;
 }
 
-export function ChapterTabs({ children }: ChapterTabsProps) {
+export function ChapterTabs({ bookId, children }: ChapterTabsProps) {
   return (
     <Tabs defaultValue="chapters" className="w-full">
       <TabsList className="bg-muted p-1 h-auto inline-flex">
@@ -31,14 +31,20 @@ export function ChapterTabs({ children }: ChapterTabsProps) {
           Đánh giá
         </TabsTrigger>
       </TabsList>
+
+      {/* Content */}
       <TabsContent value="chapters" className="mt-2">
         {children}
       </TabsContent>
       <TabsContent value="comments" className="mt-2">
-        <ChapterComments></ChapterComments>
+        <ChapterComments />
       </TabsContent>
+
+      {/* TabsContent mặc định chỉ render children khi active.
+          Nên useQuery bên trong ChapterRating sẽ chỉ chạy khi user click vào tab này.
+      */}
       <TabsContent value="ratings" className="mt-2">
-        <ChapterRating></ChapterRating>
+        <ChapterRating bookId={bookId} />
       </TabsContent>
     </Tabs>
   );

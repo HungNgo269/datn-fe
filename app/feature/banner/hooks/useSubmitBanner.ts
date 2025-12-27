@@ -1,6 +1,6 @@
 import { useCloudUpload } from "@/app/share/hook/useCloudUpload";
 import { createBanner, updateBanner } from "../api/banner.api";
-import { BannerFormValues, BannerPayload } from "../schema/banner.schema";
+import { BannerFormValues } from "../schema/banner.schema";
 import { useState } from "react";
 
 export function useBannerSubmit() {
@@ -15,6 +15,7 @@ export function useBannerSubmit() {
     id?: number
   ) => {
     try {
+      setIsSubmitting(true);
       let finalImageUrl = "";
       console.log("Check data submit:", data);
 
@@ -63,6 +64,7 @@ export function useBannerSubmit() {
       return { success: false, error: msg };
     } finally {
       setIsSubmitting(false);
+      setStatusMessage("");
     }
   };
 

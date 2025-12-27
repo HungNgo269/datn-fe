@@ -8,7 +8,7 @@ import { Book } from "../../books/types/books.type";
 export async function getCategories(page: number, limit: number) {
   return handleActionPaginatedRequest<Category>("/categories", {
     params: { page, limit },
-    revalidate: 15,
+    cache: "no-cache",
   });
 }
 

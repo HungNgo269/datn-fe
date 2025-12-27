@@ -53,7 +53,7 @@ export default function BannerControls({
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-24 bottom-10 bg-background/90 hover:bg-background border-border text-primary shadow-lg z-30 rounded-[50%] cursor-pointer"
+        className="absolute right-24 bottom-10 bg-background/90 hover:bg-background border-border text-primary shadow-lg z-20 rounded-[50%] cursor-pointer"
         onClick={prevBanner}
       >
         <ChevronLeft className="h-5 w-5" />
@@ -63,7 +63,7 @@ export default function BannerControls({
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-4 bottom-10 bg-background/90 hover:bg-background border-border text-primary shadow-lg z-30 rounded-[50%] cursor-pointer"
+        className="absolute right-4 bottom-10 bg-background/90 hover:bg-background border-border text-primary shadow-lg z-20 rounded-[50%] cursor-pointer"
         onClick={nextBanner}
       >
         <ChevronRight className="h-5 w-5" />
@@ -73,7 +73,7 @@ export default function BannerControls({
       <Button
         variant="outline"
         size="icon"
-        className="absolute bottom-10 right-14 bg-background/90 hover:bg-background border-border text-primary shadow-lg z-30 rounded-[50%] cursor-pointer"
+        className="absolute bottom-10 right-14 bg-background/90 hover:bg-background border-border text-primary shadow-lg z-20 rounded-[50%] cursor-pointer"
         onClick={togglePlayPause}
       >
         {isPlaying ? (

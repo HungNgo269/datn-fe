@@ -45,11 +45,11 @@ export function ChapterList({
           <span
             className={cn(
               "cursor-pointer transition-colors",
-              chapterOrder === "DESC"
+              chapterOrder === "ASC"
                 ? " font-semibold text-primary"
                 : "text-muted-foreground hover:text-primary"
             )}
-            onClick={() => handleOrderDisplay("DESC")}
+            onClick={() => handleOrderDisplay("ASC")}
           >
             Từ chương mới nhất
           </span>
@@ -59,11 +59,11 @@ export function ChapterList({
           <span
             className={cn(
               "cursor-pointer transition-colors",
-              chapterOrder === "ASC"
+              chapterOrder === "DESC"
                 ? " font-semibold text-primary"
                 : "text-muted-foreground hover:text-primary"
             )}
-            onClick={() => handleOrderDisplay("ASC")}
+            onClick={() => handleOrderDisplay("DESC")}
           >
             Từ chương 1
           </span>

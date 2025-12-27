@@ -10,10 +10,9 @@ interface Props {
 }
 
 const SORT_OPTIONS = [
-  { id: 1, name: "Latest", slug: BookSortBy.CREATED_AT },
-  { id: 2, name: "Updated", slug: BookSortBy.UPDATED_AT },
-  { id: 3, name: "Popular", slug: BookSortBy.VIEW_COUNT },
-  { id: 4, name: "A-Z", slug: BookSortBy.TITLE },
+  { id: 1, name: "Mới nhất", slug: BookSortBy.CREATED_AT },
+  { id: 2, name: "Phổ biến", slug: BookSortBy.VIEW_COUNT },
+  { id: 3, name: "Vừa cập nhật", slug: BookSortBy.UPDATED_AT },
 ];
 
 export default function SortSelection({ currentSort }: Props) {
@@ -22,11 +21,9 @@ export default function SortSelection({ currentSort }: Props) {
   const searchParams = useSearchParams();
 
   const handleSort = (newSort: string) => {
-    // Không cần set local state vì URL thay đổi sẽ re-render component cha và truyền prop mới vào
     const params = new URLSearchParams(searchParams.toString());
     params.set("sortBy", newSort);
-    // Có thể muốn reset về page 1 khi đổi sort
-    // params.set("page", "1");
+    params.set("page", "1");
 
     startTransition(() => {
       router.push(`/books?${params.toString()}`);

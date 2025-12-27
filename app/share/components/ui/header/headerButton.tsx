@@ -15,18 +15,18 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LogOutButton } from "./logoutButton";
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 export function HeaderButton() {
-  const user = null;
+  const user = useAuthStore((state) => state.user);
 
   const initials =
-    // user?.name
-    //   ?.split(" ")
-    //   .map((s: string) => s[0])
-    //   .join("")
-    //   .slice(0, 2)
-    //   .toUpperCase() ??
-    "Avatar";
+    user?.username
+      ?.split(" ")
+      .map((s: string) => s[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "NB";
 
   return (
     <DropdownMenu modal={false}>
@@ -36,16 +36,7 @@ export function HeaderButton() {
           className="relative h-10 w-10 rounded-full md:h-12 md:w-12 hover:bg-accent"
         >
           <Avatar className="h-10 w-10 md:h-12 md:w-12">
-            <AvatarImage
-              src={
-                // user?.image_url ||
-                "/jawed.jpg"
-              }
-              alt={
-                // user?.name ||
-                "User"
-              }
-            />
+            <AvatarImage src={user?.avatar || "/jawed.jpg"} alt={user?.username || "User"} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {initials}
             </AvatarFallback>
@@ -57,16 +48,10 @@ export function HeaderButton() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {
-                // user?.name
-                "asd"
-              }
+              {user?.username || "Độc giả"}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {
-                "email"
-                //   user?.email
-              }
+              {user?.email || "Chưa cập nhật email"}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -74,9 +59,9 @@ export function HeaderButton() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem className="cursor-pointer" asChild>
-          <Link href="/account" className="flex items-center">
+          <Link href="/account" className="flex items-center w-full">
             <CreditCard className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>Favourite Books</span>
           </Link>
         </DropdownMenuItem>
 

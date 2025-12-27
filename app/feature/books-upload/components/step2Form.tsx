@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Check, Loader2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ const ReactQuill = dynamic(() => import("react-quill-new"), {
 interface Step2FormProps {
     step1Data?: Step1FormData;
     defaultValues?: Step2FormData | Partial<BookFormState>;
-    onBack: () => void;
+    onBack: (data: Step2FormData) => void;
     onCancel: () => void;
     onSubmit: (data: Step2FormData) => void;
     isSubmitting: boolean;
@@ -74,6 +75,10 @@ export function Step2Form({
         resolver: zodResolver(Step2Schema),
         defaultValues: step2Defaults,
     });
+
+    useEffect(() => {
+        form.reset(step2Defaults);
+    }, [defaultValues, form]);
     const handleCreateAuthor = async (inputValue: string): Promise<Option> => {
         try {
             // Giả sử submitAuthor trả về object Author đầy đủ { id: 123, name: "Nguyen Nhat Anh", ... }
@@ -182,8 +187,8 @@ export function Step2Form({
                                 value={field.value}
                                 onChange={field.onChange}
                                 fetchOptions={fetchAuthorOptions}
-                                // CHỈNH SỬA Ở ĐÂY:
                                 onCreateOption={handleCreateAuthor}
+                                displayMode="inline"
                             />
                         )}
                     />
@@ -212,6 +217,7 @@ export function Step2Form({
                                 value={field.value}
                                 onChange={field.onChange}
                                 fetchOptions={fetchCategoryOptions}
+                                displayMode="inline"
                             />
                         )}
                     />
@@ -300,7 +306,7 @@ export function Step2Form({
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={onBack}
+                    onClick={() => onBack(form.getValues())}
                     disabled={isSubmitting}
                     className="border-dashed border-muted-foreground/40 hover:border-primary/50 text-muted-foreground"
                 >

@@ -34,13 +34,21 @@ export function Step1Form({
     const form = useForm<Step1FormData>({
         resolver: zodResolver(schema),
         defaultValues: {
-            title: "",
-            slug: "",
-            file: undefined,
-            cover: undefined,
-            ...defaultValues,
+            title: defaultValues?.title || "",
+            slug: defaultValues?.slug || "",
+            file: defaultValues?.file,
+            cover: defaultValues?.cover,
         },
     });
+
+    useEffect(() => {
+        form.reset({
+            title: defaultValues?.title || "",
+            slug: defaultValues?.slug || "",
+            file: defaultValues?.file,
+            cover: defaultValues?.cover,
+        });
+    }, [defaultValues, form]);
 
     useEffect(() => {
         const cover = defaultValues?.cover;
@@ -53,6 +61,8 @@ export function Step1Form({
                     setCoverPreview(reader.result as string);
                 reader.readAsDataURL(cover);
             }
+        } else {
+            setCoverPreview(null);
         }
     }, [defaultValues]);
 

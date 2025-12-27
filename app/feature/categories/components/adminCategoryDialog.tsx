@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,9 +16,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+
 import { Category } from "../types/listCategories";
 import { CategoryFields, CategorySchema } from "@/app/schema/categorySchema";
 import { createCategory, updateCategory } from "../api/categories.api";
+import { generateSlug } from "@/app/feature/books/helper";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -38,39 +41,61 @@ export function CategoryDialog({
     register,
     handleSubmit,
     reset,
+    control,
+    setValue,
     formState: { errors },
   } = useForm<CategoryFields>({
     resolver: zodResolver(CategorySchema),
     defaultValues: {
       name: "",
+      slug: "",
       description: "",
+      parentId: undefined,
+      isActive: true,
     },
   });
 
   useEffect(() => {
-    if (open) {
-      if (categoryToEdit) {
-        reset({
-          name: categoryToEdit.name,
-          description: categoryToEdit.description || "",
-        });
-      } else {
-        reset({ name: "", description: "" });
-      }
+    if (!open) return;
+
+    if (categoryToEdit) {
+      reset({
+        name: categoryToEdit.name,
+        slug: categoryToEdit.slug || "",
+        description: categoryToEdit.description || "",
+        parentId: categoryToEdit.parentId ?? undefined,
+        isActive: categoryToEdit.isActive ?? true,
+      });
+    } else {
+      reset({
+        name: "",
+        slug: "",
+        description: "",
+        parentId: undefined,
+        isActive: true,
+      });
     }
   }, [open, categoryToEdit, reset]);
 
   const mutation = useMutation({
     mutationFn: (values: CategoryFields) => {
+      const payload = {
+        ...values,
+        slug: values.slug?.trim() || undefined,
+        description: values.description?.trim() || undefined,
+        parentId:
+          values.parentId && values.parentId > 0 ? values.parentId : undefined,
+      };
+
       if (isEditMode && categoryToEdit) {
-        return updateCategory(categoryToEdit.id, values);
+        return updateCategory(categoryToEdit.id, payload);
       }
-      return createCategory(values);
+      return createCategory(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast.success(
-        isEditMode ? "Cập nhật thành công!" : "Tạo mới thành công!"
+        isEditMode ? "Cập nhật thành công!" : "Tạo danh mục thành công!"
       );
       onOpenChange(false);
     },
@@ -82,23 +107,37 @@ export function CategoryDialog({
   const onSubmit = (data: CategoryFields) => {
     mutation.mutate(data);
   };
+
+  const nameField = register("name");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
+            {isEditMode ? "Cập nhật danh mục" : "Thêm danh mục mới"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Tên danh mục</Label>
+            <Label htmlFor="name">
+              Tên danh mục <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="name"
-              {...register("name")}
+              {...nameField}
               placeholder="Ví dụ: Tiểu thuyết"
-              required
+              className={errors.name ? "border-destructive" : ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                nameField.onChange(e);
+                if (!isEditMode) {
+                  setValue("slug", generateSlug(value), {
+                    shouldValidate: true,
+                  });
+                }
+              }}
             />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -106,14 +145,79 @@ export function CategoryDialog({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="slug">Slug</Label>
+            <Input
+              id="slug"
+              {...register("slug")}
+              placeholder="ten-danh-muc"
+              className={errors.slug ? "border-destructive" : ""}
+            />
+            {errors.slug && (
+              <p className="text-sm text-destructive">{errors.slug.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="description">Mô tả</Label>
             <Input
-              required
               id="description"
               {...register("description")}
               placeholder="Mô tả ngắn..."
+              className={errors.description ? "border-destructive" : ""}
             />
+            {errors.description && (
+              <p className="text-sm text-destructive">
+                {errors.description.message}
+              </p>
+            )}
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="parentId">Danh mục cha (ID)</Label>
+              <Input
+                id="parentId"
+                type="number"
+                min="1"
+                {...register("parentId", { valueAsNumber: true })}
+                placeholder="Để trống nếu không có"
+                className={errors.parentId ? "border-destructive" : ""}
+              />
+              {errors.parentId && (
+                <p className="text-sm text-destructive">
+                  {errors.parentId.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Trạng thái</Label>
+              <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+                <Controller
+                  control={control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <Checkbox
+                      id="isActive"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
+                <Label htmlFor="isActive" className="cursor-pointer text-sm">
+                  Hiển thị danh mục này
+                </Label>
+              </div>
+            </div>
+          </div>
+
+          {mutation.isError && (
+            <p className="text-sm text-destructive text-right">
+              {mutation.error instanceof Error
+                ? mutation.error.message
+                : "Không thể lưu danh mục. Thử lại sau."}
+            </p>
+          )}
 
           <div className="flex justify-end gap-2 pt-4">
             <Button

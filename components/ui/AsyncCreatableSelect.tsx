@@ -30,13 +30,13 @@ interface AsyncCreatableSelectProps {
   value?: (string | number)[];
   onChange: (value: (string | number)[]) => void;
   fetchOptions: (query: string) => Promise<Option[]>;
-  onCreateOption?: (label: string) => Promise<Option>; // Hàm này phải trả về Promise<Option> có value là ID (number)
+  onCreateOption?: (label: string) => Promise<Option>;
   placeholder?: string;
   label?: string;
   className?: string;
+  displayMode?: "popover" | "inline";
 }
 
-// Helper highlight text matches (Hint cho Elastic Search)
 const HighlightText = ({
   text,
   highlight,
@@ -45,10 +45,8 @@ const HighlightText = ({
   highlight: string;
 }) => {
   if (!highlight.trim()) return <span>{text}</span>;
-
-  // Escape regex characters
-  const escapeRegExp = (string: string) =>
-    string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapeRegExp = (str: string) =>
+    str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const parts = text.split(new RegExp(`(${escapeRegExp(highlight)})`, "gi"));
 
   return (
@@ -56,7 +54,7 @@ const HighlightText = ({
       {parts.map((part, i) =>
         part.toLowerCase() === highlight.toLowerCase() ? (
           <span
-            key={i}
+            key={`${part}-${i}`}
             className="bg-yellow-200 text-black font-semibold rounded-[2px] px-[1px]"
           >
             {part}
@@ -77,6 +75,7 @@ export function AsyncCreatableSelect({
   placeholder = "Tìm kiếm...",
   label = "mục",
   className,
+  displayMode = "popover",
 }: AsyncCreatableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -86,13 +85,14 @@ export function AsyncCreatableSelect({
   const [creating, setCreating] = React.useState(false);
 
   const debouncedQuery = useDebounce(query, 300);
+  const isInline = displayMode === "inline";
 
-  // Load options khi search
   React.useEffect(() => {
     let active = true;
+    const shouldLoad = isInline || open;
 
     const loadOptions = async () => {
-      if (!open) return;
+      if (!shouldLoad) return;
       setLoading(true);
       try {
         const results = await fetchOptions(debouncedQuery);
@@ -110,7 +110,29 @@ export function AsyncCreatableSelect({
     return () => {
       active = false;
     };
-  }, [debouncedQuery, open, fetchOptions]);
+  }, [debouncedQuery, fetchOptions, open, isInline]);
+
+  React.useEffect(() => {
+    if (!value || value.length === 0) {
+      setSelectedOptions([]);
+      return;
+    }
+
+    setSelectedOptions((prev) => {
+      const map = new Map<string | number, Option>();
+      prev.forEach((opt) => map.set(opt.value, opt));
+      options.forEach((opt) => {
+        if (!map.has(opt.value)) {
+          map.set(opt.value, opt);
+        }
+      });
+
+      return value.map((val) => {
+        if (map.has(val)) return map.get(val)!;
+        return { value: val, label: String(val) };
+      });
+    });
+  }, [value, options]);
 
   const handleSelect = (option: Option) => {
     const isSelected = value.some((val) => val === option.value);
@@ -124,9 +146,8 @@ export function AsyncCreatableSelect({
       );
     } else {
       newValues = [...value, option.value];
-      // Kiểm tra xem option đã có trong selectedOptions chưa để tránh duplicate object
-      const existing = selectedOptions.find((o) => o.value === option.value);
-      newSelectedOptions = existing
+      const exists = selectedOptions.find((o) => o.value === option.value);
+      newSelectedOptions = exists
         ? selectedOptions
         : [...selectedOptions, option];
     }
@@ -139,16 +160,13 @@ export function AsyncCreatableSelect({
     if (!query || !onCreateOption) return;
     setCreating(true);
     try {
-      // Gọi API tạo mới, API trả về Option có value là ID số
       const newOption = await onCreateOption(query);
-
-      // Update state
       setSelectedOptions((prev) => [...prev, newOption]);
       onChange([...value, newOption.value]);
-
-      // Reset UI
       setQuery("");
-      setOpen(false); // Đóng popover sau khi tạo xong
+      if (!isInline) {
+        setOpen(false);
+      }
     } catch (error) {
       console.error("Failed to create option", error);
     } finally {
@@ -165,6 +183,98 @@ export function AsyncCreatableSelect({
     onChange(newValues);
   };
 
+  const renderSelectedBadges = () => (
+    <div className="flex flex-wrap gap-1 justify-start items-center w-full">
+      {selectedOptions.length > 0 ? (
+        selectedOptions.map((opt) => (
+          <Badge key={opt.value} className="mr-1 pr-1 flex items-center gap-1">
+            {opt.label}
+            <div
+              className="rounded-full p-0.5 hover:bg-destructive hover:text-white cursor-pointer transition-colors"
+              onMouseDown={(e) => handleRemove(e, opt.value)}
+            >
+              <X size={12} />
+            </div>
+          </Badge>
+        ))
+      ) : (
+        <span className="text-muted-foreground">{placeholder}</span>
+      )}
+    </div>
+  );
+
+  const commandContent = (
+    <Command shouldFilter={false}>
+      <CommandInput
+        placeholder={`Tìm ${label}...`}
+        value={query}
+        onValueChange={setQuery}
+      />
+      <CommandList>
+        {loading && (
+          <div className="p-4 flex items-center justify-center text-sm text-muted-foreground">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang tìm kiếm...
+          </div>
+        )}
+
+        {!loading && options.length === 0 && query && (
+          <CommandEmpty className="py-2 px-4 text-sm">
+            <p className="text-muted-foreground mb-2">
+              Không tìm thấy {query}
+            </p>
+            {onCreateOption && (
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={handleCreate}
+                disabled={creating}
+              >
+                {creating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 h-4 w-4" />
+                )}
+                Tạo mới {query}
+              </Button>
+            )}
+          </CommandEmpty>
+        )}
+
+        <CommandGroup>
+          {options.map((option) => {
+            const isSelected = value.some((val) => val === option.value);
+            return (
+              <CommandItem
+                key={option.value}
+                value={String(option.value)}
+                onSelect={() => handleSelect(option)}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    isSelected ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                <HighlightText text={option.label} highlight={query} />
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  );
+
+  if (isInline) {
+    return (
+      <div className={cn("space-y-2", className)}>
+        {renderSelectedBadges()}
+        <div className="rounded-md border bg-popover text-popover-foreground">
+          {commandContent}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -177,92 +287,12 @@ export function AsyncCreatableSelect({
             className
           )}
         >
-          <div className="flex flex-wrap gap-1 justify-start items-center w-full">
-            {selectedOptions.length > 0 ? (
-              selectedOptions.map((opt) => (
-                <Badge
-                  variant="secondary"
-                  key={opt.value}
-                  className="mr-1 pr-1 flex items-center gap-1"
-                >
-                  {opt.label}
-                  <div
-                    className="rounded-full p-0.5 hover:bg-destructive hover:text-white cursor-pointer transition-colors"
-                    onMouseDown={(e) => handleRemove(e, opt.value)}
-                  >
-                    <X size={12} />
-                  </div>
-                </Badge>
-              ))
-            ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
-            )}
-          </div>
+          {renderSelectedBadges()}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <Command shouldFilter={false}>
-          {/* shouldFilter={false} là quan trọng để Elastic Search backend tự lo liệu việc filter */}
-          <CommandInput
-            placeholder={`Tìm ${label}...`}
-            value={query}
-            onValueChange={setQuery}
-          />
-          <CommandList>
-            {loading && (
-              <div className="p-4 flex items-center justify-center text-sm text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang tìm
-                kiếm...
-              </div>
-            )}
-
-            {!loading && options.length === 0 && query && (
-              <CommandEmpty className="py-2 px-4 text-sm">
-                <p className="text-muted-foreground mb-2">
-                  Không tìm thấy {query}
-                </p>
-                {onCreateOption && (
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={handleCreate}
-                    disabled={creating}
-                  >
-                    {creating ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="mr-2 h-4 w-4" />
-                    )}
-                    Tạo mới {query}
-                  </Button>
-                )}
-              </CommandEmpty>
-            )}
-
-            <CommandGroup>
-              {options.map((option) => {
-                const isSelected = value.some((val) => val === option.value);
-                return (
-                  <CommandItem
-                    key={option.value}
-                    value={String(option.value)} // Command yêu cầu value string
-                    onSelect={() => handleSelect(option)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-
-                        isSelected ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+      <PopoverContent className="w-full p-0" align="start">
+        {commandContent}
       </PopoverContent>
     </Popover>
   );

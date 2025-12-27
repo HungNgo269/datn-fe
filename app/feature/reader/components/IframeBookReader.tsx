@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import ReaderFrame from "./ReaderFrame";
@@ -13,6 +19,8 @@ import ReaderChaptersList from "./ReaderChaptersList";
 import ReaderNoteDialog from "./ReaderNoteDialog";
 import { useReaderHtml } from "../hook/useReaderHTML";
 import { useReaderPagination } from "../hook/useReaderPagination";
+import { useReaderDataStore } from "@/app/store/useReaderDataStore";
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface Props {
   initialHtml: string;
@@ -34,6 +42,15 @@ export default function IframeBookReader({
 }: Props) {
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const userId = useAuthStore((state) => state.user?.id ?? null);
+  const bookmarksStore = useReaderDataStore((state) => state.bookmarks);
+  const notesStore = useReaderDataStore((state) => state.notes);
+  const toggleBookmark = useReaderDataStore((state) => state.toggleBookmark);
+  const addNoteToStore = useReaderDataStore((state) => state.addNote);
+  const removeBookmarkFromStore = useReaderDataStore(
+    (state) => state.removeBookmark
+  );
+  const removeNoteFromStore = useReaderDataStore((state) => state.removeNote);
 
   const [ready, setReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -64,12 +81,22 @@ export default function IframeBookReader({
     ready,
   });
 
-  const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [selectedText, setSelectedText] = useState("");
   const [showNoteDialog, setShowNoteDialog] = useState(false);
-  const [notes, setNotes] = useState<
-    Array<{ page: number; text: string; note: string }>
-  >([]);
+  const bookBookmarks = useMemo(() => {
+    if (!bookSlug) return [];
+    return bookmarksStore.filter(
+      (bookmark) =>
+        bookmark.bookSlug === bookSlug && bookmark.userId === userId
+    );
+  }, [bookSlug, bookmarksStore, userId]);
+
+  const bookNotes = useMemo(() => {
+    if (!bookSlug) return [];
+    return notesStore.filter(
+      (note) => note.bookSlug === bookSlug && note.userId === userId
+    );
+  }, [bookSlug, notesStore, userId]);
 
   const getThemeColor = useCallback((varName: string) => {
     if (typeof window === "undefined") return "";
@@ -130,24 +157,41 @@ export default function IframeBookReader({
 
   const handleIframeLoad = () => setReady(true);
 
+  const currentChapter = useMemo(() => {
+    return chapters.find((chapter) => chapter.slug === chapterSlug);
+  }, [chapters, chapterSlug]);
+
   const handleBookmark = () => {
-    setBookmarks((prev) =>
-      prev.includes(currentPage)
-        ? prev.filter((p) => p !== currentPage)
-        : [...prev, currentPage]
-    );
+    if (!bookSlug) {
+      return;
+    }
+    toggleBookmark({
+      userId,
+      bookSlug,
+      bookTitle: title,
+      chapterSlug: chapterSlug || null,
+      chapterTitle: currentChapter?.title ?? null,
+      page: currentPage,
+    });
   };
 
   const saveNote = (noteText: string) => {
-    if (selectedText && noteText.trim()) {
-      setNotes([
-        ...notes,
-        { page: currentPage, text: selectedText, note: noteText },
-      ]);
-      setSelectedText("");
-      setShowNoteDialog(false);
-      iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+    if (!bookSlug || !selectedText || !noteText.trim()) {
+      return;
     }
+    addNoteToStore({
+      userId,
+      bookSlug,
+      bookTitle: title,
+      chapterSlug: chapterSlug || null,
+      chapterTitle: currentChapter?.title ?? null,
+      page: currentPage,
+      selectedText,
+      note: noteText.trim(),
+    });
+    setSelectedText("");
+    setShowNoteDialog(false);
+    iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
   };
 
   const handleNoteClick = () => {
@@ -155,7 +199,11 @@ export default function IframeBookReader({
     else alert("Vui lòng bôi đen văn bản để tạo ghi chú");
   };
 
-  const isBookmarked = bookmarks.includes(currentPage);
+  const isBookmarked = bookBookmarks.some(
+    (bookmark) =>
+      bookmark.page === currentPage &&
+      bookmark.chapterSlug === (chapterSlug || null)
+  );
 
   return (
     <div className="flex flex-col h-full w-full relative overflow-hidden bg-muted transition-colors duration-300">
@@ -223,6 +271,16 @@ export default function IframeBookReader({
           onChapterClick={(slug) =>
             bookSlug && router.push(`/books/${bookSlug}/chapter/${slug}`)
           }
+          bookmarks={bookBookmarks}
+          notes={bookNotes}
+          onBookmarkSelect={(bookmark) => {
+            goToPage(bookmark.page);
+          }}
+          onNoteSelect={(note) => {
+            goToPage(note.page);
+          }}
+          onRemoveBookmark={removeBookmarkFromStore}
+          onRemoveNote={removeNoteFromStore}
         />
       )}
 

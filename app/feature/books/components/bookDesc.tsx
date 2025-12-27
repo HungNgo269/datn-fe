@@ -17,9 +17,14 @@ export default function BookDesc({
 }: BookDescProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const sanitizedContent = DOMPurify.sanitize(content);
-
   if (!content) return null;
+
+  // === BƯỚC QUAN TRỌNG NHẤT: XỬ LÝ DỮ LIỆU ===
+  // Thay thế toàn bộ ký tự &nbsp; thành dấu cách thông thường " "
+  // Điều này giúp trình duyệt hiểu đây là các từ rời rạc và tự động xuống dòng.
+  const contentWithNormalSpaces = content.replace(/&nbsp;/g, " ");
+
+  const sanitizedContent = DOMPurify.sanitize(contentWithNormalSpaces);
 
   return (
     <div className={`flex flex-col items-start ${className}`}>
@@ -30,7 +35,11 @@ export default function BookDesc({
         }}
       >
         <div
-          className="prose prose-sm max-w-none text-foreground leading-relaxed"
+          // Bây giờ dữ liệu đã sạch, ta dùng CSS chuẩn để hiển thị đẹp:
+          // 1. whitespace-normal: Xuống dòng tự nhiên ở dấu cách.
+          // 2. break-words: Chỉ cắt dòng nếu gặp từ siêu dài (như link URL).
+          // 3. text-justify: Căn đều 2 bên cho đẹp mắt (giống sách).
+          className="prose prose-sm max-w-none text-foreground leading-relaxed w-full whitespace-normal break-words text-justify"
           dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
 

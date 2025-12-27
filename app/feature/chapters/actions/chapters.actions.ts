@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { ChapterCardProps, ChapterContent } from "../types/chapter.type";
 import { handleActionRequest } from "@/lib/handleActionRequest";
 
@@ -11,9 +12,17 @@ export async function getChaptersDetails(
   bookSlug: string,
   chapterSlug: string
 ) {
+  const accessToken = cookies().get("accessToken")?.value;
   return handleActionRequest<ChapterContent>(
     `/books/${bookSlug}/chapters/${chapterSlug}`,
-    { cache: "no-store" }
+    {
+      cache: "no-store",
+      headers: accessToken
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : undefined,
+    }
   );
 }
 

@@ -6,8 +6,8 @@ export interface Book {
   title: string;
   slug: string;
   totalChapters: number;
-  freeChapters: 0;
-  price?: number | null;
+  freeChapters: number;
+  price?: number | string | null;
   authors: AuthorsList[];
   categories: CategoriesList[];
   sourceKey: string;
@@ -15,6 +15,8 @@ export interface Book {
   // status: string;
   // isActive: boolean;
   viewCount: number;
+  requireLogin?: boolean;
+  accessType?: string;
   description?: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -45,6 +47,12 @@ export interface BookCardProps {
   slug: string;
   coverImage: string;
   viewCount?: number;
+  description?: string | null;
+  price?: number | string | null;
+  accessType?: string;
+  requireLogin?: boolean;
+  totalChapters?: number;
+  freeChapters?: number;
   authors: AuthorsList[];
 }
 export interface BookUploadData {
@@ -77,7 +85,6 @@ export interface CreateBookDto {
 export enum BookSortBy {
   CREATED_AT = "createdAt",
   UPDATED_AT = "updatedAt",
-  TITLE = "title",
   VIEW_COUNT = "viewCount",
 }
 

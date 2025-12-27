@@ -1,8 +1,13 @@
 import { axiosClient } from "@/lib/api";
 import { handleRequest } from "@/lib/handleApiRequest";
+import { ForgotPasswordFields } from "@/app/schema/forgotPasswordSchema";
 
-export async function ForgotPassword(email: string) {
-  return handleRequest<string | null>(() =>
-    axiosClient.post(`auth/forgot-password`, email)
+type MessageResponse = {
+  message: string;
+};
+
+export async function ForgotPassword(payload: ForgotPasswordFields) {
+  return handleRequest<MessageResponse>(() =>
+    axiosClient.post(`/auth/forgot-password`, payload)
   );
 }

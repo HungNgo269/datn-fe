@@ -42,14 +42,16 @@ export default function ReaderNoteDialog({
   };
 
   return (
-    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="absolute inset-0 overlay-backdrop flex items-center justify-center z-50">
       <div className="bg-popover border border-border rounded-lg p-6 w-96 max-w-[90vw] shadow-xl">
         <h3 className="font-semibold mb-4">Thêm ghi chú</h3>
         <div className="mb-4">
-          <p className="text-sm text-muted-foreground mb-2">Đoạn văn đã chọn:</p>
+          <p className="text-sm text-muted-foreground mb-2">
+            Đoạn văn đã chọn:
+          </p>
           <p className="text-sm bg-muted p-2 rounded italic">
-            "{selectedText.substring(0, 100)}
-            {selectedText.length > 100 ? "..." : ""}"
+            {selectedText.substring(0, 100)}
+            {selectedText.length > 100 ? "..." : ""}
           </p>
         </div>
         <textarea
@@ -76,4 +78,3 @@ export default function ReaderNoteDialog({
     </div>
   );
 }
-

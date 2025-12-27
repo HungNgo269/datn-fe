@@ -1,14 +1,14 @@
 "use client";
 import { useMemo, useState } from "react";
 import BookCarouselNavigation from "./bookCarouselNavigation";
-import { BookCardProps } from "../../books/types/books.type";
+import { Book, BookCardProps } from "../../books/types/books.type";
 import BookCard from "./bookCard";
 import { BookCardSkeleton } from "@/app/share/components/ui/skeleton/skeleton";
 
 export type Variant = "lg" | "sm";
 
 interface BookCarouselProps {
-  books: BookCardProps[];
+  books: Book[];
   variant?: Variant;
   isLoading?: boolean;
 }
@@ -61,7 +61,7 @@ export default function BookCarousel({
   };
 
   return (
-    <div className={`relative ${cfg.container} w-full group`}>
+    <div className={`relative ${cfg.container} w-full `}>
       <div className="relative overflow-hidden">
         <div
           className="flex transition-transform duration-500 ease-in-out will-change-transform"

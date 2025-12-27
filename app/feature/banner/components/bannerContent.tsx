@@ -18,7 +18,7 @@ export default function BannerContent({
         className="flex transition-transform duration-300 ease-in-out h-full"
         style={{ transform: `translateX(-${currentBanner * 100}%)` }}
       >
-        {banners.map((banner) => (
+        {banners.map((banner, index) => (
           <div key={banner.id} className="w-full flex-shrink-0 relative">
             <Link
               prefetch={true}
@@ -30,9 +30,10 @@ export default function BannerContent({
                   src={banner.imageUrl}
                   alt={banner?.title || "banner name"}
                   fill
-                  quality="100"
+                  sizes="100vw"
+                  quality={100}
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  priority={banner.id === 1}
+                  priority={index === 0}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
                 <div className="absolute inset-0 flex items-center">

@@ -31,15 +31,17 @@ export default function ReaderActionButtons({
   onToggleChaptersList,
   onToggleSettings,
 }: ReaderActionButtonsProps) {
+  const baseActionButton =
+    "p-3 rounded-full shadow-lg backdrop-blur-sm transition-all";
   return (
     <div className="absolute bottom-6 right-6 flex flex-col gap-3 z-20">
       {/* Bookmark Button */}
       <button
         onClick={onBookmark}
-        className={`p-3 rounded-full shadow-lg backdrop-blur-sm transition-all ${
+        className={`${baseActionButton} ${
           isBookmarked
             ? "bg-primary text-primary-foreground"
-            : "bg-black/20 hover:bg-black/40 text-white"
+            : "reader-floating-action"
         }`}
         title={isBookmarked ? "Bỏ đánh dấu trang" : "Đánh dấu trang"}
       >
@@ -54,10 +56,10 @@ export default function ReaderActionButtons({
       <button
         onClick={onNote}
         disabled={!canAddNote}
-        className={`p-3 rounded-full shadow-lg backdrop-blur-sm transition-all ${
+        className={`${baseActionButton} ${
           canAddNote
-            ? "bg-black/20 hover:bg-black/40 text-white"
-            : "bg-black/10 text-white/50 cursor-not-allowed"
+            ? "reader-floating-action"
+            : "reader-floating-action-disabled"
         }`}
         title={
           canAddNote
@@ -72,10 +74,10 @@ export default function ReaderActionButtons({
       {hasChapters && (
         <button
           onClick={onToggleChaptersList}
-          className={`p-3 rounded-full shadow-lg backdrop-blur-sm transition-all ${
+          className={`${baseActionButton} ${
             showChaptersList
               ? "bg-primary text-primary-foreground"
-              : "bg-black/20 hover:bg-black/40 text-white"
+              : "reader-floating-action"
           }`}
           title="Danh sách chương"
         >
@@ -86,10 +88,10 @@ export default function ReaderActionButtons({
       {/* Settings Button */}
       <button
         onClick={onToggleSettings}
-        className={`p-3 rounded-full shadow-lg backdrop-blur-sm transition-all ${
+        className={`${baseActionButton} ${
           showSettings
             ? "bg-primary text-primary-foreground"
-            : "bg-black/20 hover:bg-black/40 text-white"
+            : "reader-floating-action"
         }`}
         title="Cài đặt"
       >

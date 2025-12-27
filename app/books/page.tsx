@@ -17,6 +17,7 @@ import {
   SortOrder,
 } from "../feature/books/types/books.type";
 import Header from "../share/components/ui/header/header";
+import { getCategories } from "../feature/categories/actions/categories.action";
 
 const BOOK_PAGE_TITLE = "Discover Stories & Novels | NextBook";
 
@@ -101,13 +102,13 @@ export default async function BookPage({ searchParams }: BookPageProps) {
 
   const page = Number(resolvedParams.page) || 1;
   const limit = Number(resolvedParams.limit) || 10;
-
   const sortBy = (resolvedParams.sortBy as BookSortBy) || BookSortBy.CREATED_AT;
   const sortOrder = (resolvedParams.sortOrder as SortOrder) || SortOrder.DESC;
   const accessType = resolvedParams.accessType as AccessType | undefined;
   const categorySlug = resolvedParams.category;
   const search = resolvedParams.search;
 
+  const categories = await getCategories(1, 10);
   const { data: books, meta } = await getBooksAction({
     page,
     limit,
@@ -139,7 +140,10 @@ export default async function BookPage({ searchParams }: BookPageProps) {
                 <div className="w-full lg:w-[850px] flex flex-col gap-5">
                   <CategoryName currentSlug={categorySlug} />
                   <div className="flex flex-col sm:flex-row justify-between ">
-                    <CategoryFilter currentCategory={categorySlug!} />
+                    <CategoryFilter
+                      currentCategory={categorySlug!}
+                      categories={categories.data}
+                    />
                     <SortSelection currentSort={sortBy} />
                   </div>
                   <div className="flex flex-col min-h-[500px]">

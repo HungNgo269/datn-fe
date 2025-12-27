@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Minus } from "lucide-react";
+import { Loader2, Plus, Minus, Share } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,8 +10,7 @@ interface props {
   bookId?: number;
 }
 
-export default function FollowButton({ userId, bookId }: props) {
-  const [followed, setFollowed] = useState(false);
+export default function ShareButton({ userId, bookId }: props) {
   const [isLoading, setIsLoading] = useState(false);
 
   //   useEffect(() => {
@@ -43,7 +42,7 @@ export default function FollowButton({ userId, bookId }: props) {
 
   return (
     <Button
-      className="h-full hover:cursor-pointer text-lg px-14 lg:w-[333px] w-auto  rounded-sm border border-border"
+      className="h-full hover:cursor-pointer text-lg px-14 w-full  rounded-sm border border-border"
       disabled={isLoading}
       onClick={() => {
         // handleClick();
@@ -51,12 +50,10 @@ export default function FollowButton({ userId, bookId }: props) {
     >
       {isLoading ? (
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-      ) : followed ? (
-        <Minus className="mr-1.5 h-5 w-5" strokeWidth={2.5} />
       ) : (
-        <Plus className="mr-1.5 h-5 w-5" strokeWidth={2.5} />
+        <Share className="mr-1.5 h-5 w-5" strokeWidth={2.5} />
       )}
-      {followed ? "Hủy theo" : "Theo dõi"} 1,234
+      Chia sẻ cuốn sách
     </Button>
   );
 }

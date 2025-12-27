@@ -32,7 +32,7 @@ import { UploadBookButton } from "../../books-upload/components/uploadBookButton
 import { Banner, BannerPosition } from "../types/banner.types";
 import { useBannerSubmit } from "../hooks/useSubmitBanner";
 import { BannerFormValues, BannerSchema } from "../schema/banner.schema";
-import { formatDate } from "@/lib/formatDate";
+import { formatISODateInput } from "@/lib/formatDateInput";
 
 interface BannerDialogProps {
   open: boolean;
@@ -60,11 +60,18 @@ export function BannerDialog({
       position: BannerPosition.HOME_SLIDER,
       startDate: "",
       endDate: "",
-      order: 0,
+      order: undefined,
       imageUrl: undefined,
       isActive: true,
     },
   });
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = form;
 
   useEffect(() => {
     if (open) {
@@ -74,11 +81,9 @@ export function BannerDialog({
           description: bannerToEdit.description ?? "",
           linkUrl: bannerToEdit.linkUrl ?? "",
           position: bannerToEdit.position,
-          startDate: bannerToEdit.startDate
-            ? formatDate(bannerToEdit.startDate)
-            : "",
-          endDate: bannerToEdit.endDate ? formatDate(bannerToEdit.endDate) : "",
-          order: bannerToEdit.order,
+          startDate: formatISODateInput(bannerToEdit.startDate),
+          endDate: formatISODateInput(bannerToEdit.endDate),
+          order: bannerToEdit.order ?? undefined,
           isActive: bannerToEdit.isActive,
           imageUrl: bannerToEdit.imageUrl,
         });
@@ -92,7 +97,7 @@ export function BannerDialog({
           position: BannerPosition.HOME_SLIDER,
           startDate: "",
           endDate: "",
-          order: 0,
+          order: undefined,
           isActive: true,
           imageUrl: undefined,
         });
@@ -109,7 +114,7 @@ export function BannerDialog({
   };
 
   const removeImage = () => {
-    form.setValue("imageUrl", "" as string | File);
+    form.setValue("imageUrl", undefined, { shouldValidate: true });
     setImagePreview(null);
   };
 
@@ -163,8 +168,9 @@ export function BannerDialog({
                   </Label>
                   <Input
                     id="title"
-                    {...form.register("title")}
+                    {...register("title")}
                     placeholder="Nhập tiêu đề banner"
+                    className={errors.title ? "border-destructive" : ""}
                   />
                   {form.formState.errors.title && (
                     <p className="text-sm text-destructive font-medium">
@@ -178,7 +184,7 @@ export function BannerDialog({
                     Vị trí hiển thị <span className="text-destructive">*</span>
                   </Label>
                   <Controller
-                    control={form.control}
+                    control={control}
                     name="position"
                     render={({ field }) => (
                       <Select
@@ -211,9 +217,15 @@ export function BannerDialog({
                 <Label htmlFor="linkUrl">Đường dẫn (URL)</Label>
                 <Input
                   id="linkUrl"
-                  {...form.register("linkUrl")}
+                  {...register("linkUrl")}
                   placeholder="https://example.com/khuyen-mai"
+                  className={errors.linkUrl ? "border-destructive" : ""}
                 />
+                {errors.linkUrl && (
+                  <p className="text-sm text-destructive">
+                    {errors.linkUrl.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -221,9 +233,14 @@ export function BannerDialog({
                 <Textarea
                   id="description"
                   className="min-h-[100px]"
-                  {...form.register("description")}
+                  {...register("description")}
                   placeholder="Nhập mô tả cho banner..."
                 />
+                {errors.description && (
+                  <p className="text-sm text-destructive">
+                    {errors.description.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -232,7 +249,8 @@ export function BannerDialog({
                   <Input
                     type="date"
                     id="startDate"
-                    {...form.register("startDate")}
+                    {...register("startDate")}
+                    className={errors.startDate ? "border-destructive" : ""}
                   />
                   {form.formState.errors.startDate && (
                     <p className="text-sm text-destructive font-medium">
@@ -245,7 +263,8 @@ export function BannerDialog({
                   <Input
                     type="date"
                     id="endDate"
-                    {...form.register("endDate")}
+                    {...register("endDate")}
+                    className={errors.endDate ? "border-destructive" : ""}
                   />
                   {form.formState.errors.endDate && (
                     <p className="text-sm text-destructive font-medium">
@@ -259,8 +278,14 @@ export function BannerDialog({
                     type="number"
                     id="order"
                     min="0"
-                    {...form.register("order", { valueAsNumber: true })}
+                    {...register("order")}
+                    className={errors.order ? "border-destructive" : ""}
                   />
+                  {errors.order && (
+                    <p className="text-sm text-destructive">
+                      {errors.order.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -316,7 +341,7 @@ export function BannerDialog({
               <div className="pt-4 border-t border-border">
                 <div className="flex items-center space-x-2">
                   <Controller
-                    control={form.control}
+                    control={control}
                     name="isActive"
                     render={({ field }) => (
                       <Checkbox
@@ -352,6 +377,14 @@ export function BannerDialog({
               {isEditMode ? "Lưu thay đổi" : "Tạo Banner"}
             </Button>
           </DialogFooter>
+
+          {mutation.isError && (
+            <p className="text-sm text-destructive text-right">
+              {mutation.error instanceof Error
+                ? mutation.error.message
+                : "Không thể lưu banner. Thử lại sau."}
+            </p>
+          )}
         </form>
       </DialogContent>
     </Dialog>

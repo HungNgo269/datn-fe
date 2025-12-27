@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Share2, BookOpen, Heart } from "lucide-react"; // Thêm Heart icon
+import { BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,10 +11,10 @@ import { ChapterContainer } from "@/app/feature/chapters/components/chapterConta
 import Header from "@/app/share/components/ui/header/header";
 import FooterComponent from "@/app/share/components/ui/footer/footer";
 import RecommendBook from "@/app/feature/books-recommends/components/recommendBook";
-import FollowButton from "@/app/feature/books/components/followButton";
+import { FavoriteButton } from "@/app/feature/favorites/components/FavoriteButton";
 import BookDesc from "@/app/feature/books/components/bookDesc";
 import { Button } from "@/components/ui/button";
-import { AuthorInfo, AuthorsList } from "@/app/feature/books/types/books.type";
+import { AuthorsList } from "@/app/feature/books/types/books.type";
 
 type PageProps = {
   params: Promise<{
@@ -106,7 +106,7 @@ export default async function BookPage({ params }: PageProps) {
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-auto">
                   <div className="w-full sm:w-auto flex-1 sm:flex-none">
-                    <FollowButton
+                    <FavoriteButton
                       bookId={book.id}
                       userId={user?.id || undefined}
                     />
@@ -137,6 +137,7 @@ export default async function BookPage({ params }: PageProps) {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 pb-20">
               <div className="flex flex-col gap-6">
                 <ChapterContainer
+                  bookId={book.id}
                   chapters={chapters}
                   totalChapters={chapters.length}
                 />

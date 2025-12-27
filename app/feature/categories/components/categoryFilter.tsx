@@ -11,20 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Giả lập options, bạn nên import từ constant hoặc fetch từ API
-const CATEGORY_OPTIONS = [
-  { value: "tieu-thuyet", label: "Tiểu thuyết" },
-  { value: "trinh-tham", label: "Trinh thám" },
-  { value: "co-dien", label: "Cổ điển" },
-];
+import { Category } from "../types/listCategories";
 
 interface CategoryFilterProps {
   currentCategory?: string;
+  categories: Category[];
 }
 
 export default function CategoryFilter({
   currentCategory,
+  categories,
 }: CategoryFilterProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -62,9 +58,9 @@ export default function CategoryFilter({
           <SelectGroup>
             <SelectLabel>Genres</SelectLabel>
             <SelectItem value="all">All Categories</SelectItem>
-            {CATEGORY_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {categories.map((cate) => (
+              <SelectItem key={cate.id} value={cate.name}>
+                {cate.name}
               </SelectItem>
             ))}
           </SelectGroup>

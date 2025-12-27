@@ -37,6 +37,11 @@ export default function CreateBookPage() {
     setCurrentStep(2);
   };
 
+  const handleStep2Back = (data: Step2FormData) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+    setCurrentStep(1);
+  };
+
   const handleStep2Submit = async (data: Step2FormData) => {
     const finalData = { ...formData, ...data };
     const result = await submitBook(finalData, "create");
@@ -159,7 +164,7 @@ export default function CreateBookPage() {
             <Step2Form
               step1Data={formData}
               defaultValues={formData}
-              onBack={() => setCurrentStep(1)}
+              onBack={handleStep2Back}
               onSubmit={handleStep2Submit}
               isSubmitting={isSubmitting}
               onCancel={handleCancel}

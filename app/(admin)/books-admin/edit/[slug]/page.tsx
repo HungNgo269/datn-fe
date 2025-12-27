@@ -82,6 +82,15 @@ export default function EditBookPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleStep2Back = (data: Step2FormData) => {
+    setFormData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, ...data };
+    });
+    setCurrentStep(1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleStep2Submit = async (step2Data: Step2FormData) => {
     if (!formData) return;
 
@@ -231,7 +240,7 @@ export default function EditBookPage() {
             <Step2Form
               step1Data={formData}
               defaultValues={formData}
-              onBack={() => setCurrentStep(1)}
+              onBack={handleStep2Back}
               onCancel={handleCancel}
               onSubmit={handleStep2Submit}
               isSubmitting={isSubmitting}
