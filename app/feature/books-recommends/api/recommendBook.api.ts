@@ -4,6 +4,6 @@ import { axiosClient } from "@/lib/api";
 
 export async function getTrendingBooks(period: string, limit: number) {
   return handleRequest<BookCardProps[]>(() =>
-    axiosClient.get(`/books/trending?period=month&limit=5`)
+    axiosClient.get(`/books/trending?period=${period}&limit=${limit}`)
   );
 }

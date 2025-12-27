@@ -4,8 +4,8 @@ import {
   getChaptersOfBook,
 } from "@/app/feature/chapters/actions/chapters.actions";
 import IframeBookReader from "@/app/feature/reader/components/IframeBookReader";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import Cookies from "js-cookie";
 
 type PageProps = {
   params: Promise<{
@@ -15,8 +15,7 @@ type PageProps = {
 };
 
 export default async function ChapterPage({ params }: PageProps) {
-  const cookieStore = cookies();
-  const accessToken = cookieStore.get("accessToken")?.value;
+  const accessToken = Cookies.get("accessToken");
   const { bookSlug, chapterSlug } = await params;
 
   const [response, chapters] = await Promise.all([
@@ -37,19 +36,20 @@ export default async function ChapterPage({ params }: PageProps) {
   }
 
   const chapterContent = await getChaptersContent(response.contentUrl);
-  
+
   const currentChapterIndex = chapters.findIndex(
     (ch) => ch.slug === chapterSlug
   );
   const currentChapter = chapters[currentChapterIndex];
-  const nextChapter = currentChapterIndex >= 0 && currentChapterIndex < chapters.length - 1 
-    ? chapters[currentChapterIndex + 1] 
-    : null;
+  const nextChapter =
+    currentChapterIndex >= 0 && currentChapterIndex < chapters.length - 1
+      ? chapters[currentChapterIndex + 1]
+      : null;
 
   return (
     <div className="h-screen w-screen bg-background">
-      <IframeBookReader 
-        initialHtml={chapterContent} 
+      <IframeBookReader
+        initialHtml={chapterContent}
         title={response.title}
         bookSlug={bookSlug}
         chapterSlug={chapterSlug}

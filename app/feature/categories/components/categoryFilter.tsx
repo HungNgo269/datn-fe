@@ -47,7 +47,7 @@ export default function CategoryFilter({
   return (
     <div className="flex items-center gap-3">
       <Select
-        defaultValue={currentCategory || ""}
+        defaultValue={currentCategory || "all"}
         onValueChange={handleCategoryChange}
         disabled={isPending}
       >
@@ -56,10 +56,10 @@ export default function CategoryFilter({
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectLabel>Genres</SelectLabel>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectLabel>Thể loại</SelectLabel>
+            <SelectItem value="all">Tất cả sách</SelectItem>
             {categories.map((cate) => (
-              <SelectItem key={cate.id} value={cate.name}>
+              <SelectItem key={cate.id} value={cate.slug}>
                 {cate.name}
               </SelectItem>
             ))}

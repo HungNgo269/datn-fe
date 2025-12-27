@@ -11,6 +11,7 @@ import { Book } from "../feature/books/types/books.type";
 import { searchAuthorsAction } from "../feature/author/actions/authors.actions";
 import { AuthorInfo } from "../feature/author/types/authors.types";
 import { getURL } from "@/lib/helper";
+import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 import { cn } from "@/lib/utils";
 
 const SEARCH_PAGE_TITLE = "Search Books & Authors";
@@ -169,7 +170,7 @@ function ResultSection({
 function BookResultCard({ book, query }: { book: Book; query: string }) {
   const authorNames =
     book.authors?.map((item) => item.author.name).join(", ") || "Unknown";
-  const plainDescription = stripHtml(book.description) || "Description updating soon.";
+  const sanitizedDescription = sanitizeRichHtml(book.description);
 
   return (
     <Link
@@ -198,9 +199,16 @@ function BookResultCard({ book, query }: { book: Book; query: string }) {
             fallback="Unknown author"
           />
         </p>
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          <HighlightedText text={plainDescription} query={query} />
-        </p>
+        {sanitizedDescription ? (
+          <div
+            className="prose prose-sm text-muted-foreground line-clamp-2"
+            dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            Description updating soon.
+          </p>
+        )}
       </div>
     </Link>
   );
@@ -213,6 +221,8 @@ function AuthorResultCard({
   author: AuthorInfo;
   query: string;
 }) {
+  const sanitizedBio = sanitizeRichHtml(author.bio);
+
   return (
     <div className="flex gap-4 rounded-2xl border border-border/70 bg-card/40 p-4">
       <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-lg font-semibold text-muted-foreground">
@@ -233,12 +243,16 @@ function AuthorResultCard({
         <p className="text-base font-semibold leading-tight">
           <HighlightedText text={author.name} query={query} />
         </p>
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          <HighlightedText
-            text={author.bio || "This author will have a bio soon."}
-            query={query}
+        {sanitizedBio ? (
+          <div
+            className="prose prose-sm text-muted-foreground line-clamp-2"
+            dangerouslySetInnerHTML={{ __html: sanitizedBio }}
           />
-        </p>
+        ) : (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            This author will have a bio soon.
+          </p>
+        )}
         <Link
           prefetch={true}
           href={`/books?search=${encodeURIComponent(author.name)}`}
@@ -300,13 +314,6 @@ function HighlightedText({
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function stripHtml(value?: string | null) {
-  if (!value) {
-    return value ?? "";
-  }
-  return value.replace(/<[^>]*>/g, "");
 }
 
 function EmptyState({

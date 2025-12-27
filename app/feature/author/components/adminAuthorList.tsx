@@ -21,7 +21,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AuthorInfo } from "../types/authors.types";
-import Search from "@/app/share/components/ui/search/adminSearch";
 
 interface AuthorsTableProps {
   authors: AuthorInfo[];

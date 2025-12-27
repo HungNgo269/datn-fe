@@ -11,7 +11,6 @@ export default function BannerContent({
   banners,
   currentBanner,
 }: BannerContentProps) {
-  console.log("checkbanner", banners);
   return (
     <div className="relative h-[400px] md:h-[500px] overflow-hidden">
       <div

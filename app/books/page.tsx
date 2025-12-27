@@ -7,10 +7,11 @@ import CategoryFilter from "../feature/categories/components/categoryFilter";
 import SortSelection from "../feature/categories/components/categorySortSelection";
 import { BookList } from "../feature/books/components/bookListGrid";
 import { Pagination } from "../share/components/ui/pagination/pagination";
-import { BookListSkeleton } from "../share/components/ui/skeleton/skeleton";
+import {
+  BookListSkeleton,
+  HeaderSkeleton,
+} from "../share/components/ui/skeleton/skeleton";
 import FooterComponent from "../share/components/ui/footer/footer";
-import PopularBook from "../feature/books-popular/components/popularBook";
-import TrendingBook from "../feature/books-trending/components/trendingBook";
 import {
   AccessType,
   BookSortBy,
@@ -128,8 +129,8 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   return (
     <div className="overflow-x-hidden ">
       <header className="ml-auto mr-auto w-full  ">
-        <Suspense>
-          <Header></Header>
+        <Suspense fallback={<HeaderSkeleton />}>
+          <Header />
         </Suspense>
       </header>{" "}
       <div className="w-full mx-auto mt-20 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
@@ -161,8 +162,8 @@ export default async function BookPage({ searchParams }: BookPageProps) {
         </div>
       </div>
       <div className="w-full ">
-        <Suspense>
-          <FooterComponent></FooterComponent>
+        <Suspense fallback={<div className="h-40 w-full bg-muted animate-pulse" />}>
+          <FooterComponent />
         </Suspense>
       </div>
     </div>

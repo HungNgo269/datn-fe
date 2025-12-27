@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
@@ -14,16 +13,12 @@ import RecommendBook from "@/app/feature/books-recommends/components/recommendBo
 import { FavoriteButton } from "@/app/feature/favorites/components/FavoriteButton";
 import BookDesc from "@/app/feature/books/components/bookDesc";
 import { Button } from "@/components/ui/button";
-import { AuthorsList } from "@/app/feature/books/types/books.type";
+import { RecommendBookSkeleton } from "@/app/share/components/ui/skeleton/skeleton";
 
 type PageProps = {
   params: Promise<{
     bookSlug: string;
   }>;
-};
-
-const getAuthorsString = (authors: AuthorsList[]) => {
-  return authors?.map((a) => a.author.name).join(", ") || "Đang cập nhật";
 };
 
 export default async function BookPage({ params }: PageProps) {
@@ -69,15 +64,34 @@ export default async function BookPage({ params }: PageProps) {
                   {book.title}
                 </h1>
 
-                <div className="text-muted-foreground text-sm md:text-base font-medium mb-4 text-center md:text-left flex flex-wrap justify-center md:justify-start gap-2">
-                  <span>
-                    Tác giả:{" "}
-                    <span className="text-muted-foreground">
-                      {getAuthorsString(book.authors)}
-                    </span>
-                  </span>
-                  {/* <span className="mx-2 hidden md:inline">•</span> */}
-                  {/* <span>{book.status || "Đang tiến hành"}</span> */}
+                <div className="text-sm md:text-base font-medium mb-4 text-center md:text-left flex flex-col gap-2">
+                  <span className="text-muted-foreground">Tác giả:</span>
+                  <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                    {book.authors?.length ? (
+                      book.authors.map(({ author }) => {
+                        const slug = author.slug;
+                        const href = slug
+                          ? `/authors/${slug}`
+                          : `/books?author=${encodeURIComponent(
+                              author.name
+                            )}&page=1`;
+                        return (
+                          <Link
+                            key={author.id}
+                            href={href}
+                            prefetch={true}
+                            className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-foreground hover:border-primary hover:text-primary transition-colors"
+                          >
+                            {author.name}
+                          </Link>
+                        );
+                      })
+                    ) : (
+                      <span className="text-muted-foreground text-sm">
+                        Đang cập nhật
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mb-5 text-muted-foreground text-sm md:text-base line-clamp-3 md:line-clamp-4 max-w-3xl">
@@ -92,7 +106,10 @@ export default async function BookPage({ params }: PageProps) {
                   {book.categories.map((category) => (
                     <Link
                       key={category.categoryId}
-                      href={`/category/${category.category.slug}?page=1`}
+                      href={`/books?category=${encodeURIComponent(
+                        category.category.slug
+                      )}&page=1`}
+                      prefetch={true}
                     >
                       <Badge
                         variant="outline"
@@ -145,7 +162,9 @@ export default async function BookPage({ params }: PageProps) {
 
               <aside className="space-y-6 hidden lg:block">
                 <div className="sticky top-24">
-                  <RecommendBook />
+                  <Suspense fallback={<RecommendBookSkeleton />}>
+                    <RecommendBook />
+                  </Suspense>
                 </div>
               </aside>
 
@@ -153,7 +172,9 @@ export default async function BookPage({ params }: PageProps) {
                 <h3 className="text-lg font-bold mb-4 text-foreground border-l-4 border-primary pl-3">
                   Có thể bạn thích
                 </h3>
-                <RecommendBook />
+                <Suspense fallback={<RecommendBookSkeleton />}>
+                  <RecommendBook />
+                </Suspense>
               </div>
             </div>
           </div>

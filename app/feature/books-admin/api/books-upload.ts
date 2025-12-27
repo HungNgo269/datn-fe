@@ -34,7 +34,6 @@ export async function deleteBook(id: number) {
 
 export async function getTrendingBooks(period: string, limit: number) {
   return handleRequest<BookCardProps[]>(() =>
-    // axiosClient.post(`/books/popular?period=${period}&limit=${limit}`)
-    axiosClient.get(`/books/trending?period=month&limit=5`)
+    axiosClient.get(`/books/trending?period=${period}&limit=${limit}`)
   );
 }

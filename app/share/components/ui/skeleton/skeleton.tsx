@@ -54,14 +54,14 @@ type Variant = "lg" | "sm";
 
 const CARD_MAP = {
   lg: {
-    card: "w-[150px] sm:w-[180px] lg:w-[170px] xl:w-[230px] h-fit",
-    image: "aspect-[2/3]",
+    card: "xl:w-[230px] lg:w-[170px] md:w-[130px] w-full h-fit",
+    image: "xl:w-[230px] xl:h-[300px] lg:w-[170px] lg:h-[221px] md:w-[130px] h-[207px] w-full",
     title: "h-4",
     meta: "h-3",
   },
   sm: {
-    card: "w-[130px] sm:w-[150px] lg:w-[140px] xl:w-[160px]",
-    image: "aspect-[2/3]",
+    card: "xl:w-[160px] lg:w-[130px] md:w-[130px] w-full h-fit",
+    image: "xl:w-[160px] xl:h-[207px] lg:w-[130px] lg:h-[182px] md:w-[130px] h-[207px] w-full",
     title: "h-3",
     meta: "h-3",
   },
@@ -72,9 +72,9 @@ export function BookCardSkeleton({ variant = "lg" }: { variant?: Variant }) {
 
   return (
     <div className={`flex flex-col ${s.card}`}>
-      <div className={`${shimmer} ${surfaceShell} flex flex-col gap-3 p-2`}>
-        <div className="w-full overflow-hidden rounded-lg">
-          <div className={`w-full ${s.image} ${solidBlock}`} />
+      <div className={`${shimmer} ${surfaceShell} flex flex-col gap-3 p-2 h-full`}>
+        <div className="w-full overflow-hidden rounded-[8px]">
+          <div className={`${s.image} ${solidBlock}`} />
         </div>
 
         <div className="flex flex-col gap-2 pb-1">
@@ -183,6 +183,31 @@ export function BookListSkeleton({
       {Array.from({ length: count }).map((_, index) => (
         <BookCardSkeleton key={index} variant={variant} />
       ))}
+    </div>
+  );
+}
+
+export function HeaderSkeleton() {
+  return (
+    <div className="h-16 w-full bg-muted/60 animate-pulse rounded-b-lg" />
+  );
+}
+
+export function CategoryShowcaseSkeleton() {
+  return (
+    <div className="w-full space-y-4">
+      <div className="h-6 w-48 bg-muted animate-pulse rounded-md" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+        <div className="h-5 w-24 bg-muted animate-pulse rounded" />
+      </div>
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <BookCardSkeleton key={index} variant="lg" />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

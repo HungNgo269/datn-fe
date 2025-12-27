@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { Button } from "@/components/ui/button";
 import { getBookBySlug } from "@/app/feature/books/action/books.action";
 import { Book } from "@/app/feature/books/types/books.type";
+import Cookies from "js-cookie";
 
 export const metadata: Metadata = {
   title: "Thanh toÁn truyA£n | NextBook",
@@ -39,17 +39,14 @@ const formatPrice = (price?: Book["price"]) => {
 
 export default async function PaymentPage({ searchParams }: PaymentPageProps) {
   const params = await searchParams;
-  const cookieStore = cookies();
-  const accessToken = cookieStore.get("accessToken")?.value;
+  const accessToken = Cookies.get("accessToken");
   const targetBookSlug = params.book;
   const chapterSlug = params.chapter;
 
   const currentPath =
     `/payment` +
     (targetBookSlug
-      ? `?book=${targetBookSlug}${
-          chapterSlug ? `&chapter=${chapterSlug}` : ""
-        }`
+      ? `?book=${targetBookSlug}${chapterSlug ? `&chapter=${chapterSlug}` : ""}`
       : "");
 
   if (!accessToken) {
@@ -78,8 +75,8 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
             HoÀn tA¥t viAªc mA­a truyA£n
           </h1>
           <p className="text-muted-foreground">
-            ChA?n trạng thái áp dụng cho tài khoản cA­a bA¡n đA© mAµ̉ khoá
-            cA¡c chA°A°ng yAªu cA§u thanh toán hoA·c thành viAªn.
+            ChA?n trạng thái áp dụng cho tài khoản cA­a bA¡n đA© mAµ̉ khoá cA¡c
+            chA°A°ng yAªu cA§u thanh toán hoA·c thành viAªn.
           </p>
         </div>
 
@@ -87,10 +84,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
           {book ? (
             <div className="flex flex-col gap-4 sm:flex-row">
               <div className="w-full max-w-[140px] overflow-hidden rounded-md border border-border sm:w-[140px]">
-                <ImageCard
-                  bookImage={book.coverImage}
-                  bookName={book.title}
-                />
+                <ImageCard bookImage={book.coverImage} bookName={book.title} />
               </div>
               <div className="flex flex-1 flex-col gap-3">
                 <div>
@@ -119,8 +113,8 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
                 </div>
                 <div className="mt-auto flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="inline-flex flex-1 items-center rounded-md bg-muted/60 px-3 py-2">
-                    Vui loA£ng hoÀn thành viAªc thanh toán theo hA°A°ng
-                    dA«n hoA·c liAªn hA§ hAµ trA§ nEcu cA§n.
+                    Vui loA£ng hoÀn thành viAªc thanh toán theo hA°A°ng dA«n
+                    hoA·c liAªn hA§ hAµ trA§ nEcu cA§n.
                   </span>
                 </div>
               </div>

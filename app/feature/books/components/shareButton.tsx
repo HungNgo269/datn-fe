@@ -1,17 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Minus, Share } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Loader2, Share } from "lucide-react";
 
-interface props {
-  userId?: number;
-  bookId?: number;
-}
-
-export default function ShareButton({ userId, bookId }: props) {
-  const [isLoading, setIsLoading] = useState(false);
+export default function ShareButton() {
+  const isLoading = false;
 
   //   useEffect(() => {
   //     const check = async () => {

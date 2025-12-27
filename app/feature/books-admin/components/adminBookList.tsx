@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 
 import { formatDate } from "@/lib/formatDate";
 import { Book } from "../../books/types/books.type";

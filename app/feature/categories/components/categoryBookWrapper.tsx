@@ -1,18 +1,14 @@
 import { getBooksAction } from "../../books/action/books.action";
 import { getCategories } from "../actions/categories.action";
 import {
-  Book,
-  BookCardProps,
   BookSortBy,
   GetBooksParams,
   SortOrder,
 } from "../../books/types/books.type";
-import { mapBooksToCardProps } from "@/lib/mapBooktoBookCard";
 import BookCategoryClient from "./categoryBookContainer";
 
 export default async function CategoryBookWrapper() {
   const { data: categories } = await getCategories(1, 10);
-  console.log("cate", categories);
   const defaultCategoryId = categories?.[0]?.id;
   let booksIni;
   if (defaultCategoryId) {

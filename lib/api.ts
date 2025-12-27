@@ -1,7 +1,6 @@
 import Cookies from "js-cookie";
 
 import axios, {
-  AxiosError,
   AxiosResponse, //   AxiosResponse, //   AxiosError, // , {
   //   InternalAxiosRequestConfig,
   // }

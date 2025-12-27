@@ -32,13 +32,14 @@ export function RatingForm({
   const [hoverScore, setHoverScore] = useState(0);
   useEffect(() => {
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setScore(initialData.score || 5);
       setReview(initialData.review || "");
     } else {
       setScore(5);
       setReview("");
     }
-  }, [initialData?.score, initialData?.review]);
+  }, [initialData]);
 
   const queryClient = useQueryClient();
 

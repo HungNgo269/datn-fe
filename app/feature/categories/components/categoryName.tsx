@@ -25,7 +25,7 @@ export default async function CategoryName({ currentSlug }: CategoryNameProps) {
         </h1>
       </div>
     );
-  } catch (error) {
+  } catch {
     return <span className="text-xl font-bold capitalize">{currentSlug}</span>;
   }
 }

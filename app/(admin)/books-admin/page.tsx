@@ -11,7 +11,6 @@ import { AdminBookList } from "@/app/feature/books-admin/components/adminBookLis
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { getBooks, deleteBook } from "@/app/feature/books/api/books.api";
 import { Book } from "@/app/feature/books/types/books.type";
-import Search from "@/app/share/components/ui/search/adminSearch";
 
 export default function BooksPage() {
   const queryClient = useQueryClient();

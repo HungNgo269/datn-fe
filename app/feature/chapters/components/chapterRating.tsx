@@ -47,25 +47,6 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
     staleTime: 60 * 60 * 1000,
   });
 
-  if (isLoadingSummary) {
-    return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="animate-spin" />
-      </div>
-    );
-  }
-
-  // Handle distribution data an toàn
-  const emptyDistribution: RatingDistributionDto = {
-    1: 0,
-    2: 0,
-    3: 0,
-    4: 0,
-    5: 0,
-  };
-  const distribution = summary?.distribution ?? emptyDistribution;
-  const totalReviews = summary?.ratingCount || 0;
-  const averageRating = summary?.averageRating || 0;
   const hasRated = Boolean(myRating?.id);
   const normalizedUserId = myRating?.userId ?? currentUser?.id ?? null;
   const orderedReviews = useMemo(() => {
@@ -92,6 +73,25 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
     return list;
   }, [currentUser, myRating, normalizedUserId, ratingsList?.data]);
 
+  if (isLoadingSummary) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
+
+  // Handle distribution data an toàn
+  const emptyDistribution: RatingDistributionDto = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+  const distribution = summary?.distribution ?? emptyDistribution;
+  const totalReviews = summary?.ratingCount || 0;
+  const averageRating = summary?.averageRating || 0;
   return (
     <div className="space-y-8 py-4">
       {/* --- PHẦN THỐNG KÊ --- */}
@@ -123,7 +123,7 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
               // Nếu chưa rate thì truyền score mặc định là 5, review rỗng
               initialData={
                 hasRated
-                  ? { score: myRating.score, review: myRating.review }
+                  ? { score: myRating?.score, review: myRating?.review }
                   : { score: 5, review: "" }
               }
               isEdit={!!hasRated} // Dùng biến hasRated đã check kỹ ở trên
@@ -162,8 +162,7 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
         ) : orderedReviews && orderedReviews.length > 0 ? (
           orderedReviews.map((review: RatingWithUserResponseDto) => {
             const isCurrentUserReview =
-              normalizedUserId !== null &&
-              review.userId === normalizedUserId;
+              normalizedUserId !== null && review.userId === normalizedUserId;
 
             return (
               <div
@@ -183,7 +182,7 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <div className="text-sm font-medium">
-                          {review.user?.username || "Ng’ø ¯?i dA1ng  §cn danh"}
+                          {review.user?.username || ""}
                         </div>
                         {isCurrentUserReview && (
                           <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
@@ -217,7 +216,6 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
               </div>
             );
           })
-        ) : (
         ) : (
           <p className="text-sm text-muted-foreground text-center py-4">
             Chưa có đánh giá nào.

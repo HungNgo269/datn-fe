@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { useAuthStore } from "./app/store/useAuthStore";
 import { parseJwt } from "./lib/helper";
 
 const adminRoutes = [

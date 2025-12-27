@@ -7,7 +7,6 @@ import BookCarousel from "../../books-carousel/components/bookCarousel";
 import { Category } from "../types/listCategories";
 import {
   Book,
-  BookCardProps,
   BookSortBy,
   GetBooksParams,
   SortOrder,
@@ -32,20 +31,23 @@ export default function BookCategoryClient({
 
   const currentCategory = categories.find((cat) => cat.id === selectedCategory);
   const dynamicTitle = currentCategory?.description || "";
-  const selectedCategorySlug = currentCategory?.slug || "van-hoc-co-dien";
+  const selectedCategorySlug =
+    currentCategory?.slug || categories?.[0]?.slug || "";
 
   const handleCategoryChange = (categoryId: number) => {
     if (categoryId === selectedCategory) return;
 
-    setSelectedCategory(categoryId);
+    const targetCategory = categories.find((cat) => cat.id === categoryId);
+
     const params: GetBooksParams = {
       sortBy: BookSortBy.VIEW_COUNT,
-      category: currentCategory?.slug,
+      category: targetCategory?.slug || currentCategory?.slug,
       limit: 10,
       page: 1,
       sortOrder: SortOrder.DESC,
     };
 
+    setSelectedCategory(categoryId);
     startTransition(async () => {
       const newBooks = await getBooksAction(params);
       setBooks(newBooks.data);
@@ -53,11 +55,10 @@ export default function BookCategoryClient({
   };
   console.log("bockk lí", books);
   return (
-    !isPending &&
     dynamicTitle &&
     books &&
     selectedCategory && (
-      <div className="mt-6 w-full">
+      <div className="mt-6 w-full space-y-4">
         <span className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 block">
           {dynamicTitle}
         </span>
@@ -69,7 +70,11 @@ export default function BookCategoryClient({
               selectedCategory={selectedCategory || 0}
               onCategoryChange={handleCategoryChange}
             />
-            <ViewMoreButton url={`/books?tag=${selectedCategorySlug}&page=1`} />
+            <ViewMoreButton
+              url={`/books?category=${encodeURIComponent(
+                selectedCategorySlug
+              )}&page=1`}
+            />
           </div>
           <BookCarousel books={books} variant="lg" isLoading={isPending} />
         </div>

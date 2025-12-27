@@ -3,7 +3,6 @@ import {
   handleActionRequest,
 } from "@/lib/handleActionRequest";
 import { Category } from "../types/listCategories";
-import { Book } from "../../books/types/books.type";
 
 export async function getCategories(page: number, limit: number) {
   return handleActionPaginatedRequest<Category>("/categories", {

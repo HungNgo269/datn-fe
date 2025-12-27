@@ -153,7 +153,15 @@ export default function IframeBookReader({
 
       return () => clearTimeout(timer);
     }
-  }, [fontSize, fontId, ready, isPositionRestored]);
+  }, [
+    calculateTotalPages,
+    currentPage,
+    fontId,
+    fontSize,
+    goToPage,
+    isPositionRestored,
+    ready,
+  ]);
 
   const handleIframeLoad = () => setReady(true);
 

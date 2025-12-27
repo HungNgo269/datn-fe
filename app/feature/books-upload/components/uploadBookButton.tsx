@@ -49,6 +49,7 @@ export function UploadBookButton({
                     type="file"
                     onChange={handleChange}
                     accept={accept}
+                    required={required}
                     className="hidden"
                 />
             </div>

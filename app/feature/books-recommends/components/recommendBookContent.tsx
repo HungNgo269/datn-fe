@@ -11,7 +11,7 @@ export default function RecommendBookContent({
 }: RecommendBookContentProps) {
   return (
     <div className="space-y-3">
-      {books.map((book: BookCardProps, index) => (
+      {books.map((book: BookCardProps) => (
         <div
           key={book.id}
           className="flex flex-row items-center gap-2 h-[80px]"

@@ -18,6 +18,7 @@ export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(searchParams?.get("q") ?? "");
   }, [searchParams]);
 
@@ -80,4 +81,3 @@ export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
     </form>
   );
 }
-

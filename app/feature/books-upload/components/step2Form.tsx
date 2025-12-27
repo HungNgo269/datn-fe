@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Check, Loader2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,13 +62,16 @@ export function Step2Form({
     onSubmit,
     isSubmitting,
 }: Step2FormProps) {
-    const step2Defaults: Step2FormData = {
-        authorIds: defaultValues?.authorIds ?? [],
-        categoryIds: defaultValues?.categoryIds ?? [],
-        description: defaultValues?.description ?? "",
-        price: defaultValues?.price ?? 0,
-        freeChapters: defaultValues?.freeChapters ?? 0,
-    };
+    const step2Defaults: Step2FormData = useMemo(
+        () => ({
+            authorIds: defaultValues?.authorIds ?? [],
+            categoryIds: defaultValues?.categoryIds ?? [],
+            description: defaultValues?.description ?? "",
+            price: defaultValues?.price ?? 0,
+            freeChapters: defaultValues?.freeChapters ?? 0,
+        }),
+        [defaultValues]
+    );
     const { submitAuthor } = useAuthorSubmit();
 
     const form = useForm<Step2FormData>({
@@ -78,7 +81,7 @@ export function Step2Form({
 
     useEffect(() => {
         form.reset(step2Defaults);
-    }, [defaultValues, form]);
+    }, [form, step2Defaults]);
     const handleCreateAuthor = async (inputValue: string): Promise<Option> => {
         try {
             // Giả sử submitAuthor trả về object Author đầy đủ { id: 123, name: "Nguyen Nhat Anh", ... }

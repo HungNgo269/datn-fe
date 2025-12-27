@@ -3,10 +3,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import ViewMoreButton from "@/app/share/components/ui/button/viewMoreButton";
 import BookCard from "../../../../feature/books-carousel/components/bookCard";
-import {
-  Book,
-  BookCardProps,
-} from "../../../../feature/books/types/books.type";
+import { Book } from "../../../../feature/books/types/books.type";
 
 interface Props {
   books: Book[];

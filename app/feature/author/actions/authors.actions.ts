@@ -1,5 +1,8 @@
 import { PaginatedData } from "@/app/types/api.types";
-import { handleActionPaginatedRequest } from "@/lib/handleActionRequest";
+import {
+  handleActionPaginatedRequest,
+  handleActionRequest,
+} from "@/lib/handleActionRequest";
 
 import { AuthorInfo } from "../types/authors.types";
 
@@ -45,3 +48,30 @@ export async function searchAuthorsAction({
   return handleActionPaginatedRequest<AuthorInfo>(url, { revalidate: 0 });
 }
 
+export async function getAuthorsAction({
+  page = 1,
+  limit = 12,
+}: {
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedData<AuthorInfo>> {
+  const params = new URLSearchParams();
+  params.append("page", page.toString());
+  params.append("limit", limit.toString());
+
+  const url = `/authors?${params.toString()}`;
+
+  return handleActionPaginatedRequest<AuthorInfo>(url, {
+    revalidate: 60,
+  });
+}
+
+export async function getAuthorBySlugAction(slug: string) {
+  if (!slug) {
+    throw new Error("Author slug is required");
+  }
+
+  return handleActionRequest<AuthorInfo>(`/authors/slug/${slug}`, {
+    revalidate: 60,
+  });
+}

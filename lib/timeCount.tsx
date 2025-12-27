@@ -1,4 +1,25 @@
 export type TimeFrame = "week" | "month";
+export const DEFAULT_TIMEFRAME: TimeFrame = "month";
+
+export function isTimeFrame(value: unknown): value is TimeFrame {
+  return value === "week" || value === "month";
+}
+
+export function normalizeTimeFrame(
+  value: unknown,
+  fallback: TimeFrame = DEFAULT_TIMEFRAME
+): TimeFrame {
+  if (Array.isArray(value)) {
+    return normalizeTimeFrame(value[0], fallback);
+  }
+
+  if (typeof value === "string" && isTimeFrame(value)) {
+    return value;
+  }
+
+  return fallback;
+}
+
 export function getStartDate(timeframe: TimeFrame): Date {
   const now = new Date();
 

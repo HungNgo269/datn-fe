@@ -245,7 +245,7 @@ export default function UsersPage() {
                       {user.email}
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/80 text-primary-foreground">
                         {user.role}
                       </span>
                     </TableCell>

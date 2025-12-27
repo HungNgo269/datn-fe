@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,10 @@ export function Step1Form({
             cover: defaultValues?.cover,
         },
     });
+    const watchedFile = useWatch({
+        control: form.control,
+        name: "file",
+    });
 
     useEffect(() => {
         form.reset({
@@ -52,9 +56,10 @@ export function Step1Form({
 
     useEffect(() => {
         const cover = defaultValues?.cover;
+        let frame: number | null = null;
         if (cover) {
             if (typeof cover === "string") {
-                setCoverPreview(cover);
+                frame = requestAnimationFrame(() => setCoverPreview(cover));
             } else if (cover instanceof File) {
                 const reader = new FileReader();
                 reader.onloadend = () =>
@@ -62,8 +67,13 @@ export function Step1Form({
                 reader.readAsDataURL(cover);
             }
         } else {
-            setCoverPreview(null);
+            frame = requestAnimationFrame(() => setCoverPreview(null));
         }
+        return () => {
+            if (frame !== null) {
+                cancelAnimationFrame(frame);
+            }
+        };
     }, [defaultValues]);
 
     const handleFileChange = (file: File) => {
@@ -88,10 +98,10 @@ export function Step1Form({
     };
 
     const getFileLabel = () => {
-        const file = form.watch("file");
+        const file = watchedFile;
         if (file instanceof File) return file.name;
         if (typeof file === "string" && file.length > 0)
-            return "File sách hiện tại (Đã upload)";
+            return "File s?ch hi?n t?i (?? upload)";
         return undefined;
     };
 
@@ -109,8 +119,8 @@ export function Step1Form({
                         required={!isEdit}
                         onChange={handleFileChange}
                         selectedFile={
-                            form.watch("file") instanceof File
-                                ? form.watch("file")
+                            watchedFile instanceof File
+                                ? watchedFile
                                 : undefined
                         }
                         error={form.formState.errors.file?.message as string}

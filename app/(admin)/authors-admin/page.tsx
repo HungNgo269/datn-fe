@@ -11,7 +11,6 @@ import { deleteAuthor, getAuthors } from "@/app/feature/author/api/authors.api";
 import { AdminAuthorList } from "@/app/feature/author/components/adminAuthorList";
 import { AuthorDialog } from "@/app/feature/author/components/adminAuthorDialog";
 import { AuthorInfo } from "@/app/feature/author/types/authors.types";
-import Search from "@/app/share/components/ui/search/adminSearch";
 
 export default function AuthorsPage() {
   const queryClient = useQueryClient();

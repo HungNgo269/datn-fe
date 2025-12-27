@@ -1,6 +1,5 @@
 import { Pencil, Trash2, ExternalLink } from "lucide-react";
 import Image from "next/image";
-import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -153,7 +152,7 @@ export function AdminBannerList({
                       Hiển thị
                     </Badge>
                   ) : (
-                    <Badge variant="secondary">Đã ẩn</Badge>
+                    <Badge>Đã ẩn</Badge>
                   )}
                 </TableCell>
 

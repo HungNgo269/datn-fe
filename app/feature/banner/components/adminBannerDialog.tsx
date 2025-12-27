@@ -68,8 +68,6 @@ export function BannerDialog({
   const {
     register,
     control,
-    handleSubmit,
-    reset,
     formState: { errors },
   } = form;
 

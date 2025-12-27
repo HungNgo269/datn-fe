@@ -35,7 +35,7 @@ const createId = () =>
 
 export const useReaderDataStore = create<ReaderDataState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       bookmarks: [],
       notes: [],
       toggleBookmark(payload) {

@@ -4,9 +4,7 @@ import type React from "react";
 
 import { useState } from "react";
 import {
-  BarChart3,
   BookOpen,
-  LayoutDashboard,
   Users,
   ChevronLeft,
   Menu,

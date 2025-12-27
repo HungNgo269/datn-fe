@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { Book, BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
@@ -8,7 +9,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Headphones, Heart } from "lucide-react";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
 const formatPrice = (price?: number | null) => {
   if (!price || price === 0) return "Miễn phí";
@@ -39,9 +40,7 @@ export default function BookCard({
     variant === "sm" ? "w-[100px] md:w-[120px]" : "w-[110px] md:w-[140px]";
 
   if (!book) return null;
-  const contentWithNormalSpaces = book?.description?.replace(/&nbsp;/g, " ");
-
-  const sanitizedContent = DOMPurify.sanitize(contentWithNormalSpaces!);
+  const sanitizedContent = sanitizeRichHtml(book?.description);
   return (
     <div className={`flex flex-col w-full `}>
       <HoverCard openDelay={0} closeDelay={100}>
@@ -118,17 +117,23 @@ export default function BookCard({
                     {bookPrice}
                   </span>
                 </div>
-                <div
-                  className="prose prose-sm max-w-none text-foreground leading-relaxed w-full whitespace-normal break-words text-justify line-clamp-4"
-                  dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-                />
+                {sanitizedContent ? (
+                  <div
+                    className="prose prose-sm max-w-none text-foreground leading-relaxed w-full break-words text-justify line-clamp-4"
+                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Chưa có mô tả cho sách này.
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center gap-2 mt-auto">
                 <Link href={`/books/${book.slug}/read`} className="flex-1">
                   <Button
                     size="sm"
-                    className="w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold h-8 md:h-9 text-xs shadow-lg transition-transform active:scale-95"
+                    className="w-full bg-primary/80 hover:bg-primary text-primary-foreground font-bold h-8 md:h-9 text-xs shadow-lg transition-transform active:scale-95"
                   >
                     <BookOpen className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                     <span className="hidden md:inline">Đọc ngay</span>

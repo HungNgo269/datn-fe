@@ -41,11 +41,10 @@ export function FavoriteBookCard({ favorite }: FavoriteBookCardProps) {
           )}
 
           <div className="mt-auto flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs font-medium">
-              #{book.slug}
-            </Badge>
+            <Badge className="text-xs font-medium">#{book.slug}</Badge>
             <span className="text-xs text-muted-foreground">
-              Thêm ngày {new Date(favorite.createdAt).toLocaleDateString("vi-VN")}
+              Thêm ngày{" "}
+              {new Date(favorite.createdAt).toLocaleDateString("vi-VN")}
             </span>
           </div>
         </div>
