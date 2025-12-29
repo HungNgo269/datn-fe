@@ -10,6 +10,7 @@ import { Pagination } from "../share/components/ui/pagination/pagination";
 import {
   BookListSkeleton,
   HeaderSkeleton,
+  TrendingBookSkeleton,
 } from "../share/components/ui/skeleton/skeleton";
 import FooterComponent from "../share/components/ui/footer/footer";
 import {
@@ -19,6 +20,8 @@ import {
 } from "../feature/books/types/books.type";
 import Header from "../share/components/ui/header/header";
 import { getCategories } from "../feature/categories/actions/categories.action";
+import PopularBook from "../feature/books-popular/components/popularBook";
+import TrendingBook from "../feature/books-trending/components/trendingBook";
 
 const BOOK_PAGE_TITLE = "Discover Stories & Novels | NextBook";
 
@@ -129,9 +132,7 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   return (
     <div className="overflow-x-hidden ">
       <header className="ml-auto mr-auto w-full  ">
-        <Suspense fallback={<HeaderSkeleton />}>
-          <Header />
-        </Suspense>
+        <Header />
       </header>{" "}
       <div className="w-full mx-auto mt-20 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
         <div className="flex  justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
@@ -156,15 +157,21 @@ export default async function BookPage({ searchParams }: BookPageProps) {
                     </div>
                   </div>
                 </div>
+                <div className="flex flex-col  w-[200px] md:w-[250px] xl:w-[300px] gap-5">
+                  <Suspense fallback={<TrendingBookSkeleton />}>
+                    <TrendingBook period={"month"} />
+                  </Suspense>
+                  <Suspense fallback={<TrendingBookSkeleton />}>
+                    <PopularBook />
+                  </Suspense>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div className="w-full ">
-        <Suspense fallback={<div className="h-40 w-full bg-muted animate-pulse" />}>
-          <FooterComponent />
-        </Suspense>
+        <FooterComponent />
       </div>
     </div>
   );

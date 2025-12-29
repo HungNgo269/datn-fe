@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
 import { ChapterCardProps, ChapterContent } from "../types/chapter.type";
 import { handleActionRequest } from "@/lib/handleActionRequest";
-
+import Cookie from "js-cookie";
 export async function getChaptersOfBook(slug: string) {
   return handleActionRequest<ChapterCardProps[]>(`/books/${slug}/chapters`, {
     cache: "no-store",
@@ -12,7 +11,7 @@ export async function getChaptersDetails(
   bookSlug: string,
   chapterSlug: string
 ) {
-  const accessToken = cookies().get("accessToken")?.value;
+  const accessToken = Cookie.get("accessToken");
   return handleActionRequest<ChapterContent>(
     `/books/${bookSlug}/chapters/${chapterSlug}`,
     {

@@ -4,6 +4,7 @@ import {
   getChaptersOfBook,
 } from "@/app/feature/chapters/actions/chapters.actions";
 import IframeBookReader from "@/app/feature/reader/components/IframeBookReader";
+import { getBookBySlug } from "@/app/feature/books/action/books.action";
 import { redirect } from "next/navigation";
 import Cookies from "js-cookie";
 
@@ -18,9 +19,10 @@ export default async function ChapterPage({ params }: PageProps) {
   const accessToken = Cookies.get("accessToken");
   const { bookSlug, chapterSlug } = await params;
 
-  const [response, chapters] = await Promise.all([
+  const [response, chapters, book] = await Promise.all([
     getChaptersDetails(bookSlug, chapterSlug),
     getChaptersOfBook(bookSlug),
+    getBookBySlug(bookSlug),
   ]);
 
   const chapterPath = `/books/${bookSlug}/chapter/${chapterSlug}`;
@@ -56,6 +58,9 @@ export default async function ChapterPage({ params }: PageProps) {
         chapters={chapters}
         currentChapterOrder={currentChapter?.order || response.order}
         nextChapterSlug={nextChapter?.slug || null}
+        bookTitle={book?.title ?? response.title}
+        bookCoverImage={book?.coverImage ?? null}
+        bookId={book?.id ?? null}
       />
     </div>
   );

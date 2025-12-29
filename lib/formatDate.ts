@@ -62,3 +62,57 @@ export function formatRelativeTime(dateInput: DateInput): string {
     addSuffix: true,
   });
 }
+export function formatTimeVN(dateInput: DateInput) {
+  const date = safeParseDate(dateInput);
+  const now = new Date();
+  if (!dateInput) return null;
+  if (!date) return null;
+
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  let timeAgo = "";
+
+  const minutes = 60;
+  const hours = 60 * minutes;
+  const days = 24 * hours;
+  const weeks = 7 * days;
+  const months = 30 * days;
+  const years = 365 * days;
+
+  if (diffInSeconds < minutes) {
+    timeAgo = "Vừa xong";
+  } else if (diffInSeconds < hours) {
+    const mins = Math.floor(diffInSeconds / minutes);
+    timeAgo = `${mins} phút trước`;
+  } else if (diffInSeconds < days) {
+    const hrs = Math.floor(diffInSeconds / hours);
+    timeAgo = `${hrs} giờ trước`;
+  } else if (diffInSeconds < weeks) {
+    const dys = Math.floor(diffInSeconds / days);
+    timeAgo = `${dys} ngày trước`;
+  } else if (diffInSeconds < months) {
+    const wks = Math.floor(diffInSeconds / weeks);
+    timeAgo = `${wks} tuần trước`;
+  } else if (diffInSeconds < years) {
+    const mths = Math.floor(diffInSeconds / months);
+    timeAgo = `${mths} tháng trước`;
+  } else {
+    const yrs = Math.floor(diffInSeconds / years);
+    timeAgo = `${yrs} năm trước`;
+  }
+
+  const hour = date.getHours().toString().padStart(2, "0");
+  const minute = date.getMinutes().toString().padStart(2, "0");
+
+  const formattedTime = `${hour}:${minute}`;
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+
+  return {
+    label: timeAgo,
+    fullDateTime: `${formattedTime} - ${day}/${month}/${year}`,
+    timeOnly: formattedTime,
+  };
+}

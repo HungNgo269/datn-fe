@@ -43,7 +43,7 @@ export default function ReaderNoteDialog({
 
   return (
     <div className="absolute inset-0 overlay-backdrop flex items-center justify-center z-50">
-      <div className="bg-popover border border-border rounded-lg p-6 w-96 max-w-[90vw] shadow-xl">
+      <div className="bg-white border border-border rounded-lg p-6 w-96 max-w-[90vw] ">
         <h3 className="font-semibold mb-4">Thêm ghi chú</h3>
         <div className="mb-4">
           <p className="text-sm text-muted-foreground mb-2">

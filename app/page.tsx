@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Header from "./share/components/ui/header/header";
 import CategoryBookWrapper from "./feature/categories/components/categoryBookWrapper";
 import BannerComponent from "./feature/banner/components/bannerHomeSlider";
-import SwipperNewBook from "./feature/books-new/components/newBookSwipperWrapper";
 import NewBookList from "./feature/books-new/components/newBookList";
 import PopularBook from "./feature/books-popular/components/popularBook";
 import TrendingBook from "./feature/books-trending/components/trendingBook";
@@ -15,6 +14,11 @@ import {
   TrendingBookSkeleton,
 } from "./share/components/ui/skeleton/skeleton";
 import { normalizeTimeFrame } from "@/lib/timeCount";
+import Swipper from "./share/components/ui/swipper/swipper";
+import SwipperNewBook from "./feature/books-new/components/newBookSwipperWrapper";
+import ContinueReadingCard from "./feature/books-continue/components/ContinueReadingCard";
+import { ReaderBookmarksSection } from "./feature/account/components/readerBookmarksSection";
+import ContinueReadingCarousel from "./feature/books-continue/components/ContinueReadingCarousel";
 // import Header from "@/app/ui/user/headerCustomer/headerMain";
 // import BestSellerContainer from "@/app/ui/user/books/bestSellerContainer";
 // import NewBookList from "@/app/ui/user/books/newBookList";
@@ -35,19 +39,18 @@ export default async function HomePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const trendingPeriod = normalizeTimeFrame(resolvedSearchParams?.trendingPeriod);
+  const trendingPeriod = normalizeTimeFrame(
+    resolvedSearchParams?.trendingPeriod
+  );
 
   return (
     <div className="overflow-x-hidden ">
       <header className="ml-auto mr-auto w-full  ">
-        <Suspense fallback={<HeaderSkeleton />}>
-          <Header />
-        </Suspense>
+        <Header />
       </header>
       <Suspense fallback={<SlideSkeleton />}>
         <BannerComponent />
       </Suspense>
-
       <div className="w-full mx-auto mt-10 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
         <div className="hidden md:block">
           <Suspense fallback={<CategoryShowcaseSkeleton />}>
@@ -68,7 +71,8 @@ export default async function HomePage({
                 <NewBookList />
               </Suspense>
             </div>
-            <Suspense>{/* <NewChapterList searchParams={page} /> */}</Suspense>
+
+            <ContinueReadingCarousel />
             <Suspense>{/* <BookRecommend></BookRecommend> */}</Suspense>
           </div>
           <div className="flex flex-col  w-[200px] md:w-[250px] xl:w-[300px] gap-5">
@@ -87,9 +91,7 @@ export default async function HomePage({
         </div>
       </div>
       <div className="w-full ">
-        <Suspense fallback={<div className="h-40 w-full bg-muted animate-pulse" />}>
-          <FooterComponent />
-        </Suspense>
+        <FooterComponent />
       </div>
     </div>
   );

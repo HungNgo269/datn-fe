@@ -29,7 +29,7 @@ export default function AuthorProfile({
   const joined = formatDate(author.createdAt);
 
   return (
-    <section className="flex flex-col gap-6 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur">
+    <section className="flex flex-col gap-6 ">
       <div className="flex flex-col gap-6 md:flex-row md:items-center">
         <div className="flex items-center justify-center">
           <div className="relative h-32 w-32 overflow-hidden rounded-2xl border border-border/50 bg-muted md:h-40 md:w-40">
@@ -53,7 +53,9 @@ export default function AuthorProfile({
             {author.bio && (
               <div
                 className="prose prose-sm mt-3 text-muted-foreground leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(author.bio) }}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeRichHtml(author.bio),
+                }}
               />
             )}
           </div>
@@ -61,7 +63,8 @@ export default function AuthorProfile({
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
             {joined && (
               <span>
-                Gia nhập NextBook <strong className="text-foreground">{joined}</strong>
+                Gia nhập NextBook{" "}
+                <strong className="text-foreground">{joined}</strong>
               </span>
             )}
             {typeof bookCount === "number" && (

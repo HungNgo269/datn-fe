@@ -30,6 +30,9 @@ interface Props {
   chapters?: ChapterCardProps[];
   currentChapterOrder?: number;
   nextChapterSlug?: string | null;
+  bookTitle?: string;
+  bookCoverImage?: string | null;
+  bookId?: number | null;
 }
 
 export default function IframeBookReader({
@@ -39,6 +42,9 @@ export default function IframeBookReader({
   chapterSlug,
   chapters = [],
   nextChapterSlug,
+  bookTitle,
+  bookCoverImage,
+  bookId,
 }: Props) {
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -51,6 +57,9 @@ export default function IframeBookReader({
     (state) => state.removeBookmark
   );
   const removeNoteFromStore = useReaderDataStore((state) => state.removeNote);
+  const updateContinueReading = useReaderDataStore(
+    (state) => state.updateContinueReading
+  );
 
   const [ready, setReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -112,14 +121,88 @@ export default function IframeBookReader({
     if (bgColor) setContainerBg(bgColor);
   }, [themeId, getThemeColor]);
 
+  const currentChapter = useMemo(() => {
+    return chapters.find((chapter) => chapter.slug === chapterSlug);
+  }, [chapters, chapterSlug]);
+  const currentChapterTitle = currentChapter?.title ?? null;
+
+  const currentChapterIndex = useMemo(() => {
+    if (!chapterSlug || !chapters.length) return -1;
+    return chapters.findIndex((chapter) => chapter.slug === chapterSlug);
+  }, [chapterSlug, chapters]);
+
+  const previousChapterSlug = useMemo(() => {
+    if (currentChapterIndex > 0) {
+      return chapters[currentChapterIndex - 1].slug;
+    }
+    return null;
+  }, [chapters, currentChapterIndex]);
+
+  const fallbackNextChapterSlug = useMemo(() => {
+    if (
+      currentChapterIndex >= 0 &&
+      currentChapterIndex < chapters.length - 1
+    ) {
+      return chapters[currentChapterIndex + 1].slug;
+    }
+    return null;
+  }, [chapters, currentChapterIndex]);
+
+  const resolvedNextChapterSlug = nextChapterSlug ?? fallbackNextChapterSlug;
+
+  const navigateToChapter = useCallback(
+    (targetSlug: string | null | undefined) => {
+      if (!bookSlug) return;
+      if (targetSlug) {
+        router.push(`/books/${bookSlug}/chapter/${targetSlug}`);
+      } else {
+        router.push(`/books/${bookSlug}`);
+      }
+    },
+    [bookSlug, router]
+  );
+
+  const goToNextChapter = useCallback(() => {
+    navigateToChapter(resolvedNextChapterSlug);
+  }, [navigateToChapter, resolvedNextChapterSlug]);
+
+  const goToPreviousChapter = useCallback(() => {
+    navigateToChapter(previousChapterSlug);
+  }, [navigateToChapter, previousChapterSlug]);
+
+  const handleNextPage = useCallback(() => {
+    const isLastPage = totalPages > 0 && currentPage >= totalPages;
+    if (isLastPage) {
+      goToNextChapter();
+    } else {
+      next();
+    }
+  }, [currentPage, goToNextChapter, next, totalPages]);
+
+  const handlePreviousPage = useCallback(() => {
+    const isFirstPage = currentPage <= 1;
+    if (isFirstPage) {
+      goToPreviousChapter();
+    } else {
+      prev();
+    }
+  }, [currentPage, goToPreviousChapter, prev]);
+
+  const canNavigateForward =
+    (totalPages > 0 && currentPage < totalPages) ||
+    Boolean(resolvedNextChapterSlug || bookSlug);
+
+  const canNavigateBackward =
+    currentPage > 1 || Boolean(previousChapterSlug || bookSlug);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") handleNextPage();
+      if (e.key === "ArrowLeft") handlePreviousPage();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [next, prev]);
+  }, [handleNextPage, handlePreviousPage]);
 
   useEffect(() => {
     if (!ready || !iframeRef.current?.contentWindow) return;
@@ -165,18 +248,16 @@ export default function IframeBookReader({
 
   const handleIframeLoad = () => setReady(true);
 
-  const currentChapter = useMemo(() => {
-    return chapters.find((chapter) => chapter.slug === chapterSlug);
-  }, [chapters, chapterSlug]);
-
   const handleBookmark = () => {
     if (!bookSlug) {
       return;
     }
     toggleBookmark({
       userId,
+      bookId: bookId ?? null,
       bookSlug,
-      bookTitle: title,
+      bookTitle: bookTitle ?? title,
+      bookCoverImage: bookCoverImage ?? null,
       chapterSlug: chapterSlug || null,
       chapterTitle: currentChapter?.title ?? null,
       page: currentPage,
@@ -190,7 +271,7 @@ export default function IframeBookReader({
     addNoteToStore({
       userId,
       bookSlug,
-      bookTitle: title,
+      bookTitle: bookTitle ?? title,
       chapterSlug: chapterSlug || null,
       chapterTitle: currentChapter?.title ?? null,
       page: currentPage,
@@ -213,6 +294,33 @@ export default function IframeBookReader({
       bookmark.chapterSlug === (chapterSlug || null)
   );
 
+  useEffect(() => {
+    if (!bookSlug) {
+      return;
+    }
+
+    updateContinueReading({
+      userId,
+      bookId: bookId ?? null,
+      bookSlug,
+      bookTitle: bookTitle ?? title,
+      bookCoverImage: bookCoverImage ?? null,
+      chapterSlug: chapterSlug ?? null,
+      chapterTitle: currentChapterTitle,
+      page: currentPage,
+    });
+  }, [
+    bookCoverImage,
+    bookSlug,
+    bookTitle,
+    chapterSlug,
+    currentChapterTitle,
+    currentPage,
+    title,
+    updateContinueReading,
+    userId,
+  ]);
+
   return (
     <div className="flex flex-col h-full w-full relative overflow-hidden bg-muted transition-colors duration-300">
       <ReaderTopBar
@@ -220,12 +328,8 @@ export default function IframeBookReader({
         currentPage={currentPage}
         totalPages={totalPages}
         onBackToBook={() => bookSlug && router.push(`/books/${bookSlug}`)}
-        onNextChapter={() => {
-          if (nextChapterSlug && bookSlug)
-            router.push(`/books/${bookSlug}/chapter/${nextChapterSlug}`);
-          else if (bookSlug) router.push(`/books/${bookSlug}`);
-        }}
-        nextChapterSlug={nextChapterSlug}
+        onNextChapter={goToNextChapter}
+        nextChapterSlug={resolvedNextChapterSlug}
         onToggleSettings={() => setShowSettings(!showSettings)}
         onToggleChapters={() => setShowChaptersList(!showChaptersList)}
         onToggleNotes={handleNoteClick}
@@ -246,8 +350,10 @@ export default function IframeBookReader({
         <ReaderPageNavigation
           currentPage={currentPage}
           totalPages={totalPages}
-          onPrev={prev}
-          onNext={next}
+          onPrev={handlePreviousPage}
+          onNext={handleNextPage}
+          canGoPrev={canNavigateBackward}
+          canGoNext={canNavigateForward}
         />
 
         {loading ||

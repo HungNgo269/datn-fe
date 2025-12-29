@@ -11,7 +11,7 @@ export default async function NewBookList() {
         <span className="font-bold text-2xl text-start flex-1 min-w-0 truncate ">
           Những đầu sách mới nhất
         </span>
-        <ViewMoreButton url="/books"></ViewMoreButton>
+        <ViewMoreButton context="book" url="/books"></ViewMoreButton>
       </div>
 
       <BookCarousel

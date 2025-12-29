@@ -55,40 +55,42 @@ export default function ReaderTopBar({
 
   return (
     <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 shadow-sm z-30 relative">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 z-10">
         <button
           onClick={onBackToBook}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors"
+          className="p-2 hover:bg-muted rounded text-foreground transition-colors  hover:cursor-pointer"
           title="Quay lại sách"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
+      </div>
+
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full max-w-[50%] pointer-events-none">
+        <div className="hidden md:block">
+          <h1 className="font-semibold text-foreground text-sm md:text-base line-clamp-1 mx-auto">
+            {title}
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Trang {currentPage} / {totalPages || "--"}
+          </p>
+        </div>
+
+        <div className="md:hidden text-xs text-muted-foreground font-medium">
+          {currentPage}/{totalPages || "-"}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1 z-10 bg-card">
         <button
           onClick={onToggleChapters}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors"
+          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
           title="Danh sách chương"
         >
           <List className="w-5 h-5" />
         </button>
-      </div>
-
-      <div className="flex-1 px-4 text-center hidden md:block">
-        <h1 className="font-semibold text-foreground text-sm md:text-base line-clamp-1 max-w-[200px] md:max-w-md mx-auto">
-          {title}
-        </h1>
-        <p className="text-xs text-muted-foreground">
-          Trang {currentPage} / {totalPages || "--"}
-        </p>
-      </div>
-
-      <div className="md:hidden flex-1 text-center text-xs text-muted-foreground">
-        {currentPage}/{totalPages || "-"}
-      </div>
-
-      <div className="flex items-center gap-1">
         <button
           onClick={onToggleBookmark}
-          className={`p-2 rounded transition-colors ${
+          className={`p-2 rounded transition-colors hover:cursor-pointer ${
             isBookmarked ? "text-primary" : "text-foreground hover:bg-muted"
           }`}
           title="Đánh dấu trang này"
@@ -100,7 +102,7 @@ export default function ReaderTopBar({
 
         <button
           onClick={onToggleNotes}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors"
+          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
           title="Ghi chú"
         >
           <StickyNote className="w-5 h-5" />
@@ -108,7 +110,7 @@ export default function ReaderTopBar({
 
         <button
           onClick={onToggleSettings}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors"
+          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
           title="Cài đặt hiển thị"
         >
           <Settings className="w-5 h-5" />
@@ -116,7 +118,7 @@ export default function ReaderTopBar({
 
         <button
           onClick={toggleFullscreen}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors hidden sm:block"
+          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer hidden sm:block"
           title="Toàn màn hình (F11)"
         >
           {isFullscreen ? (
@@ -130,7 +132,7 @@ export default function ReaderTopBar({
 
         <button
           onClick={onNextChapter}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors"
+          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
           title={nextChapterSlug ? "Chương tiếp theo" : "Quay lại sách"}
         >
           <ChevronRight className="w-5 h-5" />

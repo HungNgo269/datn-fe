@@ -10,20 +10,34 @@ import {
   useReaderDataStore,
 } from "@/app/store/useReaderDataStore";
 
+const getTimestamp = (value?: string) => {
+  if (!value) return 0;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? 0 : time;
+};
+
+const formatDateSafe = (value?: string) => {
+  const timestamp = getTimestamp(value);
+  if (!timestamp) return null;
+  return format(timestamp, "dd/MM/yyyy");
+};
+
 export function ReaderNotesSection() {
   const userId = useAuthStore((state) => state.user?.id ?? null);
-  const notes = useReaderDataStore((state) =>
-    state.notes.filter((note) => note.userId === userId)
-  );
+  const notes = useReaderDataStore((state) => state.notes);
   const removeNote = useReaderDataStore((state) => state.removeNote);
+
+  const userNotes = useMemo(() => {
+    if (!userId) return [];
+    return notes.filter((note) => note.userId === userId);
+  }, [notes, userId]);
 
   const sorted = useMemo(
     () =>
-      [...notes].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      [...userNotes].sort(
+        (a, b) => getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
       ),
-    [notes]
+    [userNotes]
   );
 
   return (
@@ -91,8 +105,8 @@ function NoteListItem({
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>Trang {note.page}</span>
-        {note.createdAt && (
-          <span>{format(new Date(note.createdAt), "dd/MM/yyyy")}</span>
+        {formatDateSafe(note.createdAt) && (
+          <span>{formatDateSafe(note.createdAt)}</span>
         )}
       </div>
 

@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { Book, BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
@@ -88,11 +87,7 @@ export default function BookCard({
               className={`flex-shrink-0 ${popupImageWidth}  rounded-sm overflow-hidden border border-white/10 self-start`}
             >
               <div className="aspect-[3/4] relative">
-                <img
-                  src={book.coverImage}
-                  alt={book.title}
-                  className="object-cover w-full h-full"
-                />
+                <ImageCard bookImage={book.coverImage} bookName={book.title} />
               </div>
             </div>
 

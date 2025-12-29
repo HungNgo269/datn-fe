@@ -26,7 +26,7 @@ export default function Swipper({ books, context }: Props) {
         <span className="font-bold text-2xl">{`${
           context === "Best Seller" ? "Best Seller" : "Những đầu sách mới nhất"
         }`}</span>
-        <ViewMoreButton url="/books" />
+        <ViewMoreButton context="book" url="/books" />
       </div>
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>

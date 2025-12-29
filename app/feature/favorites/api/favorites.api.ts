@@ -3,6 +3,7 @@ import { axiosClient } from "@/lib/api";
 import {
   FavoriteResponseDto,
   FavoriteStatusResponseDto,
+  FavoriteCountResponseDto,
 } from "../types/favorite.type";
 
 export async function addBookToFavorites(bookId: number) {
@@ -18,6 +19,12 @@ export async function removeBookFromFavorites(bookId: number) {
 export async function getFavoriteStatus(bookId: number) {
   return handleRequest<FavoriteStatusResponseDto>(() =>
     axiosClient.get(`/books/${bookId}/favorite`)
+  );
+}
+
+export async function getFavoriteCount(bookId: number) {
+  return handleRequest<FavoriteCountResponseDto>(() =>
+    axiosClient.get(`/books/${bookId}/favorite/count`)
   );
 }
 

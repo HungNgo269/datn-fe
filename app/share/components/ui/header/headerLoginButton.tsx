@@ -1,15 +1,22 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function LoginButton() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   const handleLogin = () => {
-    const callbackUrl = encodeURIComponent(pathname);
+    const search = searchParams?.toString();
+    const nextPath =
+      pathname && pathname.length > 0
+        ? search && search.length > 0
+          ? `${pathname}?${search}`
+          : pathname
+        : "/";
+    const callbackUrl = encodeURIComponent(nextPath);
     router.push(`/login?callbackUrl=${callbackUrl}`);
   };
 

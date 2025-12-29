@@ -39,22 +39,21 @@ export function getStartDate(timeframe: TimeFrame): Date {
 }
 
 export const sortOptionsTime = [
-  //   {
-  //     id: 1,
-  //     name: "Today",
-  //   },
   {
     id: 2,
-    name: "week",
+    value: "week",
+    label: "Tuần",
   },
   {
     id: 3,
-    name: "month",
+    value: "month",
+    label: "Tháng",
   },
 ];
 export const sort_OPTIONS_time = [
   ...sortOptionsTime.map((options) => ({
     id: options.id,
-    name: options.name,
+    value: options.value,
+    label: options.label,
   })),
 ];

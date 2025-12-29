@@ -44,7 +44,7 @@ export default function TrendingBookFilter({
     <div className="flex items-center gap-3">
       <div className="relative min-w-fit flex flex-row gap-1">
         {sort_OPTIONS_time.map((option) => {
-          const timeframe = option.name as TimeFrame;
+          const timeframe = option.value as TimeFrame;
           const isActive = value === timeframe;
 
           return (
@@ -57,7 +57,7 @@ export default function TrendingBookFilter({
                 isActive ? "text-primary" : "text-muted-foreground"
               } ${isPending ? "opacity-60" : ""}`}
             >
-              {option.name}
+              {option.label}
             </button>
           );
         })}

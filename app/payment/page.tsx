@@ -113,17 +113,13 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
                 </div>
                 <div className="mt-auto flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="inline-flex flex-1 items-center rounded-md bg-muted/60 px-3 py-2">
-                    Vui loA£ng hoÀn thành viAªc thanh toán theo hA°A°ng dA«n
-                    hoA·c liAªn hA§ hAµ trA§ nEcu cA§n.
+                    {/*  */}
                   </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-muted-foreground">
-              Vui loA£ng quay lại trang danh sách và chA?n cuA?n truyA£n bạn
-              muÁn mAµ̉ khóa.
-            </div>
+            <div className="text-sm text-muted-foreground">{/*  */}</div>
           )}
         </div>
 

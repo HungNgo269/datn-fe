@@ -1,18 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/handleApiRequest";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   addBookToFavorites,
+  getFavoriteCount,
   getFavoriteStatus,
   removeBookFromFavorites,
 } from "../api/favorites.api";
-import { FavoriteStatusResponseDto } from "../types/favorite.type";
+import {
+  FavoriteCountResponseDto,
+  FavoriteStatusResponseDto,
+} from "../types/favorite.type";
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface FavoriteButtonProps {
   bookId: number;
@@ -28,11 +33,16 @@ export function FavoriteButton({
   const storeUserId = useAuthStore((state) => state.user?.id);
   const effectiveUserId = userId ?? storeUserId ?? undefined;
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const shouldFetchStatus = Boolean(bookId && effectiveUserId);
 
   const {
     data: favoriteStatus,
-    isLoading,
-    isFetching,
+    isLoading: isStatusLoading,
+    isFetching: isStatusFetching,
   } = useQuery({
     queryKey: ["favorite-status", bookId],
     queryFn: async () => {
@@ -45,14 +55,36 @@ export function FavoriteButton({
         throw err;
       }
     },
+    enabled: shouldFetchStatus,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const {
+    data: favoriteCount,
+    isLoading: isCountLoading,
+    isFetching: isCountFetching,
+  } = useQuery({
+    queryKey: ["favorite-total", bookId],
+    queryFn: async () => {
+      try {
+        const response = await getFavoriteCount(bookId);
+        return response.totalFavorites;
+      } catch (err) {
+        if (err instanceof ApiError) {
+          return 0;
+        }
+        throw err;
+      }
+    },
     enabled: Boolean(bookId),
     retry: false,
     staleTime: 5 * 60 * 1000,
   });
 
   const isFavorited = favoriteStatus?.isFavorited ?? false;
-  const totalFavorites = favoriteStatus?.totalFavorites ?? 0;
-
+  const totalFavorites =
+    favoriteStatus?.totalFavorites ?? favoriteCount ?? 0;
   const mutation = useMutation({
     mutationFn: async (currentlyFavorited: boolean) => {
       if (!effectiveUserId) {
@@ -70,6 +102,9 @@ export function FavoriteButton({
     onMutate: async (currentlyFavorited) => {
       await queryClient.cancelQueries({
         queryKey: ["favorite-status", bookId],
+      });
+      await queryClient.cancelQueries({
+        queryKey: ["favorite-total", bookId],
       });
 
       const previous =
@@ -90,6 +125,10 @@ export function FavoriteButton({
       };
 
       queryClient.setQueryData(["favorite-status", bookId], nextState);
+      queryClient.setQueryData<number>(
+        ["favorite-total", bookId],
+        nextState.totalFavorites
+      );
 
       return { previous, nextState };
     },
@@ -116,10 +155,16 @@ export function FavoriteButton({
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["favorite-status", bookId] });
+      queryClient.invalidateQueries({ queryKey: ["favorite-total", bookId] });
     },
   });
 
-  const isProcessing = mutation.isPending || isLoading || isFetching;
+  const isProcessing =
+    mutation.isPending ||
+    isStatusLoading ||
+    isStatusFetching ||
+    isCountLoading ||
+    isCountFetching;
 
   const formattedTotal = new Intl.NumberFormat("vi-VN").format(totalFavorites);
 
@@ -127,7 +172,15 @@ export function FavoriteButton({
     if (!bookId) return;
 
     if (!effectiveUserId) {
-      toast.info("Vui lòng đăng nhập để sử dụng tính năng yêu thích.");
+      const search = searchParams?.toString();
+      const nextPath =
+        pathname && pathname.length > 0
+          ? search && search.length > 0
+            ? `${pathname}?${search}`
+            : pathname
+          : "/";
+      const callbackUrl = encodeURIComponent(nextPath);
+      router.push(`/login?callbackUrl=${callbackUrl}`);
       return;
     }
 
@@ -137,28 +190,22 @@ export function FavoriteButton({
   return (
     <Button
       type="button"
-      variant={isFavorited ? "default" : "outline"}
+      variant={"outline"}
       onClick={handleClick}
       disabled={isProcessing}
       className={cn(
-        "h-full text-base px-6 w-full rounded-sm border border-border flex items-center justify-center gap-2 font-semibold",
-        isFavorited && "bg-primary text-primary-foreground border-primary",
+        "h-12 min-w-[140px] px-4 rounded-sm border border-border flex items-center justify-center gap-2 font-semibold transition-all bg-primary text-primary-foreground",
         className
       )}
     >
       {isProcessing ? (
-        <Loader2 className="mr-2.5 h-5 w-5 animate-spin" />
+        <Loader2 className="h-5 w-5 animate-spin" />
       ) : (
-        <Heart
-          className={cn(
-            "mr-1.5 h-5 w-5",
-            isFavorited ? "fill-current" : "text-primary"
-          )}
-        />
+        <Plus className={cn("h-5 w-5", isFavorited && "fill-current")} />
       )}
-      <span className="flex flex-row leading-none text-left justify-center items-center gap-4 text-lg font-semibold">
-        <span className="text-lg font-semibold">{formattedTotal}</span>
-        {isFavorited ? "Đã yêu thích" : "Lượt yêu thích"}
+
+      <span className="text-base font-semibold">
+        {formattedTotal} {isFavorited ? "Đã thích" : "Thích"}
       </span>
     </Button>
   );

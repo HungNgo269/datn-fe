@@ -6,7 +6,7 @@ export default async function SwipperNewBook() {
   return (
     <Swipper
       books={Books}
-      context="Những đầu sách mới nhất
+      context="
 "
     ></Swipper>
   );

@@ -9,10 +9,7 @@ import AuthorProfile from "@/app/feature/author/components/authorProfile";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { getAuthorBySlugAction } from "@/app/feature/author/actions/authors.actions";
 import { getBooksAction } from "@/app/feature/books/action/books.action";
-import {
-  BookSortBy,
-  SortOrder,
-} from "@/app/feature/books/types/books.type";
+import { BookSortBy, SortOrder } from "@/app/feature/books/types/books.type";
 
 const BOOKS_PER_PAGE = 12;
 
@@ -70,18 +67,13 @@ export default async function AuthorDetailPage({
   return (
     <div className="overflow-x-hidden">
       <header className="mx-auto w-full">
-        <Suspense fallback={<HeaderSkeleton />}>
-          <Header />
-        </Suspense>
+        <Header />
       </header>
 
       <main className="mx-auto mt-20 flex w-full flex-col gap-10 px-3 md:w-[700px] lg:w-[950px] xl:w-[1190px] lg:px-0">
         <AuthorProfile author={author} bookCount={meta.total} />
 
-        <section
-          id="books"
-          className="flex flex-col gap-6 rounded-2xl border border-border/60 bg-card/60 p-6 shadow-sm"
-        >
+        <section id="books" className="flex flex-col gap-6 rounded-2xl mb-10">
           <div className="flex flex-col gap-1">
             <h2 className="text-xl font-semibold md:text-2xl">
               Tác phẩm nổi bật
@@ -90,9 +82,7 @@ export default async function AuthorDetailPage({
               Có tổng cộng{" "}
               <strong className="text-foreground">{meta.total}</strong>{" "}
               {meta.total === 1 ? "đầu sách" : "đầu sách"} được xuất bản bởi{" "}
-              <span className="font-medium text-foreground">
-                {author.name}
-              </span>
+              <span className="font-medium text-foreground">{author.name}</span>
             </p>
           </div>
 
@@ -107,9 +97,7 @@ export default async function AuthorDetailPage({
       </main>
 
       <div className="w-full">
-        <Suspense fallback={<div className="h-40 w-full animate-pulse bg-muted" />}>
-          <FooterComponent />
-        </Suspense>
+        <FooterComponent />
       </div>
     </div>
   );

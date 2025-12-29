@@ -1,3 +1,4 @@
+"use client";
 // import SearchComponent from "@/app/ui/user/search/searchComponent";
 import Link from "next/link";
 import Logo from "../logo";
@@ -8,7 +9,7 @@ import HeaderBackground from "./headerBackground";
 import HeaderSearch from "../search/headerSearch";
 // import NotificationReceiver from "@/app/ui/user/headerCustomer/NotificationReceiver";
 
-export default async function Header() {
+export default function Header() {
   return (
     <div className="h-[66px] fixed top-0 left-0 w-screen z-21 text-foreground">
       <HeaderBackground />

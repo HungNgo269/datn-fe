@@ -55,13 +55,13 @@ type Variant = "lg" | "sm";
 const CARD_MAP = {
   lg: {
     card: "xl:w-[230px] lg:w-[170px] md:w-[130px] w-full h-fit",
-    image: "xl:w-[230px] xl:h-[300px] lg:w-[170px] lg:h-[221px] md:w-[130px] h-[207px] w-full",
-    title: "h-4",
-    meta: "h-3",
+    image:
+      "xl:w-[230px] xl:h-[250px] lg:w-[170px] lg:h-[221px] md:w-[130px] h-[207px] w-full",
   },
   sm: {
     card: "xl:w-[160px] lg:w-[130px] md:w-[130px] w-full h-fit",
-    image: "xl:w-[160px] xl:h-[207px] lg:w-[130px] lg:h-[182px] md:w-[130px] h-[207px] w-full",
+    image:
+      "xl:w-[160px] xl:h-[207px] lg:w-[130px] lg:h-[182px] md:w-[130px] h-[207px] w-full",
     title: "h-3",
     meta: "h-3",
   },
@@ -72,15 +72,11 @@ export function BookCardSkeleton({ variant = "lg" }: { variant?: Variant }) {
 
   return (
     <div className={`flex flex-col ${s.card}`}>
-      <div className={`${shimmer} ${surfaceShell} flex flex-col gap-3 p-2 h-full`}>
+      <div
+        className={`${shimmer} ${surfaceShell} flex flex-col gap-3 p-2 h-full`}
+      >
         <div className="w-full overflow-hidden rounded-[8px]">
           <div className={`${s.image} ${solidBlock}`} />
-        </div>
-
-        <div className="flex flex-col gap-2 pb-1">
-          <div className={`w-5/6 ${s.title} ${softBlock}`} />
-          <div className={`w-2/3 ${s.meta} ${softBlock}`} />
-          <div className={`w-1/2 ${s.meta} ${softBlock}`} />
         </div>
       </div>
     </div>
@@ -188,9 +184,7 @@ export function BookListSkeleton({
 }
 
 export function HeaderSkeleton() {
-  return (
-    <div className="h-16 w-full bg-muted/60 animate-pulse rounded-b-lg" />
-  );
+  return <div className="h-16 w-full bg-muted/60 animate-pulse rounded-b-lg" />;
 }
 
 export function CategoryShowcaseSkeleton() {

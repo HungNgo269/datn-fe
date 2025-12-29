@@ -9,7 +9,7 @@ interface ChapterItemProps {
 export function ChapterItem({ chapter, basePath }: ChapterItemProps) {
   console.log("chaper", chapter);
   return (
-    <div className="flex items-center justify-between group rounded-md  border border-border hover:bg-card/70 px-4 py-4 transition-colors">
+    <div className="flex items-center justify-between group rounded-md   hover:bg-card px-4 py-4 transition-colors">
       <div className="flex flex-row items-center gap-2 min-w-0 flex-1">
         <Link
           prefetch={true}
@@ -18,7 +18,7 @@ export function ChapterItem({ chapter, basePath }: ChapterItemProps) {
             chapter.is_viewed
               ? "text-foreground/60"
               : "text-foreground font-medium"
-          } text-md hover:text-primary/80 truncate flex-1`}
+          } text-md hover:text-primary -foreground/80 truncate flex-1`}
         >
           <span className="mr-2">
             Chương {chapter.order}: {chapter.title}

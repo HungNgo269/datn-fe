@@ -29,7 +29,6 @@ export default function BookCard({
   book: BookCardProps;
   variant?: Variant;
 }) {
-  console.log("book ", book);
   const image = MAP[variant];
   const priceValue = toNumericPrice(book.price);
   const normalizedAccessType = book.accessType

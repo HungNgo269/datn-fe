@@ -63,7 +63,7 @@ export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
         compact ? "max-w-[200px]" : "w-full"
       )}
     >
-      <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute left-3 h-4 w-4 text-primary z-10" />
       <Input
         value={query}
         onChange={(event) => {
@@ -71,12 +71,12 @@ export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
           setQuery(nextValue);
           scheduleNavigation(nextValue);
         }}
-        placeholder="Search books or authors"
+        placeholder="Tìm kiếm sách / tác giả"
         className={cn(
           "pl-9 pr-3 h-9 bg-background/80 backdrop-blur-sm text-sm",
           compact ? "text-xs" : "text-sm"
         )}
-        aria-label="Search books or authors"
+        aria-label="Tìm kiếm sách / tác giả"
       />
     </form>
   );

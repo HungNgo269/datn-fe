@@ -13,7 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner"; // Hoặc library toast bạn dùng
-import { createBookRating, updateBookRating } from "../api/ratings.api";
+import {
+  createBookRating,
+  deleteBookRating,
+  updateBookRating,
+} from "../api/ratings.api";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface RatingFormProps {
   bookId: number;
@@ -42,8 +48,11 @@ export function RatingForm({
   }, [initialData]);
 
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  const mutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async () => {
       const payload = { score, review };
       if (isEdit) return updateBookRating(bookId, payload);
@@ -54,7 +63,7 @@ export function RatingForm({
         isEdit ? "Cập nhật đánh giá thành công" : "Đánh giá thành công"
       );
       queryClient.invalidateQueries({ queryKey: ["rating-summary", bookId] });
-      queryClient.invalidateQueries({ queryKey: ["my-rating", bookId] });
+      queryClient.invalidateQueries({ queryKey: ["rating-stats", bookId] });
       queryClient.invalidateQueries({ queryKey: ["book-ratings", bookId] });
       setOpen(false);
     },
@@ -63,16 +72,49 @@ export function RatingForm({
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteBookRating(bookId),
+    onSuccess: () => {
+      toast.success("Xóa đánh giá thành công");
+      queryClient.invalidateQueries({ queryKey: ["rating-summary", bookId] });
+      queryClient.invalidateQueries({ queryKey: ["rating-stats", bookId] });
+      queryClient.invalidateQueries({ queryKey: ["book-ratings", bookId] });
+      setScore(5);
+      setReview("");
+      setOpen(false);
+    },
+    onError: () => {
+      toast.error("Có lỗi xảy ra khi xóa đánh giá");
+    },
+  });
+
   const handleSubmit = () => {
     if (score === 0) {
       toast.error("Vui lòng chọn số sao");
       return;
     }
-    mutation.mutate();
+    saveMutation.mutate();
+  };
+
+  const handleDelete = () => {
+    if (!isEdit) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa đánh giá của mình cho sách này?")) {
+      return;
+    }
+    deleteMutation.mutate();
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && !isAuthenticated) {
+      const callbackUrl = encodeURIComponent(pathname || "/");
+      router.push(`/login?callbackUrl=${callbackUrl}`);
+      return;
+    }
+    setOpen(nextOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant={isEdit ? "outline" : "default"}>
           {isEdit ? "Sửa đánh giá" : "Viết đánh giá"}
@@ -114,9 +156,19 @@ export function RatingForm({
             onChange={(e) => setReview(e.target.value)}
             className="min-h-[100px]"
           />
-          <Button onClick={handleSubmit} disabled={mutation.isPending}>
-            {mutation.isPending ? "Đang gửi..." : "Gửi đánh giá"}
+          <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? "Đang gửi..." : "Gửi đánh giá"}
           </Button>
+          {isEdit && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Đang xóa..." : "Xóa đánh giá"}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

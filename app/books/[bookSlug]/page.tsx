@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useAuthStore } from "@/app/store/useAuthStore";
@@ -12,8 +11,9 @@ import FooterComponent from "@/app/share/components/ui/footer/footer";
 import RecommendBook from "@/app/feature/books-recommends/components/recommendBook";
 import { FavoriteButton } from "@/app/feature/favorites/components/FavoriteButton";
 import BookDesc from "@/app/feature/books/components/bookDesc";
-import { Button } from "@/components/ui/button";
 import { RecommendBookSkeleton } from "@/app/share/components/ui/skeleton/skeleton";
+import { BookAudioPlayButton } from "@/app/feature/book-audio/components/BookAudioPlayButton";
+import { ContinueReadingButton } from "@/app/feature/books-continue/components/ContinueReadingButton";
 
 type PageProps = {
   params: Promise<{
@@ -39,7 +39,6 @@ export default async function BookPage({ params }: PageProps) {
   }
 
   const firstChapter = chapters && chapters.length > 0 ? chapters[0] : null;
-  console.log("bôk", book.coverImage);
   return (
     <>
       <Header />
@@ -63,12 +62,11 @@ export default async function BookPage({ params }: PageProps) {
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 leading-tight text-center md:text-left drop-shadow-md">
                   {book.title}
                 </h1>
-
-                <div className="text-sm md:text-base font-medium mb-4 text-center md:text-left flex flex-col gap-2">
+                <div className="text-sm md:text-base font-medium mb-4 text-center md:text-left flex flex-col md:flex-row gap-2">
                   <span className="text-muted-foreground">Tác giả:</span>
-                  <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                  <div className="flex flex-wrap justify-center md:justify-start gap-x-1">
                     {book.authors?.length ? (
-                      book.authors.map(({ author }) => {
+                      book.authors.map(({ author }, index) => {
                         const slug = author.slug;
                         const href = slug
                           ? `/authors/${slug}`
@@ -76,14 +74,12 @@ export default async function BookPage({ params }: PageProps) {
                               author.name
                             )}&page=1`;
                         return (
-                          <Link
-                            key={author.id}
-                            href={href}
-                            prefetch={true}
-                            className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-foreground hover:border-primary hover:text-primary transition-colors"
-                          >
-                            {author.name}
-                          </Link>
+                          <span key={author.id}>
+                            <Link href={href} prefetch={true}>
+                              {author.name}
+                            </Link>
+                            {index < book.authors.length - 1 && ", "}
+                          </span>
                         );
                       })
                     ) : (
@@ -122,24 +118,28 @@ export default async function BookPage({ params }: PageProps) {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-auto">
-                  <div className="w-full sm:w-auto flex-1 sm:flex-none">
+                  <div className="w-full sm:w-auto">
                     <FavoriteButton
                       bookId={book.id}
                       userId={user?.id || undefined}
+                      className="w-full sm:w-auto h-12"
                     />
                   </div>
 
                   {firstChapter && (
-                    <Link
-                      href={`/book/${bookSlug}/${firstChapter.id}`}
-                      className="w-full sm:w-auto flex-1 sm:flex-none"
-                    >
-                      <Button className="w-full sm:w-[180px] h-12 text-base font-bold bg-muted border-primary border text-foreground hover:bg-muted/80 rounded-sm shadow-none">
-                        <BookOpen className="w-5 h-5 mr-2" />
-                        Đọc tập 1
-                      </Button>
-                    </Link>
+                    <ContinueReadingButton
+                      bookSlug={bookSlug}
+                      defaultChapterSlug={firstChapter.slug}
+                      defaultChapterTitle={firstChapter.title}
+                      className="flex-2 sm:flex-none"
+                    />
                   )}
+                  <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+                    <BookAudioPlayButton
+                      bookSlug={book.slug}
+                      bookTitle={book.title}
+                    />
+                  </div>
 
                   {/* <Button
                   variant="outline"
@@ -160,8 +160,8 @@ export default async function BookPage({ params }: PageProps) {
                 />
               </div>
 
-              <aside className="space-y-6 hidden lg:block">
-                <div className="sticky top-24">
+              <aside className="space-y-2 hidden lg:block">
+                <div className="sticky top-0">
                   <Suspense fallback={<RecommendBookSkeleton />}>
                     <RecommendBook />
                   </Suspense>

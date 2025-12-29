@@ -4,8 +4,17 @@ import Link from "next/link";
 import { Suspense } from "react";
 import type { ReactNode } from "react";
 
+// Imports từ BookPage & Share
 import Header from "../share/components/ui/header/header";
 import FooterComponent from "../share/components/ui/footer/footer";
+import {
+  HeaderSkeleton,
+  TrendingBookSkeleton,
+} from "../share/components/ui/skeleton/skeleton";
+import TrendingBook from "../feature/books-trending/components/trendingBook";
+import PopularBook from "../feature/books-popular/components/popularBook";
+
+// Imports Logic Search & Data
 import { getBooksAction } from "../feature/books/action/books.action";
 import { Book } from "../feature/books/types/books.type";
 import { searchAuthorsAction } from "../feature/author/actions/authors.actions";
@@ -14,7 +23,7 @@ import { getURL } from "@/lib/helper";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 import { cn } from "@/lib/utils";
 
-const SEARCH_PAGE_TITLE = "Search Books & Authors";
+const SEARCH_PAGE_TITLE = "Search Books & Authors | NextBook";
 const SEARCH_PAGE_DESCRIPTION =
   "Look up books or authors in the NextBook library and jump straight to the stories that match your interests.";
 const SEARCH_PAGE_URL = getURL("search");
@@ -67,69 +76,83 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <div className="overflow-x-hidden">
       <header className="ml-auto mr-auto w-full">
-        <Suspense>
-          <Header />
-        </Suspense>
+        <Header />
       </header>
-      <main className="mx-auto mt-24 w-full max-w-[1200px] px-4 pb-16 lg:px-0">
-        <section className="mx-auto max-w-4xl text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Search results
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {query
-              ? `Showing matches for "${query}".`
-              : "Start typing in the header search box to discover books and authors."}
-          </p>
-        </section>
 
-        {query ? (
-          <div className="mt-12 space-y-12">
-            <ResultSection
-              title="Books"
-              count={books.length}
-              emptyMessage={`No books found for "${query}".`}
-            >
-              {books.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {books.map((book) => (
-                    <BookResultCard key={book.id} book={book} query={query} />
-                  ))}
-                </div>
-              ) : null}
-            </ResultSection>
+      <div className="w-full mx-auto mt-20 md:w-[700px] lg:w-[950px] xl:w-[1190px] p-2 lg:p-0">
+        <div className="flex justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
+          <div className="md:w-[700px] lg:w-[800px] xl:w-[850px] flex flex-col gap-5">
+            <div className="mx-auto w-full lg:w-[1190px] p-2">
+              <div className="flex justify-between">
+                <div className="w-full lg:w-[850px] flex flex-col gap-8">
+                  {query ? (
+                    <>
+                      <ResultSection
+                        title="Tác giả"
+                        count={authors.length}
+                        emptyMessage=""
+                        hideIfEmpty={true}
+                      >
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {authors.map((author) => (
+                            <AuthorResultCard
+                              key={author.id}
+                              author={author}
+                              query={query}
+                            />
+                          ))}
+                        </div>
+                      </ResultSection>
 
-            <ResultSection
-              title="Authors"
-              count={authors.length}
-              emptyMessage={`No authors found for "${query}".`}
-            >
-              {authors.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {authors.map((author) => (
-                    <AuthorResultCard
-                      key={author.id}
-                      author={author}
-                      query={query}
-                    />
-                  ))}
+                      <ResultSection
+                        title="Sách"
+                        count={books.length}
+                        emptyMessage="Không tìm thấy cuốn sách nào phù hợp"
+                        hideIfEmpty={false}
+                      >
+                        {books.length > 0 ? (
+                          <div className="grid gap-4 md:grid-cols-2">
+                            {books.map((book) => (
+                              <BookResultCard
+                                key={book.id}
+                                book={book}
+                                query={query}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="py-10 text-center text-muted-foreground bg-muted/30 rounded-xl">
+                            No books found matching {query}.
+                          </div>
+                        )}
+                      </ResultSection>
+
+                      {books.length === 0 && authors.length === 0 && (
+                        <div className="text-center py-20">
+                          <p className="text-lg text-muted-foreground">{`We couldn't find any matches.`}</p>
+                        </div>
+                      )}
+                    </>
+                  ) : null}
                 </div>
-              ) : null}
-            </ResultSection>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="mx-auto mt-12 max-w-xl rounded-2xl border bg-card/40 p-6 text-center">
-            <p className="text-lg font-medium">Waiting for your search</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Type a book title or an author name in the header search box.
-              You will be redirected here automatically once you stop typing for
-              half a second.
-            </p>
+          <div className="flex flex-col w-[200px] md:w-[250px] xl:w-[300px] gap-5 mt-10 lg:mt-0">
+            <Suspense fallback={<TrendingBookSkeleton />}>
+              <TrendingBook period={"month"} />
+            </Suspense>
+            <Suspense fallback={<TrendingBookSkeleton />}>
+              <PopularBook />
+            </Suspense>
           </div>
-        )}
-      </main>
-      <div className="w-full">
-        <Suspense>
+        </div>
+      </div>
+
+      <div className="w-full mt-20">
+        <Suspense
+          fallback={<div className="h-40 w-full bg-muted animate-pulse" />}
+        >
           <FooterComponent />
         </Suspense>
       </div>
@@ -142,26 +165,30 @@ function ResultSection({
   count,
   children,
   emptyMessage,
+  hideIfEmpty = false,
 }: {
   title: string;
   count: number;
   children: ReactNode;
   emptyMessage: string;
+  hideIfEmpty?: boolean;
 }) {
+  if (count === 0 && hideIfEmpty) return null;
+
   return (
-    <section className="space-y-4 rounded-2xl border border-border/60 bg-background/60 p-4 shadow-sm backdrop-blur">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground">
-            {count} {count === 1 ? "match" : "matches"}
-          </p>
-        </div>
+    <section className="space-y-4">
+      <div className="flex items-center justify-between border-b pb-5">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          {title}
+          <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+            {count}
+          </span>
+        </h2>
       </div>
       {count > 0 ? (
         children
       ) : (
-        <EmptyState message={emptyMessage} className="py-8" />
+        <p className="text-sm text-muted-foreground italic">{emptyMessage}</p>
       )}
     </section>
   );
@@ -175,40 +202,44 @@ function BookResultCard({ book, query }: { book: Book; query: string }) {
   return (
     <Link
       href={`/books/${book.slug}`}
-      className="flex gap-4 rounded-2xl border border-border/70 bg-card/40 p-4 transition hover:border-primary/70 hover:bg-card/70"
+      className="flex gap-4  p-4 "
       prefetch={true}
     >
-      <div className="relative h-28 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+      <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted shadow-sm">
         <Image
           src={book.coverImage || "/images/sachFallback.jpg"}
           alt={book.title}
           fill
-          sizes="80px"
-          className="object-cover"
+          sizes="100px"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
           unoptimized
         />
       </div>
-      <div className="flex flex-1 flex-col gap-2">
-        <h3 className="text-base font-semibold leading-tight">
+      <div className="flex flex-1 flex-col gap-1.5">
+        <h3 className="text-base font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
           <HighlightedText text={book.title} query={query} />
         </h3>
         <p className="text-xs text-muted-foreground line-clamp-1">
+          Bởi{" "}
           <HighlightedText
             text={authorNames}
             query={query}
-            fallback="Unknown author"
+            fallback="Unknown"
           />
         </p>
-        {sanitizedDescription ? (
-          <div
-            className="prose prose-sm text-muted-foreground line-clamp-2"
-            dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            Description updating soon.
-          </p>
-        )}
+
+        <div className="mt-1">
+          {sanitizedDescription ? (
+            <div
+              className="text-xs text-muted-foreground line-clamp-3 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground italic">
+              Cuốn sách chưa có mô tả
+            </p>
+          )}
+        </div>
       </div>
     </Link>
   );
@@ -221,44 +252,34 @@ function AuthorResultCard({
   author: AuthorInfo;
   query: string;
 }) {
-  const sanitizedBio = sanitizeRichHtml(author.bio);
-
   return (
-    <div className="flex gap-4 rounded-2xl border border-border/70 bg-card/40 p-4">
-      <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-lg font-semibold text-muted-foreground">
+    <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition hover:border-primary/50">
+      <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border">
         {author.avatar ? (
           <Image
             src={author.avatar}
             alt={author.name}
             fill
-            sizes="64px"
+            sizes="56px"
             className="object-cover"
             unoptimized
           />
         ) : (
-          (author.name?.[0] ?? "?")
+          <span className="text-lg font-bold text-muted-foreground">
+            {author.name?.[0]?.toUpperCase() ?? "?"}
+          </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-1">
+      <div className="flex flex-1 flex-col">
         <p className="text-base font-semibold leading-tight">
           <HighlightedText text={author.name} query={query} />
         </p>
-        {sanitizedBio ? (
-          <div
-            className="prose prose-sm text-muted-foreground line-clamp-2"
-            dangerouslySetInnerHTML={{ __html: sanitizedBio }}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            This author will have a bio soon.
-          </p>
-        )}
         <Link
           prefetch={true}
           href={`/books?search=${encodeURIComponent(author.name)}`}
-          className="text-sm font-medium text-primary hover:underline"
+          className="text-xs text-primary hover:underline mt-1"
         >
-          View books
+          Xem các cuốn sách của tác giả này &rarr;
         </Link>
       </div>
     </div>
@@ -298,12 +319,9 @@ function HighlightedText({
     <span className={className}>
       {parts.map((part, index) =>
         index % 2 === 1 ? (
-          <mark
-            key={`${part}-${index}`}
-            className="rounded bg-primary/15 px-1 text-primary"
-          >
+          <span key={`${part}-${index}`} className="font-bold text-primary">
             {part}
-          </mark>
+          </span>
         ) : (
           <span key={`${part}-${index}`}>{part}</span>
         )
@@ -314,23 +332,4 @@ function HighlightedText({
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function EmptyState({
-  message,
-  className,
-}: {
-  message: string;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "text-center text-sm text-muted-foreground",
-        className
-      )}
-    >
-      {message}
-    </div>
-  );
 }

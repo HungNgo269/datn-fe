@@ -12,19 +12,17 @@ export const BannerSchema = z.object({
     .optional()
     .or(z.literal("")),
   linkUrl: z
-    .string()
-    .url("Liên kết không hợp lệ")
+    .string("Liên kết không hợp lệ")
+    .min(1)
     .optional()
     .or(z.literal("")),
   position: z.nativeEnum(BannerPosition).optional(),
-  imageUrl: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .refine((val) => {
-      if (!val) return false;
-      if (typeof val === "string" && val.length > 0) return true;
-      if (val instanceof File) return true;
-      return false;
-    }, "Vui lòng chọn ảnh banner"),
+  imageUrl: z.union([z.string().min(1), z.instanceof(File)]).refine((val) => {
+    if (!val) return false;
+    if (typeof val === "string" && val.length > 0) return true;
+    if (val instanceof File) return true;
+    return false;
+  }, "Vui lòng chọn ảnh banner"),
   startDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày không hợp lệ")

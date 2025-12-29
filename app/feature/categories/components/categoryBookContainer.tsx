@@ -53,7 +53,6 @@ export default function BookCategoryClient({
       setBooks(newBooks.data);
     });
   };
-  console.log("bockk lí", books);
   return (
     dynamicTitle &&
     books &&
@@ -71,6 +70,7 @@ export default function BookCategoryClient({
               onCategoryChange={handleCategoryChange}
             />
             <ViewMoreButton
+              context="book"
               url={`/books?category=${encodeURIComponent(
                 selectedCategorySlug
               )}&page=1`}

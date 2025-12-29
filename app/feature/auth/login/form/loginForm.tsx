@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import { Login } from "../api/login.api";
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const {
     register,
@@ -42,13 +43,17 @@ export default function LoginForm() {
         sameSite: "strict",
       });
       toast.success("Đăng nhập thành công!");
-      console.log("hi123", data.user.roles);
+
+      const redirectParam =
+        searchParams.get("callbackUrl") ?? searchParams.get("next");
+      const safeRedirect =
+        redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
 
       if (data.user.roles.includes("admin")) {
         router.push("/books-admin");
         return;
       }
-      router.push("/");
+      router.push(safeRedirect ?? "/");
       return;
     },
   });
@@ -169,11 +174,17 @@ export default function LoginForm() {
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground">
               Bằng việc tiếp tục, bạn đồng ý với{" "}
-              <Link href="/terms" className="underline hover:text-primary">
+              <Link
+                href="/terms"
+                className="underline hover:text-primary -foreground"
+              >
                 Điều khoản Dịch vụ
               </Link>{" "}
               và{" "}
-              <Link href="/privacy" className="underline hover:text-primary">
+              <Link
+                href="/privacy"
+                className="underline hover:text-primary -foreground"
+              >
                 Chính sách Bảo mật
               </Link>{" "}
               của chúng tôi.

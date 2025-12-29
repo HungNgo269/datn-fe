@@ -36,31 +36,33 @@ export default function AuthorCard({ author }: AuthorCardProps) {
         </div>
       </Link>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-1 flex-col gap-2">
         <Link
           href={`/authors/${author.slug}`}
           prefetch={true}
           className="w-fit"
         >
-          <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors hover:text-primary">
+          <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors hover:text-primary -foreground">
             {author.name}
           </h3>
         </Link>
-        {safeBio ? (
-          <div
-            className="prose prose-sm text-muted-foreground line-clamp-3 leading-relaxed prose-p:mb-2"
-            dangerouslySetInnerHTML={{ __html: safeBio }}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-            Chưa có mô tả về tác giả này.
-          </p>
-        )}
+        <div className="flex-1">
+          {safeBio ? (
+            <div
+              className="prose prose-sm text-muted-foreground line-clamp-3 leading-relaxed prose-p:mb-2"
+              dangerouslySetInnerHTML={{ __html: safeBio }}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+              Chưa có mô tả về tác giả này.
+            </p>
+          )}
+        </div>
 
         <Link
           href={`/books?author=${author.slug}&page=1`}
           prefetch={true}
-          className="text-sm font-medium text-primary hover:underline w-fit"
+          className="mt-auto text-sm font-medium text-primary hover:underline w-fit"
         >
           Xem sách của tác giả
         </Link>

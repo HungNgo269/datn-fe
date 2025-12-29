@@ -46,7 +46,7 @@ export default async function TrendingBook({
     }
 
     return (
-      <div className="flex flex-col gap-2 mt-5">
+      <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-3 md:flex-row md:justify-between">
           <span className="font-bold text-lg text-start whitespace-nowrap">
             {title}
@@ -71,4 +71,3 @@ export default async function TrendingBook({
     );
   }
 }
-

@@ -3,10 +3,7 @@
 import { List, X, Bookmark, StickyNote, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
-import {
-  ReaderBookmark,
-  ReaderNote,
-} from "@/app/store/useReaderDataStore";
+import { ReaderBookmark, ReaderNote } from "@/app/store/useReaderDataStore";
 
 interface ReaderChaptersListProps {
   chapters: ChapterCardProps[];
@@ -114,7 +111,9 @@ export default function ReaderChaptersList({
                   <div className="mt-1 flex items-center justify-between text-muted-foreground/80">
                     <span>Trang {bookmark.page}</span>
                     {bookmark.createdAt && (
-                      <span>{format(new Date(bookmark.createdAt), "dd/MM")}</span>
+                      <span>
+                        {format(new Date(bookmark.createdAt), "dd/MM")}
+                      </span>
                     )}
                   </div>
                 </div>

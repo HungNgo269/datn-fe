@@ -71,13 +71,13 @@
   :root {
     --background: oklch(1 0 0); /* Pure white */
     --foreground: oklch(0.35 0 0); /* Dark gray for text */
-    --card: oklch(0.98 0 0); /* Light gray for cards */
+    --card: oklch(0.97 0 0); /* Light gray for cards */
     --card-foreground: oklch(0.35 0 0); /* Dark gray text in cards */
     --popover: oklch(1 0 0 / 0.8); /* Semi-transparent white overlay */
     --popover-foreground: oklch(0.35 0 0);
     --primary: oklch(0.55 0.15 200); /* Cyan-600 equivalent */
     --primary-foreground: oklch(1 0 0); /* White text on primary */
-    --secondary: oklch(0.75 0.14 161.1); /* Purple accent */
+    --secondary: oklch(35.626% 0.02796 167.051); /* Purple accent */
     --secondary-foreground: oklch(1 0 0); /* White text on secondary */
     --muted: oklch(0.98 0 0); /* Light gray muted */
     --muted-foreground: oklch(0.35 0 0);

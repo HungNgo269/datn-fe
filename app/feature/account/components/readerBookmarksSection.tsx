@@ -10,20 +10,34 @@ import {
   useReaderDataStore,
 } from "@/app/store/useReaderDataStore";
 
+const getTimestamp = (value?: string) => {
+  if (!value) return 0;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? 0 : time;
+};
+
+const formatDateSafe = (value?: string) => {
+  const time = getTimestamp(value);
+  if (!time) return null;
+  return format(time, "dd/MM/yyyy");
+};
+
 export function ReaderBookmarksSection() {
   const userId = useAuthStore((state) => state.user?.id ?? null);
-  const bookmarks = useReaderDataStore((state) =>
-    state.bookmarks.filter((bookmark) => bookmark.userId === userId)
-  );
+  const bookmarks = useReaderDataStore((state) => state.bookmarks);
   const removeBookmark = useReaderDataStore((state) => state.removeBookmark);
+
+  const userBookmarks = useMemo(() => {
+    if (!userId) return [];
+    return bookmarks.filter((bookmark) => bookmark.userId === userId);
+  }, [bookmarks, userId]);
 
   const sorted = useMemo(
     () =>
-      [...bookmarks].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      [...userBookmarks].sort(
+        (a, b) => getTimestamp(b.createdAt) - getTimestamp(a.createdAt)
       ),
-    [bookmarks]
+    [userBookmarks]
   );
 
   return (
@@ -90,8 +104,8 @@ function BookmarkListItem({
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>Trang {bookmark.page}</span>
-        {bookmark.createdAt && (
-          <span>{format(new Date(bookmark.createdAt), "dd/MM/yyyy")}</span>
+        {formatDateSafe(bookmark.createdAt) && (
+          <span>{formatDateSafe(bookmark.createdAt)}</span>
         )}
       </div>
 

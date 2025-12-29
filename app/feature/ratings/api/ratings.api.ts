@@ -51,21 +51,8 @@ export async function getBookRatingSummary(bookId: number) {
 }
 
 // GET /books/{bookId}/ratings: Get all ratings of a book (Paginated)
-export async function getBookRatings(
-  bookId: number,
-  params: { page: number; limit: number; sort?: string }
-) {
+export async function getBookRatings(bookId: number) {
   return handlePaginatedRequest<RatingWithUserResponseDto>(() =>
-    axiosClient.get(`/books/${bookId}/ratings`, { params })
-  );
-}
-
-// GET /ratings/me: Get my rating for a book (Theo Image 2)
-// Lưu ý: API này trong ảnh của bạn có query param hoặc body để xác định book nào không?
-// Nếu endpoint chỉ là /ratings/me thì có thể nó trả về list các sách user đã rate,
-// nhưng thường sẽ là /ratings/me?bookId=...
-export async function getMyRatingForBook(params: { bookId: number }) {
-  return handleRequest<RatingResponseDto | null>(() =>
-    axiosClient.get("/ratings/me", { params })
+    axiosClient.get(`/books/${bookId}/ratings`)
   );
 }

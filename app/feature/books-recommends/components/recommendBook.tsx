@@ -9,7 +9,7 @@ interface RecommendBookProps {
 
 export default async function RecommendBook({
   limit = 10,
-  title = "Những đầu truyện được gợi ý thêm",
+  title = "Những người đọc tác phẩm này cũng thích",
 }: RecommendBookProps) {
   try {
     const books = await getRecommendedBooksAction(limit);
@@ -30,7 +30,7 @@ export default async function RecommendBook({
 
     return (
       <div>
-        <div className="flex flex-row gap-3 md:flex-col ">
+        <div className="flex flex-row gap-3 md:flex-col mt-19">
           <span className="font-bold text-lg text-start  line-clamp-2">
             {title}
           </span>
@@ -51,4 +51,3 @@ export default async function RecommendBook({
     );
   }
 }
-

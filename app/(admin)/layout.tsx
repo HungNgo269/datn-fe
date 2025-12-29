@@ -11,11 +11,17 @@ import {
   GalleryHorizontal,
   UserPen,
   ChartBarStacked,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../store/useAuthStore";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
+import { queryClient } from "@/lib/query-client";
+import { logout } from "../feature/auth/logout/api/logout.api";
 interface MenuItem {
   name: string;
   icon: React.ReactNode;
@@ -70,6 +76,25 @@ export default function AdminLayout({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: async () => {
+      useAuthStore.getState().clearUser();
+      Cookies.remove("accessToken");
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success("Đã đăng xuất tài khoản quản trị.");
+      router.push("/login");
+    },
+    onError: () => {
+      toast.error("Không thể đăng xuất. Thử lại sau.");
+    },
+  });
+
+  const handleLogout = () => {
+    if (!logoutMutation.isPending) {
+      logoutMutation.mutate();
+    }
+  };
   const handleChangePage = (name: string) => {
     setActive(name);
     const currentActive = listItems.find((item: MenuItem) => {
@@ -135,7 +160,19 @@ export default function AdminLayout({
           ))}
         </nav>
 
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-3">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 text-destructive hover:text-destructive/90 hover:bg-destructive/10",
+              collapsed ? "px-2" : "px-4"
+            )}
+            onClick={handleLogout}
+            disabled={logoutMutation.isPending}
+          >
+            <LogOut className="w-5 h-5" />
+            {!collapsed && <span>Log out</span>}
+          </Button>
           {!collapsed && (
             <div className="text-xs text-muted-foreground text-center">
               Admin v1.0.0

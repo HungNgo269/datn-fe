@@ -17,12 +17,12 @@ export function BookList({ books }: BookListProps) {
   return (
     <div
       className="
-      w-full gap-4
+      w-full gap-2
       grid grid-cols-2
       sm:grid-cols-3
       md:grid-cols-4
-      lg:grid-cols-4 
-      justify-items-center
+      lg:grid-cols-5
+      justify-items-start
     "
     >
       {books.map((book) => (

@@ -47,7 +47,7 @@ export function ChapterList({
               "cursor-pointer transition-colors",
               chapterOrder === "ASC"
                 ? " font-semibold text-primary"
-                : "text-muted-foreground hover:text-primary"
+                : "text-muted-foreground hover:text-primary -foreground"
             )}
             onClick={() => handleOrderDisplay("ASC")}
           >
@@ -61,7 +61,7 @@ export function ChapterList({
               "cursor-pointer transition-colors",
               chapterOrder === "DESC"
                 ? " font-semibold text-primary"
-                : "text-muted-foreground hover:text-primary"
+                : "text-muted-foreground hover:text-primary -foreground"
             )}
             onClick={() => handleOrderDisplay("DESC")}
           >
@@ -91,7 +91,7 @@ export function ChapterList({
         <div className="mt-4 pt-2 text-center border-t border-border/50">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="mt-2 text-primary hover:text-primary/80 text-sm font-medium hover:underline transition-all"
+            className="mt-2 cursor-pointer text-primary hover:text-primary -foreground/80 text-sm font-medium hover:underline transition-all"
           >
             {showAll
               ? "Thu gọn"

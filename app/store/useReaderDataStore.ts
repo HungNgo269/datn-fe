@@ -6,8 +6,10 @@ import { persist } from "zustand/middleware";
 export interface ReaderBookmark {
   id: string;
   userId: number | null;
+  bookId: number | null;
   bookSlug: string;
   bookTitle: string;
+  bookCoverImage?: string | null;
   chapterSlug?: string | null;
   chapterTitle?: string | null;
   page: number;
@@ -19,13 +21,30 @@ export interface ReaderNote extends ReaderBookmark {
   note: string;
 }
 
+export interface ContinueReadingEntry {
+  userId: number | null;
+  bookId?: number | null;
+  bookSlug: string;
+  bookTitle: string;
+  bookCoverImage?: string | null;
+  chapterSlug?: string | null;
+  chapterTitle?: string | null;
+  page: number;
+  updatedAt: string;
+}
+
 interface ReaderDataState {
   bookmarks: ReaderBookmark[];
   notes: ReaderNote[];
+  continueReading: ContinueReadingEntry | null;
+  readingHistory: ContinueReadingEntry[];
   toggleBookmark: (bookmark: Omit<ReaderBookmark, "id" | "createdAt">) => void;
   removeBookmark: (id: string) => void;
   addNote: (note: Omit<ReaderNote, "id" | "createdAt">) => void;
   removeNote: (id: string) => void;
+  updateContinueReading: (
+    entry: Omit<ContinueReadingEntry, "updatedAt">
+  ) => void;
 }
 
 const createId = () =>
@@ -38,6 +57,8 @@ export const useReaderDataStore = create<ReaderDataState>()(
     (set) => ({
       bookmarks: [],
       notes: [],
+      continueReading: null,
+      readingHistory: [],
       toggleBookmark(payload) {
         set((state) => {
           const matcher = (bookmark: ReaderBookmark) =>
@@ -56,8 +77,10 @@ export const useReaderDataStore = create<ReaderDataState>()(
 
           const nextBookmark: ReaderBookmark = {
             ...payload,
+            bookId: payload.bookId ?? null,
             chapterSlug: payload.chapterSlug ?? null,
             chapterTitle: payload.chapterTitle ?? null,
+            bookCoverImage: payload.bookCoverImage ?? null,
             id: createId(),
             createdAt: new Date().toISOString(),
           };
@@ -87,12 +110,41 @@ export const useReaderDataStore = create<ReaderDataState>()(
           notes: state.notes.filter((note) => note.id !== id),
         }));
       },
+      updateContinueReading(payload) {
+        set((state) => {
+          const entry: ContinueReadingEntry = {
+            ...payload,
+            bookId: payload.bookId ?? null,
+            chapterSlug: payload.chapterSlug ?? null,
+            chapterTitle: payload.chapterTitle ?? null,
+            bookCoverImage: payload.bookCoverImage ?? null,
+            updatedAt: new Date().toISOString(),
+          };
+
+          const filteredHistory = state.readingHistory.filter(
+            (item) =>
+              !(
+                item.userId === entry.userId &&
+                item.bookSlug === entry.bookSlug
+              )
+          );
+
+          const nextHistory = [entry, ...filteredHistory].slice(0, 20);
+
+          return {
+            continueReading: entry,
+            readingHistory: nextHistory,
+          };
+        });
+      },
     }),
     {
       name: "reader-data",
       partialize: (state) => ({
         bookmarks: state.bookmarks,
         notes: state.notes,
+        continueReading: state.continueReading,
+        readingHistory: state.readingHistory,
       }),
     }
   )

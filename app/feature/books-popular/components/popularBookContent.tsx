@@ -2,6 +2,27 @@ import Link from "next/link";
 import { BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 
+function slugifyAuthorName(name?: string | null): string | null {
+  if (!name) return null;
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function buildAuthorHref(
+  authorName?: string | null,
+  slug?: string | null
+): string {
+  const normalizedSlug = slug || slugifyAuthorName(authorName);
+  if (normalizedSlug) {
+    return `/authors/${normalizedSlug}`;
+  }
+  return "/authors";
+}
+
 interface PopularBookContentProps {
   books: BookCardProps[];
 }
@@ -28,24 +49,29 @@ export default function PopularBookContent({ books }: PopularBookContentProps) {
             <Link
               prefetch={true}
               href={`/books/${book.slug}`}
-              className="text-sm font-semibold cursor-pointer hover:underline hover:text-primary line-clamp-2"
+              className="text-sm font-semibold cursor-pointer hover:underline hover:text-primary not-[]:line-clamp-2"
             >
               {book.title}
             </Link>
             <div className="flex flex-row items-center overflow-hidden max-w-full">
               <div className="text-xs text-muted-foreground truncate">
-                {book.authors.map((author, index) => (
-                  <span key={author.author.id}>
-                    <Link
-                      prefetch={true}
-                      href={`${book.viewCount}`}
-                      className="hover:underline"
-                    >
-                      {author.author.name}
-                    </Link>
-                    {index < book.authors.length - 1 && ", "}
-                  </span>
-                ))}
+                {book.authors.map((authorEntry, index) => {
+                  const { author } = authorEntry;
+                  const authorHref = buildAuthorHref(author.name, author.slug);
+
+                  return (
+                    <span key={author.id}>
+                      <Link
+                        prefetch={true}
+                        href={authorHref}
+                        className="hover:underline"
+                      >
+                        {author.name}
+                      </Link>
+                      {index < book.authors.length - 1 && ", "}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -168,11 +168,17 @@ export default function RegisterForm() {
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground">
               Bằng việc tiếp tục, bạn đồng ý với{" "}
-              <Link href="/terms" className="underline hover:text-primary">
+              <Link
+                href="/terms"
+                className="underline hover:text-primary -foreground"
+              >
                 Điều khoản Dịch vụ
               </Link>{" "}
               và{" "}
-              <Link href="/privacy" className="underline hover:text-primary">
+              <Link
+                href="/privacy"
+                className="underline hover:text-primary -foreground"
+              >
                 Chính sách Bảo mật
               </Link>{" "}
               của chúng tôi.

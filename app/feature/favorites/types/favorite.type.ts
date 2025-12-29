@@ -18,3 +18,7 @@ export interface FavoriteStatusResponseDto {
   isFavorited: boolean;
   totalFavorites: number;
 }
+
+export interface FavoriteCountResponseDto {
+  totalFavorites: number;
+}

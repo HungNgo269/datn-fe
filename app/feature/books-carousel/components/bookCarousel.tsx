@@ -1,19 +1,13 @@
 "use client";
 import { useMemo, useState } from "react";
 import BookCarouselNavigation from "./bookCarouselNavigation";
-import { Book, BookCardProps } from "../../books/types/books.type";
 import BookCard from "./bookCard";
+import { Book } from "../../books/types/books.type";
 import { BookCardSkeleton } from "@/app/share/components/ui/skeleton/skeleton";
 
 export type Variant = "lg" | "sm";
 
-interface BookCarouselProps {
-  books: Book[];
-  variant?: Variant;
-  isLoading?: boolean;
-}
-
-export const CONFIG = {
+export const CAROUSEL_CONFIG = {
   lg: {
     container: "w-full lg:w-[950px] xl:w-[1190px]",
     grid: "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-items-center",
@@ -26,26 +20,36 @@ export const CONFIG = {
 
 const ITEMS_PER_SLIDE = 5;
 
+interface BookCarouselProps {
+  books: Book[];
+  variant?: Variant;
+  isLoading?: boolean;
+  className?: string;
+}
+
 export default function BookCarousel({
   books,
   variant = "lg",
   isLoading = false,
+  className = "",
 }: BookCarouselProps) {
-  const cfg = CONFIG[variant];
+  const cfg = CAROUSEL_CONFIG[variant];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const slides = useMemo(() => {
     const dataToRender = isLoading
       ? Array(ITEMS_PER_SLIDE * 1).fill(null)
-      : books;
+      : books ?? [];
 
-    const chunks: (BookCardProps | null)[][] = [];
+    const chunks: (Book | null)[][] = [];
     for (let i = 0; i < dataToRender.length; i += ITEMS_PER_SLIDE) {
       chunks.push(dataToRender.slice(i, i + ITEMS_PER_SLIDE));
     }
+
     return chunks;
   }, [books, isLoading]);
+
   const nextSlide = () => {
     if (currentSlide < slides.length - 1 && !isTransitioning) {
       setIsTransitioning(true);
@@ -60,8 +64,12 @@ export default function BookCarousel({
     }
   };
 
+  if (!isLoading && (!books || books.length === 0)) {
+    return null;
+  }
+
   return (
-    <div className={`relative ${cfg.container} w-full `}>
+    <div className={`relative ${cfg.container} ${className}`}>
       <div className="relative overflow-hidden">
         <div
           className="flex transition-transform duration-500 ease-in-out will-change-transform"
@@ -71,10 +79,7 @@ export default function BookCarousel({
           {slides.map((page, index) => (
             <div key={index} className={`w-full flex-shrink-0 ${cfg.grid}`}>
               {page.map((book, bIndex) => (
-                <div
-                  key={book?.id || `skel-${index}-${bIndex}`}
-                  className="w-full"
-                >
+                <div key={book?.id ?? `skel-${index}-${bIndex}`} className="w-full">
                   {isLoading ? (
                     <BookCardSkeleton variant={variant} />
                   ) : (

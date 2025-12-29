@@ -6,7 +6,6 @@ import { Star, Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns"; // Cần cài date-fns để format ngày
 import {
   RatingDistributionDto,
   RatingScore,
@@ -15,10 +14,11 @@ import {
 import {
   getBookRatings,
   getBookRatingSummary,
-  getMyRatingForBook,
+  getBookRatingStats,
 } from "../../ratings/api/ratings.api";
 import { RatingForm } from "../../ratings/components/RatingForm";
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { formatTimeVN } from "@/lib/formatDate";
 
 interface ChapterRatingProps {
   bookId: number;
@@ -26,29 +26,26 @@ interface ChapterRatingProps {
 
 export function ChapterRating({ bookId }: ChapterRatingProps) {
   const currentUser = useAuthStore((state) => state.user);
-  // 1. Fetch Summary (Cache 1 tiếng)
   const { data: summary, isLoading: isLoadingSummary } = useQuery({
     queryKey: ["rating-summary", bookId],
     queryFn: () => getBookRatingSummary(bookId),
     staleTime: 60 * 60 * 1000, // 1 giờ
   });
 
-  // 2. Fetch My Rating (Để biết user đã rate chưa)
-  const { data: myRating } = useQuery({
-    queryKey: ["my-rating", bookId],
-    queryFn: () => getMyRatingForBook({ bookId }),
-    retry: false, // Nếu 401 unauth thì thôi không retry
+  const { data: ratingStats, isLoading: isLoadingStats } = useQuery({
+    queryKey: ["rating-stats", bookId],
+    queryFn: () => getBookRatingStats(bookId),
   });
 
-  // 3. Fetch List Ratings (Pagination đơn giản trang 1)
   const { data: ratingsList, isLoading: isLoadingList } = useQuery({
     queryKey: ["book-ratings", bookId],
-    queryFn: () => getBookRatings(bookId, { page: 1, limit: 10 }),
+    queryFn: () => getBookRatings(bookId),
     staleTime: 60 * 60 * 1000,
   });
-
-  const hasRated = Boolean(myRating?.id);
-  const normalizedUserId = myRating?.userId ?? currentUser?.id ?? null;
+  console.log("checkratring", ratingsList);
+  const userRating = ratingStats?.userRating ?? null;
+  const hasRated = Boolean(userRating?.id);
+  const normalizedUserId = userRating?.userId ?? currentUser?.id ?? null;
   const orderedReviews = useMemo(() => {
     const list = ratingsList?.data ?? [];
     if (!normalizedUserId) {
@@ -59,9 +56,9 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
       const rest = list.filter((review) => review.id !== highlight.id);
       return [highlight, ...rest];
     }
-    if (myRating && currentUser) {
+    if (userRating && currentUser) {
       const syntheticReview: RatingWithUserResponseDto = {
-        ...myRating,
+        ...userRating,
         user: {
           id: currentUser.id,
           username: currentUser.username,
@@ -71,9 +68,9 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
       return [syntheticReview, ...list];
     }
     return list;
-  }, [currentUser, myRating, normalizedUserId, ratingsList?.data]);
+  }, [currentUser, normalizedUserId, ratingsList?.data, userRating]);
 
-  if (isLoadingSummary) {
+  if (isLoadingSummary || isLoadingStats) {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="animate-spin" />
@@ -81,7 +78,6 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
     );
   }
 
-  // Handle distribution data an toàn
   const emptyDistribution: RatingDistributionDto = {
     1: 0,
     2: 0,
@@ -90,11 +86,16 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
     5: 0,
   };
   const distribution = summary?.distribution ?? emptyDistribution;
-  const totalReviews = summary?.ratingCount || 0;
-  const averageRating = summary?.averageRating || 0;
+  const totalReviews = ratingStats?.ratingCount ?? summary?.ratingCount ?? 0;
+  const averageRating =
+    ratingStats?.averageRating ?? summary?.averageRating ?? 0;
+  console.log("ratingsList", ratingsList);
+  console.log("summary", summary);
+  console.log("distribution", distribution);
+  console.log("totalReviews", totalReviews);
+
   return (
     <div className="space-y-8 py-4">
-      {/* --- PHẦN THỐNG KÊ --- */}
       <div className="flex flex-col md:flex-row gap-8 items-center md:items-start bg-muted/20 p-6 rounded-xl">
         <div className="text-center space-y-2 min-w-[200px]">
           <div className="text-5xl font-bold text-primary">
@@ -116,22 +117,22 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
             dựa trên {totalReviews} đánh giá
           </p>
 
-          {/* Nút Rate/Edit */}
           <div className="pt-2">
             <RatingForm
               bookId={bookId}
-              // Nếu chưa rate thì truyền score mặc định là 5, review rỗng
               initialData={
                 hasRated
-                  ? { score: myRating?.score, review: myRating?.review }
+                  ? {
+                      score: userRating?.score,
+                      review: userRating?.review ?? "",
+                    }
                   : { score: 5, review: "" }
               }
-              isEdit={!!hasRated} // Dùng biến hasRated đã check kỹ ở trên
+              isEdit={!!hasRated}
             />
           </div>
         </div>
 
-        {/* --- PHẦN PROGRESS BARS --- */}
         <div className="flex-1 w-full space-y-2">
           {([5, 4, 3, 2, 1] as RatingScore[]).map((star) => {
             const count = distribution[star] || 0;
@@ -151,7 +152,6 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
         </div>
       </div>
 
-      {/* --- PHẦN LIST ĐÁNH GIÁ --- */}
       <div className="space-y-4">
         <h3 className="font-semibold text-lg">Đánh giá gần đây</h3>
 
@@ -163,14 +163,14 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
           orderedReviews.map((review: RatingWithUserResponseDto) => {
             const isCurrentUserReview =
               normalizedUserId !== null && review.userId === normalizedUserId;
+            const formattedReviewTime = review.createdAt
+              ? formatTimeVN(review.createdAt)
+              : null;
 
             return (
               <div
                 key={review.id}
-                className={cn(
-                  "border-b border-border pb-4 last:border-0 rounded-md",
-                  isCurrentUserReview && "border-primary bg-primary/5"
-                )}
+                className="border-b border-border pb-4 last:border-0"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -181,14 +181,9 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className="text-sm font-medium">
+                        <div className="text-lg font-medium">
                           {review.user?.username || ""}
                         </div>
-                        {isCurrentUserReview && (
-                          <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
-                            Your rating
-                          </span>
-                        )}
                       </div>
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
@@ -204,11 +199,15 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {review.createdAt
-                      ? format(new Date(review.createdAt), "dd/MM/yyyy")
-                      : ""}
-                  </span>
+                  {formattedReviewTime && (
+                    <span
+                      className="text-xs text-muted-foreground"
+                      title={formattedReviewTime.fullDateTime}
+                      suppressHydrationWarning
+                    >
+                      {formattedReviewTime.label}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-foreground/80 mt-2">
                   {review.review}

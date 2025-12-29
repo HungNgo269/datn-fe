@@ -37,36 +37,6 @@ interface AsyncCreatableSelectProps {
   displayMode?: "popover" | "inline";
 }
 
-const HighlightText = ({
-  text,
-  highlight,
-}: {
-  text: string;
-  highlight: string;
-}) => {
-  if (!highlight.trim()) return <span>{text}</span>;
-  const escapeRegExp = (str: string) =>
-    str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const parts = text.split(new RegExp(`(${escapeRegExp(highlight)})`, "gi"));
-
-  return (
-    <span>
-      {parts.map((part, i) =>
-        part.toLowerCase() === highlight.toLowerCase() ? (
-          <span
-            key={`${part}-${i}`}
-            className="bg-yellow-200 text-black font-semibold rounded-[2px] px-[1px]"
-          >
-            {part}
-          </span>
-        ) : (
-          part
-        )
-      )}
-    </span>
-  );
-};
-
 export function AsyncCreatableSelect({
   value = [],
   onChange,
@@ -86,6 +56,12 @@ export function AsyncCreatableSelect({
 
   const debouncedQuery = useDebounce(query, 300);
   const isInline = displayMode === "inline";
+  const trimmedQuery = query.trim();
+  const normalizedQuery = trimmedQuery.toLowerCase();
+  const hasExactMatch = options.some(
+    (option) => option.label.trim().toLowerCase() === normalizedQuery
+  );
+  const canCreate = Boolean(onCreateOption && trimmedQuery && !hasExactMatch);
 
   React.useEffect(() => {
     let active = true;
@@ -157,10 +133,10 @@ export function AsyncCreatableSelect({
   };
 
   const handleCreate = async () => {
-    if (!query || !onCreateOption) return;
+    if (!trimmedQuery || !onCreateOption) return;
     setCreating(true);
     try {
-      const newOption = await onCreateOption(query);
+      const newOption = await onCreateOption(trimmedQuery);
       setSelectedOptions((prev) => [...prev, newOption]);
       onChange([...value, newOption.value]);
       setQuery("");
@@ -182,13 +158,15 @@ export function AsyncCreatableSelect({
     setSelectedOptions(newSelectedOptions);
     onChange(newValues);
   };
-
+  console.log("op[", selectedOptions);
   const renderSelectedBadges = () => (
     <div className="flex flex-wrap gap-1 justify-start items-center w-full">
       {selectedOptions.length > 0 ? (
         selectedOptions.map((opt) => (
           <Badge key={opt.value} className="mr-1 pr-1 flex items-center gap-1">
-            {opt.label}
+            <span className="truncate max-w-[140px]" title={opt.label}>
+              {opt.label}
+            </span>
             <div
               className="rounded-full p-0.5 hover:bg-destructive hover:text-white cursor-pointer transition-colors"
               onMouseDown={(e) => handleRemove(e, opt.value)}
@@ -211,18 +189,10 @@ export function AsyncCreatableSelect({
         onValueChange={setQuery}
       />
       <CommandList>
-        {loading && (
-          <div className="p-4 flex items-center justify-center text-sm text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang tìm kiếm...
-          </div>
-        )}
-
-        {!loading && options.length === 0 && query && (
+        {query && options.length === 0 && (
           <CommandEmpty className="py-2 px-4 text-sm">
-            <p className="text-muted-foreground mb-2">
-              Không tìm thấy {query}
-            </p>
-            {onCreateOption && (
+            <p className="text-muted-foreground mb-2">Không tìm thấy {query}</p>
+            {canCreate && (
               <Button
                 size="sm"
                 className="w-full"
@@ -234,7 +204,7 @@ export function AsyncCreatableSelect({
                 ) : (
                   <Plus className="mr-2 h-4 w-4" />
                 )}
-                Tạo mới {query}
+                Tạo mới {trimmedQuery}
               </Button>
             )}
           </CommandEmpty>
@@ -248,6 +218,7 @@ export function AsyncCreatableSelect({
                 key={option.value}
                 value={String(option.value)}
                 onSelect={() => handleSelect(option)}
+                className="text-foreground"
               >
                 <Check
                   className={cn(
@@ -255,12 +226,29 @@ export function AsyncCreatableSelect({
                     isSelected ? "opacity-100" : "opacity-0"
                   )}
                 />
-                <HighlightText text={option.label} highlight={query} />
+                {option.label}
               </CommandItem>
             );
           })}
         </CommandGroup>
       </CommandList>
+      {canCreate && options.length > 0 && (
+        <div className="p-2 border-t border-border">
+          <Button
+            size="sm"
+            className="w-full"
+            onClick={handleCreate}
+            disabled={creating}
+          >
+            {creating ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4" />
+            )}
+            Tạo mới {trimmedQuery}
+          </Button>
+        </div>
+      )}
     </Command>
   );
 

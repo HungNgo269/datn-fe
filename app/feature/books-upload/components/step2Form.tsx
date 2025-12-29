@@ -84,15 +84,10 @@ export function Step2Form({
     }, [form, step2Defaults]);
     const handleCreateAuthor = async (inputValue: string): Promise<Option> => {
         try {
-            // Giả sử submitAuthor trả về object Author đầy đủ { id: 123, name: "Nguyen Nhat Anh", ... }
             const newAuthor = await submitAuthor(
                 { name: inputValue },
                 "create"
             );
-            console.log("new");
-            // Lưu ý: Bạn cần check lại chữ ký hàm submitAuthor của bạn nhận tham số gì.
-            // Nếu nó là submitAuthor(name: string, option: string), thì gọi như sau:
-            // const newAuthor = await submitAuthor(inputValue, "create");
 
             if (!newAuthor || !newAuthor.data?.id) {
                 throw new Error("Không lấy được ID tác giả mới");
@@ -100,35 +95,28 @@ export function Step2Form({
 
             toast.success(`Đã tạo tác giả: ${inputValue}`);
 
-            // Trả về đúng format Option cho Select component
             return {
-                value: newAuthor.data?.id, // ID số từ database
+                value: newAuthor.data?.id,
                 label: newAuthor.data?.name || inputValue,
             };
         } catch (error) {
             toast.error("Lỗi khi tạo tác giả mới");
-            throw error; // Ném lỗi để component con biết mà dừng loading
+            throw error;
         }
     };
-    // --- XỬ LÝ SEARCH API ---
 
-    // 1. Hàm Adapter cho Authors
     const fetchAuthorOptions = async (query: string): Promise<Option[]> => {
         try {
-            // Gọi API: response trả về là object { data: AuthorInfo[], total: number, ... }
-            // do handlePaginatedRequest đã xử lý wrapper bên ngoài.
             const response = await getAuthorsSearch({
                 page: 1,
                 limit: 20,
                 q: query,
             });
 
-            // Lấy mảng data trực tiếp từ response.data
             const authors = response.data || [];
 
-            // Map sang format Option { value, label }
             return authors.map((author) => ({
-                value: author.id, // ID là number
+                value: author.id,
                 label: author.name,
             }));
         } catch (error) {
@@ -136,10 +124,8 @@ export function Step2Form({
             return [];
         }
     };
-    // 2. Hàm Adapter cho Categories
     const fetchCategoryOptions = async (query: string): Promise<Option[]> => {
         try {
-            // Tương tự với Categories
             const response = await getCategorySearch({
                 page: 1,
                 limit: 20,
@@ -149,7 +135,7 @@ export function Step2Form({
             const categories = response.data || [];
 
             return categories.map((cat) => ({
-                value: cat.id, // ID là number
+                value: cat.id,
                 label: cat.name,
             }));
         } catch (error) {
@@ -175,7 +161,6 @@ export function Step2Form({
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                {/* --- TRƯỜNG TÁC GIẢ --- */}
                 <div className="space-y-1 md:col-span-3">
                     <Label>
                         Tác Giả <span className="text-destructive">*</span>
@@ -205,7 +190,6 @@ export function Step2Form({
                     )}
                 </div>
 
-                {/* --- TRƯỜNG THỂ LOẠI --- */}
                 <div className="space-y-1 md:col-span-3">
                     <Label>
                         Thể Loại <span className="text-destructive">*</span>
@@ -231,7 +215,6 @@ export function Step2Form({
                     )}
                 </div>
 
-                {/* --- GIÁ --- */}
                 <div className="space-y-1 md:col-span-3">
                     <Label htmlFor="price">Giá (VND)</Label>
                     <div className="relative">
@@ -256,7 +239,6 @@ export function Step2Form({
                     )}
                 </div>
 
-                {/* --- SỐ CHƯƠNG FREE --- */}
                 <div className="space-y-1 md:col-span-3">
                     <Label htmlFor="freeChapters">Số Chương Miễn Phí</Label>
                     <Input
@@ -277,7 +259,6 @@ export function Step2Form({
                 </div>
             </div>
 
-            {/* --- MÔ TẢ --- */}
             <div className="space-y-2">
                 <Label htmlFor="description">Mô Tả</Label>
                 <Controller
