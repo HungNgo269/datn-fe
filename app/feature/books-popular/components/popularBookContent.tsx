@@ -38,7 +38,7 @@ export default function PopularBookContent({ books }: PopularBookContentProps) {
           <Link
             prefetch={true}
             href={`/books/${book.slug}`}
-            className="relative min-w-[60px] h-full overflow-hidden rounded-[4px] group "
+            className="relative min-w-[60px] max-w-[60px] h-full overflow-hidden rounded-[4px] group "
           >
             <ImageCard bookImage={book?.coverImage} bookName={book.title} />
           </Link>

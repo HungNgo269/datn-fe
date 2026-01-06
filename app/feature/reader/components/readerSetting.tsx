@@ -3,6 +3,8 @@
 import React from "react";
 import { Check, Palette, X } from "lucide-react";
 
+import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
+
 export const THEMES = [
   {
     id: "light",
@@ -78,10 +80,18 @@ export default function ReaderSettings({
   currentFont,
   setFont,
 }: ReaderSettingsProps) {
+  const panelRef = useOutsideClick<HTMLDivElement>({
+    enabled: isOpen,
+    onOutside: onClose,
+  });
+
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-16 right-4 z-50 w-80 p-5 rounded-xl  border border-border bg-popover text-popover-foreground animate-in fade-in zoom-in-95 duration-200">
+    <div
+      ref={panelRef}
+      className="absolute top-16 right-4 z-50 w-80 p-5 rounded-xl  border border-border bg-popover text-popover-foreground animate-in fade-in zoom-in-95 duration-200"
+    >
       <div className="flex justify-between items-center mb-5 pb-3 border-b border-border">
         <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
           <Palette className="w-4 h-4" /> Cấu hình đọc

@@ -62,13 +62,16 @@ export default function IframeBookReader({
   );
 
   const [ready, setReady] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showChaptersList, setShowChaptersList] = useState(false);
+  const [openPanel, setOpenPanel] = useState<"settings" | "chapters" | null>(
+    null
+  );
   const [fontSize, setFontSize] = useState(18);
   const [fontId, setFontId] = useState("sans");
   const [themeId, setThemeId] = useState("light");
   const [containerBg, setContainerBg] = useState("transparent");
   const [loading, setLoading] = useState(false);
+  const fontsSnapshotRef = useRef({ fontId, fontSize });
+  const hasCalculatedLayoutRef = useRef(false);
   const processedHtml = useReaderHtml({
     initialHtml,
     fontSize,
@@ -95,8 +98,7 @@ export default function IframeBookReader({
   const bookBookmarks = useMemo(() => {
     if (!bookSlug) return [];
     return bookmarksStore.filter(
-      (bookmark) =>
-        bookmark.bookSlug === bookSlug && bookmark.userId === userId
+      (bookmark) => bookmark.bookSlug === bookSlug && bookmark.userId === userId
     );
   }, [bookSlug, bookmarksStore, userId]);
 
@@ -139,10 +141,7 @@ export default function IframeBookReader({
   }, [chapters, currentChapterIndex]);
 
   const fallbackNextChapterSlug = useMemo(() => {
-    if (
-      currentChapterIndex >= 0 &&
-      currentChapterIndex < chapters.length - 1
-    ) {
+    if (currentChapterIndex >= 0 && currentChapterIndex < chapters.length - 1) {
       return chapters[currentChapterIndex + 1].slug;
     }
     return null;
@@ -219,23 +218,41 @@ export default function IframeBookReader({
     };
   }, [ready]);
   useEffect(() => {
-    if (ready && isPositionRestored) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(true);
-      const timer = setTimeout(() => {
-        const newTotal = calculateTotalPages();
+    if (!ready || !isPositionRestored) return;
 
-        let targetPage = currentPage;
-        if (targetPage > newTotal && newTotal > 0) {
-          targetPage = newTotal;
-        }
+    const fontsChanged =
+      fontsSnapshotRef.current.fontId !== fontId ||
+      fontsSnapshotRef.current.fontSize !== fontSize;
 
+    fontsSnapshotRef.current = { fontId, fontSize };
+
+    const shouldRecalculate = fontsChanged || !hasCalculatedLayoutRef.current;
+
+    if (!shouldRecalculate) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    let cancelled = false;
+
+    const timer = setTimeout(() => {
+      const newTotal = calculateTotalPages();
+
+      let targetPage = currentPage;
+      if (targetPage > newTotal && newTotal > 0) {
+        targetPage = newTotal;
+      }
+
+      if (!cancelled) {
         goToPage(targetPage);
-      }, 150);
-      setLoading(false);
+        hasCalculatedLayoutRef.current = true;
+        setLoading(false);
+      }
+    }, 150);
 
-      return () => clearTimeout(timer);
-    }
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [
     calculateTotalPages,
     currentPage,
@@ -277,6 +294,7 @@ export default function IframeBookReader({
       page: currentPage,
       selectedText,
       note: noteText.trim(),
+      bookId: null,
     });
     setSelectedText("");
     setShowNoteDialog(false);
@@ -287,6 +305,17 @@ export default function IframeBookReader({
     if (selectedText) setShowNoteDialog(true);
     else alert("Vui lòng bôi đen văn bản để tạo ghi chú");
   };
+
+  const isSettingsOpen = openPanel === "settings";
+  const isChaptersOpen = openPanel === "chapters";
+
+  const togglePanel = useCallback((panel: "settings" | "chapters") => {
+    setOpenPanel((prev) => (prev === panel ? null : panel));
+  }, []);
+
+  const closePanels = useCallback(() => setOpenPanel(null), []);
+
+  const showBlockingOverlay = loading || !ready || !isPositionRestored;
 
   const isBookmarked = bookBookmarks.some(
     (bookmark) =>
@@ -330,11 +359,13 @@ export default function IframeBookReader({
         onBackToBook={() => bookSlug && router.push(`/books/${bookSlug}`)}
         onNextChapter={goToNextChapter}
         nextChapterSlug={resolvedNextChapterSlug}
-        onToggleSettings={() => setShowSettings(!showSettings)}
-        onToggleChapters={() => setShowChaptersList(!showChaptersList)}
+        onToggleSettings={() => togglePanel("settings")}
+        onToggleChapters={() => togglePanel("chapters")}
         onToggleNotes={handleNoteClick}
         isBookmarked={isBookmarked}
         onToggleBookmark={handleBookmark}
+        isSettingsOpen={isSettingsOpen}
+        isChaptersOpen={isChaptersOpen}
       />
 
       <div className="flex-1 relative w-full h-full overflow-hidden">
@@ -356,18 +387,16 @@ export default function IframeBookReader({
           canGoNext={canNavigateForward}
         />
 
-        {loading ||
-          !ready ||
-          (!isPositionRestored && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
-              <div className="w-8 h-8 border-4 border-muted border-t-green-500 rounded-full animate-spin"></div>
-            </div>
-          ))}
+        {showBlockingOverlay && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
+            <div className="w-8 h-8 border-4 border-muted border-t-green-500 rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
 
       <ReaderSettings
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
+        isOpen={isSettingsOpen}
+        onClose={closePanels}
         fontSize={fontSize}
         setFontSize={setFontSize}
         currentTheme={themeId}
@@ -376,12 +405,12 @@ export default function IframeBookReader({
         setFont={setFontId}
       />
 
-      {showChaptersList && (
+      {isChaptersOpen && (
         <ReaderChaptersList
           chapters={chapters}
           currentChapterSlug={chapterSlug}
           currentPage={currentPage}
-          onClose={() => setShowChaptersList(false)}
+          onClose={closePanels}
           onChapterClick={(slug) =>
             bookSlug && router.push(`/books/${bookSlug}/chapter/${slug}`)
           }

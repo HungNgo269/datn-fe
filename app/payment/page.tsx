@@ -8,9 +8,8 @@ import { Book } from "@/app/feature/books/types/books.type";
 import Cookies from "js-cookie";
 
 export const metadata: Metadata = {
-  title: "Thanh toÁn truyA£n | NextBook",
-  description:
-    "Hoàn thành thanh toán đA§© trạng thái quyền truy cA­p vào cA¡c chA°A°ng khóa.",
+  title: "Thanh toÁn truyện | NextBook",
+  description: "Hoàn thành thanh toán .",
 };
 
 type PaymentPageProps = {
@@ -28,7 +27,7 @@ const formatPrice = (price?: Book["price"]) => {
       ? parseFloat(price)
       : 0;
   if (!value || Number.isNaN(value)) {
-    return "LiAªn hA§ thanh toán";
+    return " thanh toán";
   }
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -72,12 +71,10 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
             Thanh toán
           </p>
           <h1 className="text-3xl font-bold text-foreground">
-            HoÀn tA¥t viAªc mA­a truyA£n
+            Hoàn tất việc mua truyện
           </h1>
-          <p className="text-muted-foreground">
-            ChA?n trạng thái áp dụng cho tài khoản cA­a bA¡n đA© mAµ̉ khoá cA¡c
-            chA°A°ng yAªu cA§u thanh toán hoA·c thành viAªn.
-          </p>
+          {/* <p className="text-muted-foreground">
+            Bạn phải có tài khoản          </p> */}
         </div>
 
         <div className="rounded-xl border border-border bg-card/60 p-6 shadow-sm">
@@ -89,7 +86,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
               <div className="flex flex-1 flex-col gap-3">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">
-                    Sản phA¢m
+                    Sản phẩm
                   </p>
                   <h2 className="text-xl font-semibold text-foreground">
                     {book.title}
@@ -97,11 +94,11 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
                 </div>
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <p>
-                    TA¡c giA£:{" "}
+                    Tác giả:{" "}
                     <span className="text-foreground">
                       {book.authors
                         ?.map((author) => author.author.name)
-                        .join(", ") || "ChA°a cA³ thA´ng tin"}
+                        .join(", ") || ""}
                     </span>
                   </p>
                   <p>
@@ -124,13 +121,10 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
         </div>
 
         <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-6">
-          <h3 className="text-lg font-semibold text-primary">
-            LAAi yÁ hA°A°ng thÀnh toán
-          </h3>
+          <h3 className="text-lg font-semibold text-primary"></h3>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-primary/90">
-            <li>Thanh toán qua chuyAªn khoản hoA·c QR chen trong email.</li>
+            <li>Thanh toán qua chuyển QR chen trong email.</li>
             <li>
-              LiAªn hA§ hAµ trA§:{" "}
               <Link
                 href="mailto:support@nextbook.app"
                 className="font-semibold underline"
@@ -138,19 +132,16 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
                 support@nextbook.app
               </Link>
             </li>
-            <li>
-              Sau khi xong, nhA¤n nA­t <strong>XA¡c nhA­n</strong> đA© trạng
-              thái truy cA­p.
-            </li>
+            <li></li>
           </ul>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <Button variant="ghost" asChild>
-            <Link href="/books">ChA?n tác phAÅm khác</Link>
+            <Link href="/books">Chọn tác phẩ khác</Link>
           </Button>
           <Button asChild>
-            <Link href={nextStepUrl}>XA¡c nhA­n thanh toán</Link>
+            <Link href={nextStepUrl}>Xác nhận</Link>
           </Button>
         </div>
       </div>

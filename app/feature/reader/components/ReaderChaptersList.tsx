@@ -4,6 +4,7 @@ import { List, X, Bookmark, StickyNote, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
 import { ReaderBookmark, ReaderNote } from "@/app/store/useReaderDataStore";
+import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
 
 interface ReaderChaptersListProps {
   chapters: ChapterCardProps[];
@@ -32,6 +33,11 @@ export default function ReaderChaptersList({
   onRemoveBookmark,
   onRemoveNote,
 }: ReaderChaptersListProps) {
+  const panelRef = useOutsideClick<HTMLDivElement>({
+    enabled: chapters.length > 0,
+    onOutside: onClose,
+  });
+
   if (chapters.length === 0) return null;
 
   const sortedBookmarks = [...bookmarks].sort(
@@ -42,7 +48,10 @@ export default function ReaderChaptersList({
   );
 
   return (
-    <div className="absolute top-14 right-4 bottom-6 w-80 bg-popover border border-border rounded-lg shadow-xl z-40 flex flex-col">
+    <div
+      ref={panelRef}
+      className="absolute top-14 right-4 bottom-6 w-80 bg-popover border border-border rounded-lg shadow-xl z-40 flex flex-col"
+    >
       <div className="p-4 border-b border-border flex items-center justify-between">
         <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
           <List className="w-4 h-4" /> Danh sách chương

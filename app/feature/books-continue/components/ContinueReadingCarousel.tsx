@@ -93,7 +93,7 @@ function HistoryCard({ entry }: { entry: ContinueReadingEntry }) {
   const chapterHref = entry.chapterSlug
     ? `/books/${entry.bookSlug}/chapter/${entry.chapterSlug}`
     : bookHref;
-
+  console.log("rentry", entry);
   return (
     <div className={`flex flex-col ${CARD_SIZING.wrapper}`}>
       <Link prefetch={true} href={bookHref} aria-label={entry.bookTitle}>

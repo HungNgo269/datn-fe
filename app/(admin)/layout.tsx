@@ -40,18 +40,18 @@ export default function AdminLayout({
     //   path: "/analytics-admin",
     // },
     {
-      name: "Books",
+      name: "Sách",
       icon: <BookOpen className="w-5 h-5" />,
       path: "/books-admin",
     },
 
     {
-      name: "Categories",
+      name: "Thể loại",
       icon: <ChartBarStacked className="w-5 h-5" />,
       path: "/categories-admin",
     },
     {
-      name: "Authors",
+      name: "Tác giả",
       icon: <UserPen className="w-5 h-5" />,
       path: "/authors-admin",
     },
@@ -62,7 +62,7 @@ export default function AdminLayout({
     },
 
     {
-      name: "Users",
+      name: "Người dùng",
       icon: <Users className="w-5 h-5" />,
       path: "/users-admin",
     },
@@ -123,7 +123,7 @@ export default function AdminLayout({
         <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border">
           {!collapsed && (
             <h1 className="text-xl font-bold text-sidebar-foreground">
-              Admin Panel
+              Trang quản lý
             </h1>
           )}
           <Button

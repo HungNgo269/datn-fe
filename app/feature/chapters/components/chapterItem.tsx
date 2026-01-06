@@ -21,7 +21,8 @@ export function ChapterItem({ chapter, basePath }: ChapterItemProps) {
           } text-md hover:text-primary -foreground/80 truncate flex-1`}
         >
           <span className="mr-2">
-            Chương {chapter.order}: {chapter.title}
+            {/* Chương {chapter.order}:   */}
+            {chapter.title}
           </span>
         </Link>
       </div>

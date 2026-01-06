@@ -100,8 +100,7 @@ export function Step1Form({
     const getFileLabel = () => {
         const file = watchedFile;
         if (file instanceof File) return file.name;
-        if (typeof file === "string" && file.length > 0)
-            return "File s?ch hi?n t?i (?? upload)";
+        if (typeof file === "string" && file.length > 0) return "File sách";
         return undefined;
     };
 

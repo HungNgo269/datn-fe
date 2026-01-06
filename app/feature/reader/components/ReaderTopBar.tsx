@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ButtonHTMLAttributes } from "react";
 import {
   ArrowLeft,
   ChevronRight,
@@ -11,6 +11,8 @@ import {
   StickyNote,
   Bookmark,
 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 interface ReaderTopBarProps {
   title: string;
@@ -24,6 +26,30 @@ interface ReaderTopBarProps {
   onToggleNotes: () => void;
   isBookmarked?: boolean;
   onToggleBookmark?: () => void;
+  isSettingsOpen?: boolean;
+  isChaptersOpen?: boolean;
+}
+
+interface ReaderTopBarIconButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
+  isActive?: boolean;
+}
+
+function ReaderTopBarIconButton({
+  isActive,
+  className,
+  ...props
+}: ReaderTopBarIconButtonProps) {
+  return (
+    <button
+      className={cn(
+        "p-2 rounded transition-colors hover:cursor-pointer text-foreground hover:bg-muted",
+        isActive && "text-primary",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 export default function ReaderTopBar({
@@ -38,6 +64,8 @@ export default function ReaderTopBar({
   onToggleNotes,
   isBookmarked,
   onToggleBookmark,
+  isSettingsOpen,
+  isChaptersOpen,
 }: ReaderTopBarProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -56,13 +84,9 @@ export default function ReaderTopBar({
   return (
     <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 shadow-sm z-30 relative">
       <div className="flex items-center gap-1 z-10">
-        <button
-          onClick={onBackToBook}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors  hover:cursor-pointer"
-          title="Quay lại sách"
-        >
+        <ReaderTopBarIconButton onClick={onBackToBook} title="Quay lại sách">
           <ArrowLeft className="w-5 h-5" />
-        </button>
+        </ReaderTopBarIconButton>
       </div>
 
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full max-w-[50%] pointer-events-none">
@@ -81,62 +105,56 @@ export default function ReaderTopBar({
       </div>
 
       <div className="flex items-center gap-1 z-10 bg-card">
-        <button
+        <ReaderTopBarIconButton
           onClick={onToggleChapters}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
-          title="Danh sách chương"
+          title="Danh sách chương"
+          isActive={isChaptersOpen}
         >
           <List className="w-5 h-5" />
-        </button>
-        <button
+        </ReaderTopBarIconButton>
+
+        <ReaderTopBarIconButton
           onClick={onToggleBookmark}
-          className={`p-2 rounded transition-colors hover:cursor-pointer ${
-            isBookmarked ? "text-primary" : "text-foreground hover:bg-muted"
-          }`}
-          title="Đánh dấu trang này"
+          title="Đánh dấu trang"
+          isActive={isBookmarked}
         >
           <Bookmark
-            className={`w-5 h-5 ${isBookmarked ? "fill-current" : ""}`}
+            className={cn("w-5 h-5", isBookmarked ? "fill-current" : undefined)}
           />
-        </button>
+        </ReaderTopBarIconButton>
 
-        <button
-          onClick={onToggleNotes}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
-          title="Ghi chú"
-        >
+        <ReaderTopBarIconButton onClick={onToggleNotes} title="Ghi chú">
           <StickyNote className="w-5 h-5" />
-        </button>
+        </ReaderTopBarIconButton>
 
-        <button
+        <ReaderTopBarIconButton
           onClick={onToggleSettings}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
-          title="Cài đặt hiển thị"
+          title="Cài đặt"
+          isActive={isSettingsOpen}
         >
           <Settings className="w-5 h-5" />
-        </button>
+        </ReaderTopBarIconButton>
 
-        <button
+        <ReaderTopBarIconButton
           onClick={toggleFullscreen}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer hidden sm:block"
-          title="Toàn màn hình (F11)"
+          className="hidden sm:block"
+          title="Toàn màn hình (F11)"
         >
           {isFullscreen ? (
             <Minimize className="w-5 h-5" />
           ) : (
             <Maximize className="w-5 h-5" />
           )}
-        </button>
+        </ReaderTopBarIconButton>
 
         <div className="w-px h-6 bg-border mx-1" />
 
-        <button
+        <ReaderTopBarIconButton
           onClick={onNextChapter}
-          className="p-2 hover:bg-muted rounded text-foreground transition-colors hover:cursor-pointer"
-          title={nextChapterSlug ? "Chương tiếp theo" : "Quay lại sách"}
+          title={nextChapterSlug ? "Chương tiếp theo" : "Quay lại sách"}
         >
           <ChevronRight className="w-5 h-5" />
-        </button>
+        </ReaderTopBarIconButton>
       </div>
     </div>
   );
