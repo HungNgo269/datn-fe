@@ -38,6 +38,9 @@ interface ReaderDataState {
   notes: ReaderNote[];
   continueReading: ContinueReadingEntry | null;
   readingHistory: ContinueReadingEntry[];
+  fontSize: number;
+  fontId: string;
+  themeId: string;
   toggleBookmark: (bookmark: Omit<ReaderBookmark, "id" | "createdAt">) => void;
   removeBookmark: (id: string) => void;
   addNote: (note: Omit<ReaderNote, "id" | "createdAt">) => void;
@@ -45,6 +48,9 @@ interface ReaderDataState {
   updateContinueReading: (
     entry: Omit<ContinueReadingEntry, "updatedAt">
   ) => void;
+  setFontSize: (size: number) => void;
+  setFontId: (fontId: string) => void;
+  setThemeId: (themeId: string) => void;
 }
 
 const createId = () =>
@@ -59,6 +65,9 @@ export const useReaderDataStore = create<ReaderDataState>()(
       notes: [],
       continueReading: null,
       readingHistory: [],
+      fontSize: 18,
+      fontId: "sans",
+      themeId: "light",
       toggleBookmark(payload) {
         set((state) => {
           const matcher = (bookmark: ReaderBookmark) =>
@@ -137,6 +146,15 @@ export const useReaderDataStore = create<ReaderDataState>()(
           };
         });
       },
+      setFontSize(size) {
+        set({ fontSize: size });
+      },
+      setFontId(fontId) {
+        set({ fontId });
+      },
+      setThemeId(themeId) {
+        set({ themeId });
+      },
     }),
     {
       name: "reader-data",
@@ -145,6 +163,9 @@ export const useReaderDataStore = create<ReaderDataState>()(
         notes: state.notes,
         continueReading: state.continueReading,
         readingHistory: state.readingHistory,
+        fontSize: state.fontSize,
+        fontId: state.fontId,
+        themeId: state.themeId,
       }),
     }
   )

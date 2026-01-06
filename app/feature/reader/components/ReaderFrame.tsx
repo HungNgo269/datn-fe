@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useEffect } from "react";
+import { RefObject, useCallback, useEffect } from "react";
 import { THEMES } from "./readerSetting";
 
 interface ReaderFrameProps {
@@ -20,9 +20,9 @@ export default function ReaderFrame({
   themeId,
   bgStyle,
 }: ReaderFrameProps) {
-  useEffect(() => {
+  const applyTheme = useCallback(() => {
     const theme = THEMES.find((t) => t.id === themeId);
-    if (!theme || !isReady || !iframeRef.current?.contentWindow) return;
+    if (!theme || !iframeRef.current?.contentWindow) return;
 
     const win = iframeRef.current.contentWindow;
     const computedStyle = getComputedStyle(document.documentElement);
@@ -34,7 +34,12 @@ export default function ReaderFrame({
       win.document.documentElement.style.backgroundColor = bg;
     }
     if (fg) win.document.body.style.color = fg;
-  }, [themeId, isReady, iframeRef]);
+  }, [iframeRef, themeId]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    applyTheme();
+  }, [applyTheme, isReady]);
 
   useEffect(() => {
     const checkTimer = setTimeout(() => {
@@ -58,7 +63,10 @@ export default function ReaderFrame({
       <iframe
         ref={iframeRef}
         srcDoc={content}
-        onLoad={onLoad}
+        onLoad={() => {
+          onLoad();
+          applyTheme();
+        }}
         className="w-full h-full border-none block transition-opacity duration-200"
         sandbox="allow-scripts allow-same-origin"
         title="Reader"

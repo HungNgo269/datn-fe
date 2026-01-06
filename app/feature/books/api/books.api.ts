@@ -3,9 +3,15 @@ import { Book, CreateBookDto } from "../types/books.type";
 import { axiosClient } from "@/lib/api";
 import { BookFields } from "@/app/feature/books/schema/bookSchema";
 
-export async function getBooks(params: { page: number; limit: number }) {
+export async function getBooks(params: {
+  page: number;
+  limit: number;
+  q?: string;
+  endpoint?: string;
+}) {
+  const { endpoint = "/books", ...query } = params;
   return handlePaginatedRequest<Book>(() =>
-    axiosClient.get("/books", { params })
+    axiosClient.get(endpoint, { params: query })
   );
 }
 export async function getBookByCategory(

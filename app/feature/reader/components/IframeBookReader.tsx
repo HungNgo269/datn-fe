@@ -65,9 +65,12 @@ export default function IframeBookReader({
   const [openPanel, setOpenPanel] = useState<"settings" | "chapters" | null>(
     null
   );
-  const [fontSize, setFontSize] = useState(18);
-  const [fontId, setFontId] = useState("sans");
-  const [themeId, setThemeId] = useState("light");
+  const fontSize = useReaderDataStore((state) => state.fontSize);
+  const fontId = useReaderDataStore((state) => state.fontId);
+  const themeId = useReaderDataStore((state) => state.themeId);
+  const setFontSize = useReaderDataStore((state) => state.setFontSize);
+  const setFontId = useReaderDataStore((state) => state.setFontId);
+  const setThemeId = useReaderDataStore((state) => state.setThemeId);
   const [containerBg, setContainerBg] = useState("transparent");
   const [loading, setLoading] = useState(false);
   const fontsSnapshotRef = useRef({ fontId, fontSize });
@@ -356,6 +359,7 @@ export default function IframeBookReader({
         title={title}
         currentPage={currentPage}
         totalPages={totalPages}
+        themeBg={containerBg}
         onBackToBook={() => bookSlug && router.push(`/books/${bookSlug}`)}
         onNextChapter={goToNextChapter}
         nextChapterSlug={resolvedNextChapterSlug}

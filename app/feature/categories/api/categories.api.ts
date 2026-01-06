@@ -3,9 +3,15 @@ import { Category } from "../types/listCategories";
 import { axiosClient } from "@/lib/api";
 import { CategoryFields } from "@/app/schema/categorySchema";
 
-export async function getCategories(params: { page: number; limit: number }) {
+export async function getCategories(params: {
+  page: number;
+  limit: number;
+  q?: string;
+  endpoint?: string;
+}) {
+  const { endpoint = "/categories", ...query } = params;
   return handlePaginatedRequest<Category>(() =>
-    axiosClient.get("/categories", { params })
+    axiosClient.get(endpoint, { params: query })
   );
 }
 

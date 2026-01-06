@@ -3,9 +3,15 @@ import { axiosClient } from "@/lib/api";
 import { AuthorFields } from "@/app/feature/author/schema/authorSchema";
 import { AuthorInfo } from "../types/authors.types";
 
-export async function getAuthors(params: { page: number; limit: number }) {
+export async function getAuthors(params: {
+  page: number;
+  limit: number;
+  q?: string;
+  endpoint?: string;
+}) {
+  const { endpoint = "/authors", ...query } = params;
   return handlePaginatedRequest<AuthorInfo>(() =>
-    axiosClient.get("/authors", { params })
+    axiosClient.get(endpoint, { params: query })
   );
 }
 export async function getAuthorsSearch(params: {

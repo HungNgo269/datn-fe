@@ -1,20 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { deleteAuthor, getAuthors } from "@/app/feature/author/api/authors.api";
 import { AdminAuthorList } from "@/app/feature/author/components/adminAuthorList";
 import { AuthorDialog } from "@/app/feature/author/components/adminAuthorDialog";
 import { AuthorInfo } from "@/app/feature/author/types/authors.types";
+import { useDebounce } from "@/app/share/hook/useDebounce";
 
 export default function AuthorsPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const pageParams = searchParams.get("page");
   const queryParams = searchParams.get("q") || "";
@@ -25,10 +27,44 @@ export default function AuthorsPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAuthor, setSelectedAuthor] = useState<AuthorInfo | null>(null);
+  const [searchQuery, setSearchQuery] = useState(queryParams);
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  const prevSearchRef = useRef(debouncedSearch);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["authors", page, queryParams],
-    queryFn: () => getAuthors({ page, limit: pageSize }),
+  useEffect(() => {
+    setSearchQuery(queryParams);
+  }, [queryParams]);
+
+  useEffect(() => {
+    if (prevSearchRef.current === debouncedSearch) return;
+    prevSearchRef.current = debouncedSearch;
+
+    const params = new URLSearchParams(searchParams);
+    if (debouncedSearch) {
+      params.set("q", debouncedSearch);
+    } else {
+      params.delete("q");
+    }
+    params.set("page", "1");
+    router.replace(`/authors-admin?${params.toString()}`);
+  }, [debouncedSearch, router, searchParams]);
+
+  const { data, isLoading, isError, isFetching } = useQuery({
+    queryKey: ["authors", page, debouncedSearch],
+    queryFn: () =>
+      getAuthors(
+        debouncedSearch
+          ? {
+              endpoint: "/authors/search",
+              page,
+              limit: pageSize,
+              q: debouncedSearch,
+            }
+          : {
+              page,
+              limit: pageSize,
+            }
+      ),
     placeholderData: (previousData) => previousData,
   });
 
@@ -79,9 +115,20 @@ export default function AuthorsPage() {
         </Button>
       </div>
 
-      {/* <div className="w-full md:w-1/3">
-        <Search placeholder="Tìm kiếm tác giả..." />
-      </div> */}
+      <div className="w-full md:w-1/3">
+        <div className="relative w-full">
+          <input
+            type="text"
+            placeholder="Search author..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border rounded-md p-2 pr-9 w-full"
+          />
+          {isFetching && (
+            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+          )}
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="flex justify-center p-10">

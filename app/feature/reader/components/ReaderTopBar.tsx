@@ -18,6 +18,7 @@ interface ReaderTopBarProps {
   title: string;
   currentPage: number;
   totalPages: number;
+  themeBg: string;
   onBackToBook: () => void;
   onNextChapter: () => void;
   nextChapterSlug: string | null | undefined;
@@ -56,6 +57,7 @@ export default function ReaderTopBar({
   title,
   currentPage,
   totalPages,
+  themeBg,
   onBackToBook,
   onNextChapter,
   nextChapterSlug,
@@ -68,6 +70,7 @@ export default function ReaderTopBar({
   isChaptersOpen,
 }: ReaderTopBarProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const barBg = themeBg ? toRgba(themeBg, 0.8) : undefined;
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -82,7 +85,13 @@ export default function ReaderTopBar({
   };
 
   return (
-    <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 shadow-sm z-30 relative">
+    <div
+      className={cn(
+        "h-14 border-b border-border flex items-center justify-between px-4 shrink-0 shadow-sm z-30 relative",
+        !barBg && "bg-card"
+      )}
+      style={barBg ? { backgroundColor: barBg } : undefined}
+    >
       <div className="flex items-center gap-1 z-10">
         <ReaderTopBarIconButton onClick={onBackToBook} title="Quay lại sách">
           <ArrowLeft className="w-5 h-5" />
@@ -104,7 +113,10 @@ export default function ReaderTopBar({
         </div>
       </div>
 
-      <div className="flex items-center gap-1 z-10 bg-card">
+      <div
+        className={cn("flex items-center gap-1 z-10", !barBg && "bg-card")}
+        style={barBg ? { backgroundColor: barBg } : undefined}
+      >
         <ReaderTopBarIconButton
           onClick={onToggleChapters}
           title="Danh sách chương"
@@ -158,4 +170,36 @@ export default function ReaderTopBar({
       </div>
     </div>
   );
+}
+
+function toRgba(color: string, alpha: number) {
+  const trimmed = color.trim();
+  if (trimmed.startsWith("#")) {
+    const hex = trimmed.slice(1);
+    const normalized =
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : hex;
+    const value = parseInt(normalized, 16);
+    if (Number.isNaN(value)) return color;
+    const r = (value >> 16) & 255;
+    const g = (value >> 8) & 255;
+    const b = value & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  const rgbMatch = trimmed.match(
+    /^rgba?\s*\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)\s*(?:,\s*([0-9.]+)\s*)?\)$/
+  );
+  if (rgbMatch) {
+    const r = Number(rgbMatch[1]);
+    const g = Number(rgbMatch[2]);
+    const b = Number(rgbMatch[3]);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  return color;
 }
