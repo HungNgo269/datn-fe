@@ -31,12 +31,12 @@ export function HeaderButton() {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="relative h-10 w-10 rounded-full md:h-12 md:w-12 hover:bg-accent"
-        >
+        <Button className="relative h-10 w-10 rounded-full md:h-12 md:w-12 hover:bg-accent">
           <Avatar className="h-10 w-10 md:h-12 md:w-12">
-            <AvatarImage src={user?.avatar || "/jawed.jpg"} alt={user?.username || "User"} />
+            <AvatarImage
+              src={user?.avatar || "/jawed.jpg"}
+              alt={user?.username || "User"}
+            />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {initials}
             </AvatarFallback>

@@ -6,7 +6,7 @@ import ClientProvider from "@/app/share/components/provider/clientProvider";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Next Book",
+    template: "%s",
     default: "Next Book",
   },
   description: "Every book that you need, light weight and no ad website",

@@ -6,12 +6,14 @@ interface UseReaderPaginationProps {
   iframeRef: RefObject<HTMLIFrameElement | null>;
   storageKey: string;
   ready: boolean;
+  readMode: "paged" | "scroll";
 }
 
 export function useReaderPagination({
   iframeRef,
   storageKey,
   ready,
+  readMode,
 }: UseReaderPaginationProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -23,6 +25,17 @@ export function useReaderPagination({
 
     const doc = iframe.contentWindow.document.documentElement;
     const clientWidth = iframe.clientWidth;
+    const clientHeight = iframe.clientHeight;
+
+    if (readMode === "scroll") {
+      if (clientHeight > 0) {
+        const rawTotal = Math.ceil(doc.scrollHeight / clientHeight);
+        const calcTotal = Math.max(1, rawTotal);
+        setTotalPages(calcTotal);
+        return calcTotal;
+      }
+      return 0;
+    }
 
     if (clientWidth > 0) {
       const rawTotal = Math.ceil(doc.scrollWidth / clientWidth);
@@ -31,21 +44,29 @@ export function useReaderPagination({
       return calcTotal;
     }
     return 0;
-  }, [iframeRef]);
+  }, [iframeRef, readMode]);
 
   const goToPage = useCallback(
     (page: number) => {
       const iframe = iframeRef.current;
       if (!iframe || !iframe.contentWindow) return;
 
-      const viewportWidth = iframe.clientWidth;
-      iframe.contentWindow.scrollTo({
-        left: (page - 1) * viewportWidth,
-        behavior: "instant",
-      });
+      if (readMode === "scroll") {
+        const viewportHeight = iframe.clientHeight;
+        iframe.contentWindow.scrollTo({
+          top: (page - 1) * viewportHeight,
+          behavior: "instant",
+        });
+      } else {
+        const viewportWidth = iframe.clientWidth;
+        iframe.contentWindow.scrollTo({
+          left: (page - 1) * viewportWidth,
+          behavior: "instant",
+        });
+      }
       setCurrentPage(page);
     },
-    [iframeRef]
+    [iframeRef, readMode]
   );
 
   const next = useCallback(() => {
@@ -55,6 +76,12 @@ export function useReaderPagination({
   const prev = useCallback(() => {
     if (currentPage > 1) goToPage(currentPage - 1);
   }, [currentPage, goToPage]);
+
+  useEffect(() => {
+    setIsPositionRestored(false);
+    setCurrentPage(1);
+    setTotalPages(0);
+  }, [readMode, storageKey]);
 
   useEffect(() => {
     if (ready) {
@@ -93,6 +120,28 @@ export function useReaderPagination({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [calculateTotalPages, goToPage, currentPage]);
+
+  useEffect(() => {
+    if (!ready || readMode !== "scroll") return;
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow) return;
+
+    const handleScroll = () => {
+      const viewportHeight = iframe.clientHeight;
+      if (viewportHeight <= 0) return;
+      const scrollTop =
+        iframe.contentWindow?.scrollY ??
+        iframe.contentWindow?.pageYOffset ??
+        0;
+      const nextPage = Math.max(1, Math.floor(scrollTop / viewportHeight) + 1);
+      setCurrentPage((prev) => (prev === nextPage ? prev : nextPage));
+    };
+
+    handleScroll();
+    iframe.contentWindow.addEventListener("scroll", handleScroll);
+    return () =>
+      iframe.contentWindow?.removeEventListener("scroll", handleScroll);
+  }, [iframeRef, readMode, ready]);
 
   return {
     currentPage,

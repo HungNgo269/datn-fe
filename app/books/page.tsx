@@ -22,11 +22,10 @@ import Header from "../share/components/ui/header/header";
 import { getCategories } from "../feature/categories/actions/categories.action";
 import PopularBook from "../feature/books-popular/components/popularBook";
 import TrendingBook from "../feature/books-trending/components/trendingBook";
-
-const BOOK_PAGE_TITLE = "Discover Stories & Novels | NextBook";
+const BOOK_PAGE_TITLE = "Khám phá truyện & tiểu thuyết | NextBook";
 
 const BOOK_PAGE_DESCRIPTION =
-  "Browse reader favorites, trending novels, and new releases across the full NextBook library.";
+  "Khám phá các truyện được yêu thích, tiểu thuyết thịnh hành và những bản phát hành mới nhất trong thư viện NextBook.";
 
 const BOOK_PAGE_URL = getURL("book");
 

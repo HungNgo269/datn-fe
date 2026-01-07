@@ -33,6 +33,15 @@ export interface ContinueReadingEntry {
   updatedAt: string;
 }
 
+export type ReaderReadMode = "paged" | "scroll";
+
+const getDefaultReadMode = (): ReaderReadMode => {
+  if (typeof window === "undefined") {
+    return "paged";
+  }
+  return window.innerWidth < 768 ? "scroll" : "paged";
+};
+
 interface ReaderDataState {
   bookmarks: ReaderBookmark[];
   notes: ReaderNote[];
@@ -41,6 +50,7 @@ interface ReaderDataState {
   fontSize: number;
   fontId: string;
   themeId: string;
+  readMode: ReaderReadMode;
   toggleBookmark: (bookmark: Omit<ReaderBookmark, "id" | "createdAt">) => void;
   removeBookmark: (id: string) => void;
   addNote: (note: Omit<ReaderNote, "id" | "createdAt">) => void;
@@ -51,6 +61,7 @@ interface ReaderDataState {
   setFontSize: (size: number) => void;
   setFontId: (fontId: string) => void;
   setThemeId: (themeId: string) => void;
+  setReadMode: (mode: ReaderReadMode) => void;
 }
 
 const createId = () =>
@@ -68,6 +79,7 @@ export const useReaderDataStore = create<ReaderDataState>()(
       fontSize: 18,
       fontId: "sans",
       themeId: "light",
+      readMode: getDefaultReadMode(),
       toggleBookmark(payload) {
         set((state) => {
           const matcher = (bookmark: ReaderBookmark) =>
@@ -155,6 +167,9 @@ export const useReaderDataStore = create<ReaderDataState>()(
       setThemeId(themeId) {
         set({ themeId });
       },
+      setReadMode(readMode) {
+        set({ readMode });
+      },
     }),
     {
       name: "reader-data",
@@ -166,6 +181,7 @@ export const useReaderDataStore = create<ReaderDataState>()(
         fontSize: state.fontSize,
         fontId: state.fontId,
         themeId: state.themeId,
+        readMode: state.readMode,
       }),
     }
   )

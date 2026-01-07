@@ -147,7 +147,7 @@ export default function BookCard({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-gray-400 hover:text-red-500 hover:bg-transparent h-8 md:h-9 w-8 md:w-9 p-0"
+                  className="text-gray-400 hover:text-destructive hover:bg-transparent h-8 md:h-9 w-8 md:w-9 p-0"
                 >
                   <Heart className="w-4 h-4 md:w-5 md:h-5" />
                 </Button>

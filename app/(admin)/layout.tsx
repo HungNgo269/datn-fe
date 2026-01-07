@@ -108,7 +108,7 @@ export default function AdminLayout({
     <div className="flex h-screen bg-background">
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-primary/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black opacity-10 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}

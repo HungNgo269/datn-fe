@@ -33,10 +33,10 @@ export function AccountProfilePanel() {
     <section className="rounded-2xl border bg-card p-6 space-y-6 shadow-sm">
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-semibold text-foreground">
-          Welcome back, {user.username || user.email}
+          Quản lý thông tin
         </h2>
         <p className="text-sm text-muted-foreground">
-          Manage your profile information and see your account status.
+          Quản lý thông tin cá nhân của bạn và trạng thái tài khoản của bạn{" "}
         </p>
       </div>
 

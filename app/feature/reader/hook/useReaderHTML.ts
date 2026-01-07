@@ -8,25 +8,93 @@ interface UseReaderHtmlProps {
   fontSize: number;
   fontId: string;
   themeId: string;
+  readMode: "paged" | "scroll";
 }
 
 export function useReaderHtml({
   initialHtml,
   fontSize,
   fontId,
+  readMode,
 }: UseReaderHtmlProps) {
   const currentFontFamily =
     FONTS.find((f) => f.id === fontId)?.value || "sans-serif";
 
   const processedHtml = useMemo(() => {
     let fixedHtml = initialHtml.replace(/\.\.\/fonts\//g, "/fonts/");
+    const isPaged = readMode === "paged";
     const spacerHtml = '<div id="force-new-page-spacer"></div>';
 
-    if (fixedHtml.includes("</body>")) {
-      fixedHtml = fixedHtml.replace("</body>", `${spacerHtml}</body>`);
-    } else {
-      fixedHtml += spacerHtml;
+    if (isPaged) {
+      if (fixedHtml.includes("</body>")) {
+        fixedHtml = fixedHtml.replace("</body>", `${spacerHtml}</body>`);
+      } else {
+        fixedHtml += spacerHtml;
+      }
     }
+
+    const layoutStyles = isPaged
+      ? `
+        html {
+          height: 100vh;
+          width: 100%;
+          overflow: hidden !important;
+        }
+        body {
+          margin: 0 !important;
+          height: 100vh !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+
+          padding: 40px calc(var(--reader-padding) / 2) !important;
+
+          column-width: calc(100vw - var(--reader-padding) - 1px) !important;
+          column-gap: var(--reader-padding) !important;
+          column-fill: auto !important;
+
+          font-size: ${fontSize}px !important;
+          font-family: ${currentFontFamily} !important;
+          line-height: 1.6 !important;
+          text-align: justify !important;
+
+          background-color: transparent;
+          transition: background-color 0.3s, color 0.3s;
+        }
+
+        #force-new-page-spacer {
+          break-before: column !important;
+          -webkit-column-break-before: always !important;
+          width: 0px; height: 1px; margin: 0; padding: 0; visibility: hidden;
+        }
+      `
+      : `
+        html {
+          height: 100%;
+          width: 100%;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+        }
+        body {
+          margin: 0 !important;
+          min-height: 100% !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+
+          padding: 40px calc(var(--reader-padding) / 2) !important;
+
+          column-width: auto !important;
+          column-gap: 0 !important;
+          column-fill: auto !important;
+
+          font-size: ${fontSize}px !important;
+          font-family: ${currentFontFamily} !important;
+          line-height: 1.6 !important;
+          text-align: justify !important;
+
+          background-color: transparent;
+          transition: background-color 0.3s, color 0.3s;
+        }
+      `;
 
     const injectionStyles = `
       <style>
@@ -39,38 +107,7 @@ export function useReaderHtml({
         @media (min-width: 1280px) {
           :root { --reader-padding: 800px; }
         }
-
-        html {
-          height: 100vh;
-          width: 100%;
-          overflow: hidden !important;
-        }
-        body {
-          margin: 0 !important;
-          height: 100vh !important;
-          width: 100% !important;
-          box-sizing: border-box !important;
-          
-          padding: 40px calc(var(--reader-padding) / 2) !important;
-          
-          column-width: calc(100vw - var(--reader-padding) - 1px) !important;
-          column-gap: var(--reader-padding) !important;
-          column-fill: auto !important;
-          
-          font-size: ${fontSize}px !important;
-          font-family: ${currentFontFamily} !important;
-          line-height: 1.6 !important;
-          text-align: justify !important;
-          
-          background-color: transparent; 
-          transition: background-color 0.3s, color 0.3s;
-        }
-
-        #force-new-page-spacer {
-          break-before: column !important;
-          -webkit-column-break-before: always !important;
-          width: 0px; height: 1px; margin: 0; padding: 0; visibility: hidden;
-        }
+        ${layoutStyles}
 
         img, figure, table {
           max-width: 100% !important;
@@ -87,7 +124,7 @@ export function useReaderHtml({
       return fixedHtml.replace("</head>", `${injectionStyles}</head>`);
     }
     return injectionStyles + fixedHtml;
-  }, [initialHtml, fontSize, currentFontFamily]);
+  }, [initialHtml, fontSize, currentFontFamily, readMode]);
 
   return processedHtml;
 }

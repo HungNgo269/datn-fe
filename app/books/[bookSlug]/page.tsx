@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -20,6 +21,23 @@ type PageProps = {
     bookSlug: string;
   }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ bookSlug: string }>;
+}): Promise<Metadata> {
+  const { bookSlug } = await params;
+  try {
+    const book = await getBookBySlug(bookSlug);
+    if (book?.title) {
+      return { title: `${book.title} | NextBook` };
+    }
+  } catch {
+    // Fall through to default title.
+  }
+  return { title: "Book | NextBook" };
+}
 
 export default async function BookPage({ params }: PageProps) {
   const user = useAuthStore.getInitialState().user;
@@ -64,7 +82,7 @@ export default async function BookPage({ params }: PageProps) {
                 </h1>
                 <div className="text-sm md:text-base font-medium mb-4 text-center md:text-left flex flex-col md:flex-row gap-2">
                   <span className="text-muted-foreground">Tác giả:</span>
-                  <div className="flex flex-wrap justify-center md:justify-start gap-x-1">
+                  <div className="flex flex-wrap justify-center md:justify-start gap-x-1 items-center">
                     {book.authors?.length ? (
                       book.authors.map(({ author }, index) => {
                         const slug = author.slug;

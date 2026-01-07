@@ -47,7 +47,7 @@ export default function BookDesc({
 
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="mt-2 flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:underline focus:outline-none"
+        className="mt-2 cursor-pointer flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:underline focus:outline-none"
       >
         {isExpanded ? (
           <>

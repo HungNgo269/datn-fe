@@ -4,6 +4,7 @@ import React from "react";
 import { Check, Palette, X } from "lucide-react";
 
 import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
+import type { ReaderReadMode } from "@/app/store/useReaderDataStore";
 
 export const THEMES = [
   {
@@ -59,6 +60,11 @@ export const FONTS = [
   },
 ];
 
+export const READ_MODES: Array<{ id: ReaderReadMode; label: string }> = [
+  { id: "paged", label: "Từng Trang" },
+  { id: "scroll", label: "Cuộn dọc" },
+];
+
 interface ReaderSettingsProps {
   isOpen: boolean;
   onClose: () => void;
@@ -68,6 +74,8 @@ interface ReaderSettingsProps {
   setTheme: (themeId: string) => void;
   currentFont: string;
   setFont: (fontId: string) => void;
+  readMode: ReaderReadMode;
+  setReadMode: (mode: ReaderReadMode) => void;
 }
 
 export default function ReaderSettings({
@@ -79,6 +87,8 @@ export default function ReaderSettings({
   setTheme,
   currentFont,
   setFont,
+  readMode,
+  setReadMode,
 }: ReaderSettingsProps) {
   const panelRef = useOutsideClick<HTMLDivElement>({
     enabled: isOpen,
@@ -132,6 +142,26 @@ export default function ReaderSettings({
               {currentTheme !== t.id && (
                 <span className="text-xs font-bold opacity-70">Aa</span>
               )}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mb-5">
+        <p className="text-xs font-medium text-muted-foreground mb-2">
+          Chế độ đọc
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {READ_MODES.map((mode) => (
+            <button
+              key={mode.id}
+              onClick={() => setReadMode(mode.id)}
+              className={`flex items-center justify-center px-3 py-2 rounded text-sm transition-colors ${
+                readMode === mode.id
+                  ? "bg-success/10 text-success font-medium"
+                  : "hover:bg-muted"
+              }`}
+            >
+              {mode.label}
             </button>
           ))}
         </div>

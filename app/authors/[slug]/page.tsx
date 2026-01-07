@@ -27,14 +27,12 @@ export async function generateMetadata({
   try {
     const author = await getAuthorBySlugAction(slug);
     return {
-      title: { absolute: `${author.name} | Tác giả trên NextBook` },
-      description:
-        author.bio ||
-        `Khám phá các tác phẩm nổi bật của tác giả ${author.name} trên NextBook.`,
+      title: `${author.name} | NextBook`,
+      description: author.bio || undefined,
     };
   } catch {
     return {
-      title: { absolute: "Tác giả không tồn tại | NextBook" },
+      title: "Author | NextBook",
     };
   }
 }

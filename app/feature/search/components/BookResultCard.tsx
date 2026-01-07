@@ -47,7 +47,7 @@ export function BookResultCard({ book, query }: BookResultCardProps) {
         <div className="mt-1">
           {sanitizedDescription ? (
             <div
-              className="text-xs text-muted-foreground line-clamp-3 leading-relaxed"
+              className="text-sm text-muted-foreground line-clamp-3 leading-relaxed"
               dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
             />
           ) : (

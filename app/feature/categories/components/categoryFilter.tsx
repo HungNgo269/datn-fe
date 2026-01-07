@@ -51,7 +51,7 @@ export default function CategoryFilter({
         onValueChange={handleCategoryChange}
         disabled={isPending}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className=" w-[200px] min-w-fit">
           <SelectValue placeholder="All Categories" />
         </SelectTrigger>
         <SelectContent>

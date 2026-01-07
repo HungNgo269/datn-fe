@@ -33,26 +33,26 @@ export default function HeaderClientColor() {
         <DropdownMenuItem
           onClick={() => setTheme("light")}
           className="cursor-pointer"
-          title="Light"
+          title="Sáng"
         >
           <Sun className="w-4 h-4 mr-2" />
-          Light
+          Sáng
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("dark")}
-          title="Dark"
+          title="Tối"
           className="cursor-pointer"
         >
           <Moon className="w-4 h-4 mr-2" />
-          Dark
+          Tối
         </DropdownMenuItem>
         <DropdownMenuItem
-          title="System"
+          title="Hệ Thống"
           onClick={() => setTheme("system")}
           className="cursor-pointer"
         >
           <Info className="w-4 h-4 mr-2" />
-          System
+          Hệ thống
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

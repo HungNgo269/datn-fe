@@ -71,7 +71,7 @@ export function ChapterList({
       </div>
       <Separator className="mb-2" />
 
-      <div className="relative">
+      <div className="relative border rounded-sm shadow-sm">
         <div className="space-y-2">
           {visibleChapters.map((chapter) => (
             <ChapterItem
@@ -88,10 +88,10 @@ export function ChapterList({
       </div>
 
       {hasMoreChapters && (
-        <div className="mt-4 pt-2 text-center border-t border-border/50">
+        <div className="mt-4 pt-2 text-center">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="mt-2 cursor-pointer text-primary hover:text-primary -foreground/80 text-sm font-medium hover:underline transition-all"
+            className="mt-2 cursor-pointer text-primary hover:text-primary text-sm font-medium hover:underline transition-all"
           >
             {showAll
               ? "Thu gọn"

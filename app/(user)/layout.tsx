@@ -12,14 +12,14 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Header />
       </header>
 
       <div className="flex flex-1 container mx-auto px-0 md:px-4 lg:px-8 py-6 gap-6 mt-12">
         <aside className="hidden lg:block w-64 shrink-0 h-[calc(100vh-8rem)] sticky top-24">
-          <div className="h-full rounded-xl border bg-card overflow-hidden shadow-sm">
+          <div className="h-full rounded-xl  overflow-hidden ">
             <AccountSidebar />
           </div>
         </aside>
@@ -27,7 +27,7 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
         <div className="lg:hidden fixed bottom-6 right-6 z-50">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button size="icon" className="rounded-full h-12 w-12 shadow-lg">
+              <Button size="icon" className="rounded-full h-12 w-12 ">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>

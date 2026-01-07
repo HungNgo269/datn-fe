@@ -14,7 +14,6 @@ import {
 import TrendingBook from "../feature/books-trending/components/trendingBook";
 import PopularBook from "../feature/books-popular/components/popularBook";
 
-// Imports Logic Search & Data
 import { getBooksAction } from "../feature/books/action/books.action";
 import { Book } from "../feature/books/types/books.type";
 import { searchAuthorsAction } from "../feature/author/actions/authors.actions";
@@ -23,9 +22,11 @@ import { getURL } from "@/lib/helper";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 import { cn } from "@/lib/utils";
 
-const SEARCH_PAGE_TITLE = "Search Books & Authors | NextBook";
+const SEARCH_PAGE_TITLE = "Tìm kiếm sách & tác giả | NextBook";
+
 const SEARCH_PAGE_DESCRIPTION =
-  "Look up books or authors in the NextBook library and jump straight to the stories that match your interests.";
+  "Tìm kiếm sách hoặc tác giả trong thư viện NextBook và truy cập nhanh những câu chuyện phù hợp với sở thích của bạn.";
+
 const SEARCH_PAGE_URL = getURL("search");
 
 export const metadata: Metadata = {
@@ -129,7 +130,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
                       {books.length === 0 && authors.length === 0 && (
                         <div className="text-center py-20">
-                          <p className="text-lg text-muted-foreground">{`We couldn't find any matches.`}</p>
+                          <p className="text-lg text-muted-foreground">{`Không có cuốn sách hay tác giả phù hợp nào`}</p>
                         </div>
                       )}
                     </>
@@ -231,7 +232,7 @@ function BookResultCard({ book, query }: { book: Book; query: string }) {
         <div className="mt-1">
           {sanitizedDescription ? (
             <div
-              className="text-xs text-muted-foreground line-clamp-3 leading-relaxed"
+              className="text-sm text-muted-foreground line-clamp-3 leading-relaxed"
               dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
             />
           ) : (

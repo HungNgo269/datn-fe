@@ -68,20 +68,24 @@ export default function IframeBookReader({
   const fontSize = useReaderDataStore((state) => state.fontSize);
   const fontId = useReaderDataStore((state) => state.fontId);
   const themeId = useReaderDataStore((state) => state.themeId);
+  const readMode = useReaderDataStore((state) => state.readMode);
   const setFontSize = useReaderDataStore((state) => state.setFontSize);
   const setFontId = useReaderDataStore((state) => state.setFontId);
   const setThemeId = useReaderDataStore((state) => state.setThemeId);
+  const setReadMode = useReaderDataStore((state) => state.setReadMode);
   const [containerBg, setContainerBg] = useState("transparent");
   const [loading, setLoading] = useState(false);
-  const fontsSnapshotRef = useRef({ fontId, fontSize });
+  const fontsSnapshotRef = useRef({ fontId, fontSize, readMode });
   const hasCalculatedLayoutRef = useRef(false);
   const processedHtml = useReaderHtml({
     initialHtml,
     fontSize,
     fontId,
     themeId,
+    readMode,
   });
 
+  const positionKeyBase = `reading-pos-${bookSlug}-${chapterSlug}`;
   const {
     currentPage,
     totalPages,
@@ -92,8 +96,10 @@ export default function IframeBookReader({
     calculateTotalPages,
   } = useReaderPagination({
     iframeRef,
-    storageKey: `reading-pos-${bookSlug}-${chapterSlug}`,
+    storageKey:
+      readMode === "paged" ? positionKeyBase : `${positionKeyBase}-scroll`,
     ready,
+    readMode,
   });
 
   const [selectedText, setSelectedText] = useState("");
@@ -199,12 +205,13 @@ export default function IframeBookReader({
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      if (readMode !== "paged") return;
       if (e.key === "ArrowRight") handleNextPage();
       if (e.key === "ArrowLeft") handlePreviousPage();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [handleNextPage, handlePreviousPage]);
+  }, [handleNextPage, handlePreviousPage, readMode]);
 
   useEffect(() => {
     if (!ready || !iframeRef.current?.contentWindow) return;
@@ -225,9 +232,10 @@ export default function IframeBookReader({
 
     const fontsChanged =
       fontsSnapshotRef.current.fontId !== fontId ||
-      fontsSnapshotRef.current.fontSize !== fontSize;
+      fontsSnapshotRef.current.fontSize !== fontSize ||
+      fontsSnapshotRef.current.readMode !== readMode;
 
-    fontsSnapshotRef.current = { fontId, fontSize };
+    fontsSnapshotRef.current = { fontId, fontSize, readMode };
 
     const shouldRecalculate = fontsChanged || !hasCalculatedLayoutRef.current;
 
@@ -255,6 +263,7 @@ export default function IframeBookReader({
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      setLoading(false);
     };
   }, [
     calculateTotalPages,
@@ -264,6 +273,7 @@ export default function IframeBookReader({
     goToPage,
     isPositionRestored,
     ready,
+    readMode,
   ]);
 
   const handleIframeLoad = () => setReady(true);
@@ -382,14 +392,16 @@ export default function IframeBookReader({
           bgStyle={containerBg}
         />
 
-        <ReaderPageNavigation
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPrev={handlePreviousPage}
-          onNext={handleNextPage}
-          canGoPrev={canNavigateBackward}
-          canGoNext={canNavigateForward}
-        />
+        {readMode === "paged" && (
+          <ReaderPageNavigation
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrev={handlePreviousPage}
+            onNext={handleNextPage}
+            canGoPrev={canNavigateBackward}
+            canGoNext={canNavigateForward}
+          />
+        )}
 
         {showBlockingOverlay && (
           <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
@@ -407,6 +419,8 @@ export default function IframeBookReader({
         setTheme={setThemeId}
         currentFont={fontId}
         setFont={setFontId}
+        readMode={readMode}
+        setReadMode={setReadMode}
       />
 
       {isChaptersOpen && (

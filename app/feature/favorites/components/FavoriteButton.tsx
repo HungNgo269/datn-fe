@@ -8,16 +8,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   addBookToFavorites,
-  getFavoriteCount,
   getFavoriteStatus,
   removeBookFromFavorites,
 } from "../api/favorites.api";
-import {
-  FavoriteCountResponseDto,
-  FavoriteStatusResponseDto,
-} from "../types/favorite.type";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FavoriteStatusResponseDto } from "../types/favorite.type";
 
 interface FavoriteButtonProps {
   bookId: number;
@@ -60,31 +56,8 @@ export function FavoriteButton({
     staleTime: 5 * 60 * 1000,
   });
 
-  const {
-    data: favoriteCount,
-    isLoading: isCountLoading,
-    isFetching: isCountFetching,
-  } = useQuery({
-    queryKey: ["favorite-total", bookId],
-    queryFn: async () => {
-      try {
-        const response = await getFavoriteCount(bookId);
-        return response.totalFavorites;
-      } catch (err) {
-        if (err instanceof ApiError) {
-          return 0;
-        }
-        throw err;
-      }
-    },
-    enabled: Boolean(bookId),
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
-
   const isFavorited = favoriteStatus?.isFavorited ?? false;
-  const totalFavorites =
-    favoriteStatus?.totalFavorites ?? favoriteCount ?? 0;
+  const totalFavorites = favoriteStatus?.totalFavorites ?? 0;
   const mutation = useMutation({
     mutationFn: async (currentlyFavorited: boolean) => {
       if (!effectiveUserId) {
@@ -102,9 +75,6 @@ export function FavoriteButton({
     onMutate: async (currentlyFavorited) => {
       await queryClient.cancelQueries({
         queryKey: ["favorite-status", bookId],
-      });
-      await queryClient.cancelQueries({
-        queryKey: ["favorite-total", bookId],
       });
 
       const previous =
@@ -125,10 +95,6 @@ export function FavoriteButton({
       };
 
       queryClient.setQueryData(["favorite-status", bookId], nextState);
-      queryClient.setQueryData<number>(
-        ["favorite-total", bookId],
-        nextState.totalFavorites
-      );
 
       return { previous, nextState };
     },
@@ -155,16 +121,11 @@ export function FavoriteButton({
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["favorite-status", bookId] });
-      queryClient.invalidateQueries({ queryKey: ["favorite-total", bookId] });
     },
   });
 
   const isProcessing =
-    mutation.isPending ||
-    isStatusLoading ||
-    isStatusFetching ||
-    isCountLoading ||
-    isCountFetching;
+    mutation.isPending || isStatusLoading || isStatusFetching;
 
   const formattedTotal = new Intl.NumberFormat("vi-VN").format(totalFavorites);
 
@@ -186,6 +147,10 @@ export function FavoriteButton({
 
     mutation.mutate(isFavorited);
   };
+
+  if (!effectiveUserId) {
+    return null;
+  }
 
   return (
     <Button

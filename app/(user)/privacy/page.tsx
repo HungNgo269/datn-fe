@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { ChangePasswordForm } from "@/app/feature/auth/changePassword/form/changePasswordForm";
+
+export const metadata: Metadata = { title: "Privacy | NextBook" };
 
 export default function AccountPrivacyPage() {
   return (

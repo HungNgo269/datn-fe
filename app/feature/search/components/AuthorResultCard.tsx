@@ -36,7 +36,7 @@ export function AuthorResultCard({ author, query }: AuthorResultCardProps) {
         <p className="text-base font-semibold leading-tight">
           <HighlightedText text={author.name} query={query} />
         </p>
-        <div className="mt-1 text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+        <div className="mt-1 text-sm text-muted-foreground line-clamp-3 leading-relaxed">
           {safeBio ? (
             <div dangerouslySetInnerHTML={{ __html: safeBio }} />
           ) : (
@@ -45,7 +45,9 @@ export function AuthorResultCard({ author, query }: AuthorResultCardProps) {
         </div>
         <Link
           prefetch={true}
-          href={`/books?author=${encodeURIComponent(author.slug ?? author.name)}`}
+          href={`/books?author=${encodeURIComponent(
+            author.slug ?? author.name
+          )}`}
           className="text-xs text-primary hover:underline mt-2"
         >
           Xem các cuốn sách của tác giả này →

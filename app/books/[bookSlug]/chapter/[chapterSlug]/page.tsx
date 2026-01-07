@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   getChaptersContent,
   getChaptersDetails,
@@ -14,6 +15,35 @@ type PageProps = {
     chapterSlug: string;
   }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ bookSlug: string; chapterSlug: string }>;
+}): Promise<Metadata> {
+  const { bookSlug, chapterSlug } = await params;
+  try {
+    const [book, chapter] = await Promise.all([
+      getBookBySlug(bookSlug),
+      getChaptersDetails(bookSlug, chapterSlug),
+    ]);
+    const bookTitle = book?.title;
+    const chapterTitle = chapter?.title;
+
+    if (chapterTitle && bookTitle) {
+      return { title: `${chapterTitle} – ${bookTitle} | NextBook` };
+    }
+    if (chapterTitle) {
+      return { title: `${chapterTitle} | NextBook` };
+    }
+    if (bookTitle) {
+      return { title: `${bookTitle} | NextBook` };
+    }
+  } catch {
+    // Fall through to default title.
+  }
+  return { title: "Read Chapter | NextBook" };
+}
 
 export default async function ChapterPage({ params }: PageProps) {
   const accessToken = Cookies.get("accessToken");
