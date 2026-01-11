@@ -83,8 +83,8 @@ export default function BannersPage() {
             Thiết lập các banner quảng cáo, sự kiện trên trang chủ và sidebar
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Thêm mới
+        <Button className="h-10" onClick={handleCreate}>
+          <Plus className="mr-2 h-5 w-5" /> Thêm mới
         </Button>
       </div>
 

@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AuthorInfo } from "../types/authors.types";
+import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
 interface AuthorsTableProps {
   authors: AuthorInfo[];
@@ -76,8 +77,17 @@ export function AdminAuthorList({
                   <TableCell className="text-muted-foreground max-w-[150px]  truncate">
                     {author.slug}
                   </TableCell>
-                  <TableCell className="max-w-[350px]  truncate">
-                    {author.bio || "--"}
+                  <TableCell className="max-w-[350px]">
+                    {author.bio ? (
+                      <div
+                        className="truncate"
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeRichHtml(author.bio),
+                        }}
+                      />
+                    ) : (
+                      "--"
+                    )}
                   </TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button

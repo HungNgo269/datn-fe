@@ -38,6 +38,8 @@ const ReactQuill = dynamic(() => import("react-quill-new"), {
 interface Step2FormProps {
     step1Data?: Step1FormData;
     defaultValues?: Step2FormData | Partial<BookFormState>;
+    authorOptions?: Option[];
+    categoryOptions?: Option[];
     onBack: (data: Step2FormData) => void;
     onCancel: () => void;
     onSubmit: (data: Step2FormData) => void;
@@ -57,6 +59,8 @@ const quillModules = {
 export function Step2Form({
     step1Data,
     defaultValues,
+    authorOptions,
+    categoryOptions,
     onBack,
     onCancel,
     onSubmit,
@@ -176,6 +180,7 @@ export function Step2Form({
                                 onChange={field.onChange}
                                 fetchOptions={fetchAuthorOptions}
                                 onCreateOption={handleCreateAuthor}
+                                valueOptions={authorOptions}
                                 displayMode="inline"
                             />
                         )}
@@ -204,6 +209,7 @@ export function Step2Form({
                                 value={field.value}
                                 onChange={field.onChange}
                                 fetchOptions={fetchCategoryOptions}
+                                valueOptions={categoryOptions}
                                 displayMode="inline"
                             />
                         )}

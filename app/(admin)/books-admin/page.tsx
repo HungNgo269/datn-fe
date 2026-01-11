@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -134,32 +134,32 @@ export default function BooksPage() {
 
   return (
     <div className=" mx-auto p-6 space-y-8 max-w-full">
-      <div className="flex items-center justify-between border-b pb-6">
-        <div>
+      <div className="flex items-center justify-between ">
+        <div className="flex flex-col gap-1 w-[400px]">
           <h1 className="text-3xl font-bold tracking-tight">
             Trang quản lý sách
           </h1>
           <p className="text-muted-foreground mt-1">
             Danh sách các sách trong hệ thống
           </p>
-          <div className="mt-3 flex items-center justify-between gap-2 md:mt-6">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Tìm kiếm sách..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border rounded-md p-2 pr-9 w-full"
-              />
-</div>
-          </div>
         </div>
-        <div className="flex gap-2">
+
+        <div className="w-full max-w-1/3 flex flex-row-reverse gap-3 ">
           <Link href="/books-admin/create">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Upload sách mới
+            <Button className="h-10">
+              <Plus className="mr-2 h-4 w-4" /> Thêm mới
             </Button>
           </Link>
+          <div className="relative max-w-[300px]">
+            <input
+              type="text"
+              placeholder="Tìm kiếm sách..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border rounded-md p-2 pr-9 w-full"
+            />
+            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -175,5 +175,3 @@ export default function BooksPage() {
     </div>
   );
 }
-
-

@@ -1,15 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StickyNote, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import {
-  NoteColor,
-  ReaderNote,
-  useReaderDataStore,
-} from "@/app/store/useReaderDataStore";
+import { ReaderNote, useReaderDataStore } from "@/app/store/useReaderDataStore";
 
 const getTimestamp = (value?: string) => {
   if (!value) return 0;
@@ -22,17 +18,6 @@ const formatDateSafe = (value?: string) => {
   if (!timestamp) return null;
   return format(timestamp, "dd/MM/yyyy");
 };
-
-const NOTE_COLOR_CLASSES: Record<NoteColor, string> = {
-  yellow: "border-l-4 border-yellow-400/80 bg-yellow-50/50",
-  green: "border-l-4 border-green-400/80 bg-green-50/50",
-  blue: "border-l-4 border-blue-400/80 bg-blue-50/50",
-  pink: "border-l-4 border-pink-400/80 bg-pink-50/50",
-  purple: "border-l-4 border-purple-400/80 bg-purple-50/50",
-};
-
-const getNoteColorClass = (color?: NoteColor) =>
-  NOTE_COLOR_CLASSES[color ?? "yellow"];
 
 export function ReaderNotesSection() {
   const userId = useAuthStore((state) => state.user?.id ?? null);
@@ -51,6 +36,19 @@ export function ReaderNotesSection() {
       ),
     [userNotes]
   );
+  const itemsPerPage = 5;
+  const totalPages = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
+  const [page, setPage] = useState(1);
+  const pageItems = useMemo(
+    () => sorted.slice((page - 1) * itemsPerPage, page * itemsPerPage),
+    [page, itemsPerPage, sorted]
+  );
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   return (
     <section className="rounded-2xl  p-6  space-y-4 min-h-[300px]">
@@ -71,10 +69,33 @@ export function ReaderNotesSection() {
         </p>
       ) : (
         <ul className="space-y-3">
-          {sorted.map((note) => (
+          {pageItems.map((note) => (
             <NoteListItem key={note.id} note={note} onRemove={removeNote} />
           ))}
         </ul>
+      )}
+      {sorted.length > itemsPerPage && (
+        <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+          <button
+            type="button"
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            className="rounded-md border border-border px-2.5 py-1 text-foreground disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span>
+            {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            className="rounded-md border border-border px-2.5 py-1 text-foreground disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       )}
     </section>
   );
@@ -92,11 +113,7 @@ function NoteListItem({
     : `/books/${note.bookSlug}`;
 
   return (
-    <li
-      className={`rounded-xl border border-border/70 p-4 text-sm space-y-2 ${getNoteColorClass(
-        note.color
-      )}`}
-    >
+    <li className="rounded-xl border border-border/70 bg-muted/30 p-4 text-sm space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="font-semibold text-foreground">{note.bookTitle}</p>
@@ -113,10 +130,11 @@ function NoteListItem({
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-
-      <p className="italic text-muted-foreground leading-relaxed">
-        “{note.selectedText}”
-      </p>
+      {note.selectedText && (
+        <p className="italic text-muted-foreground leading-relaxed">
+          "{note.selectedText}"
+        </p>
+      )}
       <p className="text-foreground leading-relaxed">{note.note}</p>
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">

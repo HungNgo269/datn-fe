@@ -1,8 +1,9 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { UserRound, Mail, ShieldCheck, Clock } from "lucide-react";
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 
 const formatDate = (value?: string) => {
@@ -14,17 +15,15 @@ const formatDate = (value?: string) => {
 
 export function AccountProfilePanel() {
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
 
-  if (!user) {
-    return (
-      <div className="rounded-2xl  p-10 text-center space-y-4">
-        <h2 className="text-2xl font-semibold">You&apos;re not logged in</h2>
-        <p className="text-sm text-muted-foreground">
-          Sign in to manage your profile, bookmarks, and privacy settings.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [router, user]);
+
+  if (!user) return null;
 
   const createdDate = formatDate(user.createdAt);
   const lastLogin = formatDate(user.lastLoginAt);
@@ -43,7 +42,7 @@ export function AccountProfilePanel() {
       <div className="grid gap-2">
         <ProfileItem
           icon={<UserRound className="h-5 w-5" />}
-          label="Username"
+          label="Tên người dùng"
           value={user.username}
         />
         <ProfileItem
@@ -53,7 +52,7 @@ export function AccountProfilePanel() {
         />
         <ProfileItem
           icon={<ShieldCheck className="h-5 w-5" />}
-          label="Hội viên ?"
+          label="Trạng thái"
           value={user.subscriptionPlan || "Standard"}
         />
         <ProfileItem

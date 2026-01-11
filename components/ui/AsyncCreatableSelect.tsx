@@ -31,6 +31,7 @@ interface AsyncCreatableSelectProps {
   onChange: (value: (string | number)[]) => void;
   fetchOptions: (query: string) => Promise<Option[]>;
   onCreateOption?: (label: string) => Promise<Option>;
+  valueOptions?: Option[];
   placeholder?: string;
   label?: string;
   className?: string;
@@ -42,6 +43,7 @@ export function AsyncCreatableSelect({
   onChange,
   fetchOptions,
   onCreateOption,
+  valueOptions = [],
   placeholder = "Tìm kiếm...",
   label = "mục",
   className,
@@ -102,13 +104,16 @@ export function AsyncCreatableSelect({
           map.set(opt.value, opt);
         }
       });
+      valueOptions.forEach((opt) => {
+        map.set(opt.value, opt);
+      });
 
       return value.map((val) => {
         if (map.has(val)) return map.get(val)!;
         return { value: val, label: String(val) };
       });
     });
-  }, [value, options]);
+  }, [value, options, valueOptions]);
 
   const handleSelect = (option: Option) => {
     const isSelected = value.some((val) => val === option.value);

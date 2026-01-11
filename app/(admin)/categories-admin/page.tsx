@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,7 @@ export default function CategoriesPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex flex-col gap-1 w-[400px]">
           <h1 className="text-3xl font-bold tracking-tight">
             Quản lý Thể loại
           </h1>
@@ -151,20 +151,21 @@ export default function CategoriesPage() {
             Danh sách các thể loại sách trong hệ thống
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Thêm mới
-        </Button>
-      </div>
 
-      <div className="w-full md:w-1/3">
-        <div className="relative w-full">
-          <input
-            type="text"
-            placeholder="Tìm kiếm thể loại..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border rounded-md p-2 pr-9 w-full"
-          />
+        <div className="w-full max-w-1/3 flex flex-row-reverse gap-3 ">
+          <Button className="h-10" onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" /> Thêm mới
+          </Button>
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="Tìm kiếm thể loại..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border rounded-md p-2 pr-9 w-full"
+            />
+            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          </div>
         </div>
       </div>
 

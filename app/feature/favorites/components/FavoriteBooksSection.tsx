@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getMyFavoriteBooks } from "../api/favorites.api";
 import { FavoriteBookCard } from "./FavoriteBookCard";
+import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 12;
 
 export function FavoriteBooksSection() {
   const user = useAuthStore((state) => state.user);
-  const [page, setPage] = useState(1);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const pageParam = searchParams.get("page");
+  const parsedPage = parseInt(pageParam || "1", 10);
+  const page = Math.max(1, parsedPage);
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ["my-favorite-books", page],
@@ -21,32 +27,27 @@ export function FavoriteBooksSection() {
     enabled: Boolean(user),
   });
 
-  if (!user) {
-    return (
-      <div className="rounded-2xl p-10 text-center space-y-4">
-        <h2 className="text-2xl font-semibold">Bạn chưa đăng nhập</h2>
-        <p className="text-sm text-muted-foreground">
-          Đăng nhập để xem danh sách sách yêu thích của bạn.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [router, user]);
+
+  if (!user) return null;
 
   const favorites = data?.data ?? [];
   const meta = data?.meta;
   const totalFavorites = meta?.total ?? 0;
-  const canGoPrev = page > 1;
-  const canGoNext = Boolean(meta?.hasNextPage);
 
   return (
-    <section className="rounded-2xl  p-6 space-y-6">
+    <section className="rounded-2xl p-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">
-            Sách yêu thích
+            Favorite books
           </h2>
           <p className="text-sm text-muted-foreground">
-            Bạn có {totalFavorites} truyện yêu thích.
+            You have {totalFavorites} favorite books.
           </p>
         </div>
         <Button
@@ -61,13 +62,13 @@ export function FavoriteBooksSection() {
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          Làm mới
+          Refresh
         </Button>
       </div>
 
       {isError && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          Không thể tải danh sách yêu thích. Vui lòng thử lại.
+          Unable to load favorites. Please try again.
         </div>
       )}
 
@@ -77,44 +78,20 @@ export function FavoriteBooksSection() {
         </div>
       ) : favorites.length === 0 ? (
         <div className="flex min-h-[200px] flex-col items-center justify-center space-y-2 rounded-xl border border-dashed p-10 text-center">
-          <p className="text-base font-medium">Danh sách yêu thích trống</p>
+          <p className="text-base font-medium">No favorites yet</p>
           <p className="text-sm text-muted-foreground">
-            Hãy khám phá thêm sách và nhấn tim để lưu vào đây nhé.
+            Add books to your favorites to see them here.
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {favorites.map((favorite) => (
             <FavoriteBookCard key={favorite.id} favorite={favorite} />
           ))}
         </div>
       )}
 
-      <div className="flex items-center justify-between border-t pt-4">
-        <div className="text-sm text-muted-foreground">
-          Trang {page} / {meta?.totalPages ?? 1}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            disabled={!canGoPrev || isFetching}
-            className={cn(!canGoPrev && "opacity-60")}
-          >
-            Trước
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((prev) => prev + 1)}
-            disabled={!canGoNext || isFetching}
-            className={cn(!canGoNext && "opacity-60")}
-          >
-            Sau
-          </Button>
-        </div>
-      </div>
+      {meta && <Pagination meta={meta} />}
     </section>
   );
 }

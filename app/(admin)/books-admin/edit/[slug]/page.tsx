@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Step1Form } from "@/app/feature/books-upload/components/step1Form";
 import { Step2Form } from "@/app/feature/books-upload/components/step2Form";
+import { Option } from "@/components/ui/AsyncCreatableSelect";
 
 import { getBookBySlug } from "@/app/feature/books/api/books.api";
 import { Book } from "@/app/feature/books/types/books.type";
@@ -27,6 +28,8 @@ export default function EditBookPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<BookFormState | null>(null);
+  const [authorOptions, setAuthorOptions] = useState<Option[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
 
   const { submitBook, isSubmitting, statusMessage, error } = useBookSubmit();
 
@@ -62,6 +65,18 @@ export default function EditBookPage() {
         };
 
         setFormData(mappedData);
+        setAuthorOptions(
+          book.authors.map((item) => ({
+            value: item.author.id,
+            label: item.author.name,
+          }))
+        );
+        setCategoryOptions(
+          book.categories.map((item) => ({
+            value: item.category.id,
+            label: item.category.name,
+          }))
+        );
       } catch (error) {
         console.error(error);
         toast.error("Lỗi khi tải thông tin sách");
@@ -240,6 +255,8 @@ export default function EditBookPage() {
             <Step2Form
               step1Data={formData}
               defaultValues={formData}
+              authorOptions={authorOptions}
+              categoryOptions={categoryOptions}
               onBack={handleStep2Back}
               onCancel={handleCancel}
               onSubmit={handleStep2Submit}

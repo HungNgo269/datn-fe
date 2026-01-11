@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
@@ -126,28 +126,29 @@ export default function AuthorsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-1 w-[400px]">
           <h1 className="text-3xl font-bold tracking-tight">Quản lý Tác Giả</h1>
           <p className="text-muted-foreground">
             Danh sách các tác giả trong hệ thống
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Thêm mới
-        </Button>
-      </div>
 
-      <div className="w-full md:w-1/3">
-        <div className="relative w-full">
-          <input
-            type="text"
-            placeholder="Tìm kiếm tác giả..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border rounded-md p-2 pr-9 w-full"
-          />
-</div>
+        <div className="w-full flex flex-row-reverse gap-3 ">
+          <Button className="h-10" onClick={handleCreate}>
+            <Plus className=" h-5 w-5" /> Thêm mới
+          </Button>
+          <div className="relative max-w-[300px]">
+            <input
+              type="text"
+              placeholder="Tìm kiếm tác giả..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border rounded-md p-2 pr-9 w-full"
+            />
+            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          </div>
+        </div>
       </div>
 
       {isLoading ? (
@@ -175,5 +176,3 @@ export default function AuthorsPage() {
     </div>
   );
 }
-
-

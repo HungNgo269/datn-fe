@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../store/useAuthStore";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
@@ -61,21 +61,24 @@ export default function AdminLayout({
       path: "/banners-admin",
     },
 
-    {
-      name: "Người dùng",
-      icon: <Users className="w-5 h-5" />,
-      path: "/users-admin",
-    },
+    // {
+    //   name: "Người dùng",
+    //   icon: <Users className="w-5 h-5" />,
+    //   path: "/users-admin",
+    // },
   ];
   const userRole = useAuthStore.getState().user?.roles;
   if (!userRole?.includes("admin")) {
     //logout
   }
-  const [active, setActive] = useState("Books");
-
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const activeItem =
+    listItems.find((item) => pathname.startsWith(item.path)) ||
+    listItems[0] ||
+    null;
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: async () => {
@@ -96,7 +99,6 @@ export default function AdminLayout({
     }
   };
   const handleChangePage = (name: string) => {
-    setActive(name);
     const currentActive = listItems.find((item: MenuItem) => {
       return item.name === name;
     });
@@ -145,11 +147,11 @@ export default function AdminLayout({
           {listItems.map((item) => (
             <Button
               key={item.name}
-              variant={active === item.name ? "default" : "ghost"}
+              variant={activeItem?.name === item.name ? "default" : "ghost"}
               className={cn(
                 "w-full justify-start gap-3 transition-all",
                 collapsed ? "px-2" : "px-4",
-                active === item.name &&
+                activeItem?.name === item.name &&
                   "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
               )}
               onClick={() => handleChangePage(item.name)}
@@ -191,7 +193,7 @@ export default function AdminLayout({
             <Menu className="w-6 h-6" />
           </Button>
           <h1 className="ml-4 text-lg font-semibold text-foreground">
-            {active}
+            {activeItem?.name}
           </h1>
         </header>
         <main className="flex-1 overflow-y-auto p-6">
