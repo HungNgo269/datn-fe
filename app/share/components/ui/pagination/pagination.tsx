@@ -17,9 +17,14 @@ import { generatePagination } from "./generatePagination";
 interface PaginationProps {
   meta: PaginationMeta;
   hashUrl?: string;
+  pageParamKey?: string;
 }
 
-export function Pagination({ meta, hashUrl }: PaginationProps) {
+export function Pagination({
+  meta,
+  hashUrl,
+  pageParamKey = "page",
+}: PaginationProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentPage = meta.page;
@@ -27,7 +32,7 @@ export function Pagination({ meta, hashUrl }: PaginationProps) {
 
   const createPageURL = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", pageNumber.toString());
+    params.set(pageParamKey, pageNumber.toString());
     return `${pathname}?${params.toString()}${hashUrl ? `#${hashUrl}` : ""}`;
   };
 
@@ -61,6 +66,7 @@ export function Pagination({ meta, hashUrl }: PaginationProps) {
               position={position}
               isActive={currentPage === page}
               hashUrl={hashUrl}
+              pageParamKey={pageParamKey}
             />
           );
         })}
@@ -84,6 +90,7 @@ function PaginationNumber({
   searchParams,
   pathname,
   hashUrl,
+  pageParamKey,
 }: {
   page: number | string;
   href: string;
@@ -93,6 +100,7 @@ function PaginationNumber({
   searchParams: ReadonlyURLSearchParams;
   pathname: string;
   hashUrl?: string;
+  pageParamKey: string;
 }) {
   const [openInput, setOpenInput] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
@@ -102,7 +110,7 @@ function PaginationNumber({
     const pageNum = parseInt(ref.current?.value || "");
     if (pageNum >= 1 && pageNum <= totalPages) {
       const params = new URLSearchParams(searchParams);
-      params.set("page", pageNum.toString());
+      params.set(pageParamKey, pageNum.toString());
       router.push(
         `${pathname}?${params.toString()}${hashUrl ? `#${hashUrl}` : ""}`
       );

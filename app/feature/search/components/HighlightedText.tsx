@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 
 interface HighlightedTextProps {
@@ -37,12 +35,9 @@ export function HighlightedText({
     <span className={className}>
       {parts.map((part, index) =>
         index % 2 === 1 ? (
-          <mark
-            key={`${part}-${index}`}
-            className="rounded bg-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-100 px-0.5 text-foreground font-medium"
-          >
+          <span key={`${part}-${index}`} className="font-bold text-primary">
             {part}
-          </mark>
+          </span>
         ) : (
           <span key={`${part}-${index}`}>{part}</span>
         )

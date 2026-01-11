@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Loader2, Trash2 } from "lucide-react";
 
 import { formatDate } from "@/lib/formatDate";
 import { Book } from "../../books/types/books.type";
@@ -38,6 +38,7 @@ interface BookListProps {
   onEdit?: (book: Book) => void;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
+  isFetching?: boolean;
 }
 
 export function AdminBookList({
@@ -45,6 +46,7 @@ export function AdminBookList({
   onEdit,
   onDelete,
   isDeleting,
+  isFetching,
 }: BookListProps) {
   console.log(books);
 
@@ -64,7 +66,15 @@ export function AdminBookList({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {books.length === 0 ? (
+          {isFetching ? (
+            <TableRow>
+              <TableCell colSpan={8} className="h-24">
+                <div className="flex items-center justify-center">
+                  <Loader2 className="animate-spin text-primary" />
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : books.length === 0 ? (
             <TableRow>
               <TableCell colSpan={8} className="text-center h-24">
                 Chưa có dữ liệu

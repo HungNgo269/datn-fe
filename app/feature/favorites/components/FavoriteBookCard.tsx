@@ -19,7 +19,7 @@ export function FavoriteBookCard({ favorite }: FavoriteBookCardProps) {
     <Link
       prefetch={true}
       href={`/books/${book.slug}`}
-      className="group rounded-xl border bg-card transition-all hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+      className="group rounded-xl  transition-all hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
     >
       <div className="flex flex-col h-full">
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-xl border-b">

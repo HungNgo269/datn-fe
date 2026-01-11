@@ -89,6 +89,7 @@ export const metadata: Metadata = {
 interface BookPageProps {
   searchParams: Promise<{
     search?: string;
+    author?: string;
     category?: string;
     sortBy?: string;
     sortOrder?: string;
@@ -110,11 +111,13 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   const accessType = resolvedParams.accessType as AccessType | undefined;
   const categorySlug = resolvedParams.category;
   const search = resolvedParams.search;
+  const author = resolvedParams.author;
 
   const categories = await getCategories(1, 10);
   const { data: books, meta } = await getBooksAction({
     page,
     limit,
+    author,
     category: categorySlug,
     sortBy,
     sortOrder,

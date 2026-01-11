@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ interface AuthorsTableProps {
   onEdit: (author: AuthorInfo) => void;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
+  isFetching?: boolean;
 }
 
 export function AdminAuthorList({
@@ -34,6 +35,7 @@ export function AdminAuthorList({
   onEdit,
   onDelete,
   isDeleting,
+  isFetching,
 }: AuthorsTableProps) {
   return (
     <div className="flex flex-col w-full gap-5">
@@ -51,7 +53,15 @@ export function AdminAuthorList({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {authors.length === 0 ? (
+            {isFetching ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="animate-spin text-primary" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : authors.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center h-24">
                   Chưa có dữ liệu

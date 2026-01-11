@@ -41,7 +41,7 @@ export function ReaderBookmarksSection() {
   );
 
   return (
-    <section className="rounded-2xl border bg-card p-6 shadow-sm space-y-4 min-h-[300px]">
+    <section className="rounded-2xl  p-6  space-y-4 min-h-[300px]">
       <header>
         <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-2">
           <Bookmark className="w-4 h-4" />

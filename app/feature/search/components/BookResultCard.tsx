@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
@@ -13,13 +11,13 @@ interface BookResultCardProps {
 
 export function BookResultCard({ book, query }: BookResultCardProps) {
   const authorNames =
-    book.authors?.map((item) => item.author.name).join(", ") || "Unknown";
+    book.authors?.map((item) => item.author.name).join(", ") || "Đang cập nhật";
   const sanitizedDescription = sanitizeRichHtml(book.description);
 
   return (
     <Link
       href={`/books/${book.slug}`}
-      className="flex gap-4 rounded-xl border border-border bg-card p-4 transition hover:shadow-md hover:border-primary/50 group"
+      className="flex gap-4  p-4 "
       prefetch={true}
     >
       <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted shadow-sm">
@@ -37,13 +35,14 @@ export function BookResultCard({ book, query }: BookResultCardProps) {
           <HighlightedText text={book.title} query={query} />
         </h3>
         <p className="text-xs text-muted-foreground line-clamp-1">
-          By{" "}
+          Bởi{" "}
           <HighlightedText
             text={authorNames}
             query={query}
-            fallback="Unknown"
+            fallback="Đang cập nhật"
           />
         </p>
+
         <div className="mt-1">
           {sanitizedDescription ? (
             <div
@@ -52,7 +51,7 @@ export function BookResultCard({ book, query }: BookResultCardProps) {
             />
           ) : (
             <p className="text-xs text-muted-foreground italic">
-              No description available.
+              Chưa có mô tả
             </p>
           )}
         </div>

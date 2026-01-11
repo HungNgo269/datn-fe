@@ -59,13 +59,13 @@ export function HeaderButton() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem className="cursor-pointer" asChild>
-          <Link href="/account" className="flex items-center w-full">
+          <Link href="/profile" className="flex items-center w-full">
             <CreditCard className="mr-2 h-4 w-4" />
-            <span>Favourite Books</span>
+            <span>Thông tin cá nhân</span>
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuSub>
+        {/* <DropdownMenuSub>
           <DropdownMenuSubTrigger className="cursor-pointer">
             <Info className="mr-2 h-4 w-4" />
             <span>Learn More</span>
@@ -85,7 +85,7 @@ export function HeaderButton() {
               Become Editor
             </DropdownMenuItem>
           </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        </DropdownMenuSub> */}
 
         <DropdownMenuSeparator />
 

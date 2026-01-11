@@ -11,22 +11,22 @@ interface ChapterTabsProps {
 export function ChapterTabs({ bookId, children }: ChapterTabsProps) {
   return (
     <Tabs defaultValue="chapters" className="w-full">
-      <TabsList className="bg-muted p-1 h-auto inline-flex">
+      <TabsList className="h-auto w-full justify-start  border-b p-0">
         <TabsTrigger
           value="chapters"
-          className="data-[state=active]:bg-background data-[state=active]:shadow px-6 py-2.5 text-sm font-medium"
+          className="rounded-none border-b-2 border-transparent px-1 pb-2 text-sm font-medium text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
         >
           Chương truyện
         </TabsTrigger>
         <TabsTrigger
           value="comments"
-          className="data-[state=active]:bg-background data-[state=active]:shadow px-6 py-2.5 text-sm font-medium"
+          className="rounded-none border-b-2 border-transparent px-1 pb-2 text-sm font-medium text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
         >
           Bình luận
         </TabsTrigger>
         <TabsTrigger
           value="ratings"
-          className="data-[state=active]:bg-background data-[state=active]:shadow px-6 py-2.5 text-sm font-medium"
+          className="rounded-none border-b-2 border-transparent px-1 pb-2 text-sm font-medium text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
         >
           Đánh giá
         </TabsTrigger>

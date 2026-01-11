@@ -47,21 +47,24 @@ export function ChapterList({
               "cursor-pointer transition-colors",
               chapterOrder === "ASC"
                 ? " font-semibold text-primary"
-                : "text-muted-foreground hover:text-primary -foreground"
+                : "text-muted-foreground hover:text-primary"
             )}
             onClick={() => handleOrderDisplay("ASC")}
           >
             Từ chương mới nhất
           </span>
 
-          <Separator orientation="vertical" className="h-1" />
-
+          <Separator
+            orientation="vertical"
+            className="w-[1px] bg-border"
+            style={{ height: "16px" }}
+          />
           <span
             className={cn(
               "cursor-pointer transition-colors",
               chapterOrder === "DESC"
                 ? " font-semibold text-primary"
-                : "text-muted-foreground hover:text-primary -foreground"
+                : "text-muted-foreground hover:text-primary"
             )}
             onClick={() => handleOrderDisplay("DESC")}
           >
@@ -69,7 +72,6 @@ export function ChapterList({
           </span>
         </div>
       </div>
-      <Separator className="mb-2" />
 
       <div className="relative border rounded-sm shadow-sm">
         <div className="space-y-2">

@@ -125,12 +125,9 @@ export default async function BookPage({ params }: PageProps) {
                       )}&page=1`}
                       prefetch={true}
                     >
-                      <Badge
-                        variant="outline"
-                        className="bg-muted hover:bg-muted/80 text-muted-foreground px-3 py-1 text-xs transition-all rounded-full"
-                      >
+                      <div className="rounded-sm bg-card text-sm px-2 py-1">
                         #{category.category.name}
-                      </Badge>
+                      </div>
                     </Link>
                   ))}
                 </div>

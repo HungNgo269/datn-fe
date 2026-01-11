@@ -1,8 +1,5 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 import type { AuthorInfo } from "@/app/feature/author/types/authors.types";
 import { HighlightedText } from "./HighlightedText";
 
@@ -12,10 +9,8 @@ interface AuthorResultCardProps {
 }
 
 export function AuthorResultCard({ author, query }: AuthorResultCardProps) {
-  const safeBio = sanitizeRichHtml(author.bio);
-
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition hover:border-primary/50">
+    <div className="flex items-center gap-4 rounded-xl border  p-4 transition hover:border-primary/50">
       <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border">
         {author.avatar ? (
           <Image
@@ -36,22 +31,11 @@ export function AuthorResultCard({ author, query }: AuthorResultCardProps) {
         <p className="text-base font-semibold leading-tight">
           <HighlightedText text={author.name} query={query} />
         </p>
-        <div className="mt-1 text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-          {safeBio ? (
-            <div dangerouslySetInnerHTML={{ __html: safeBio }} />
-          ) : (
-            <p className="italic">Chưa có mô tả về tác giả này.</p>
-          )}
-        </div>
         <Link
           prefetch={true}
-          href={`/books?author=${encodeURIComponent(
-            author.slug ?? author.name
-          )}`}
-          className="text-xs text-primary hover:underline mt-2"
-        >
-          Xem các cuốn sách của tác giả này →
-        </Link>
+          href={`/books?search=${encodeURIComponent(author.name)}`}
+          className="text-xs text-primary hover:underline mt-1"
+        ></Link>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { Separator } from "@/components/ui/separator";
 
 const NAV_LINKS = [
   {
@@ -32,11 +33,7 @@ const NAV_LINKS = [
     label: "Tủ sách cá nhân",
     icon: <Bookmark className="w-4 h-4" />,
   },
-  // {
-  //   href: "/orders",
-  //   label: "Quản lý đơn hàng",
-  //   icon: <CreditCard className="w-4 h-4" />,
-  // },
+
   {
     href: "/privacy",
     label: "Quyền riêng tư",
@@ -58,7 +55,7 @@ export function AccountSidebar({ className }: { className?: string }) {
           <div>
             <h3 className="font-bold text-base">{user?.username}</h3>
             <p className="text-xs text-muted-foreground">
-              {`${user?.subscriptionPlan === "FREE" ? "Miễn phí" : "Trả phí"}`}
+              {`${user?.subscriptionPlan === "FREE" ? "Miễn phí" : "Hội viên"}`}
             </p>
           </div>
         </div>
@@ -80,7 +77,6 @@ export function AccountSidebar({ className }: { className?: string }) {
           </Button>
         </div>
       </div>
-
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
         {NAV_LINKS.map((link) => {
           const isActive =

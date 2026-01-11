@@ -19,8 +19,17 @@ import ReaderChaptersList from "./ReaderChaptersList";
 import ReaderNoteDialog from "./ReaderNoteDialog";
 import { useReaderHtml } from "../hook/useReaderHTML";
 import { useReaderPagination } from "../hook/useReaderPagination";
-import { useReaderDataStore } from "@/app/store/useReaderDataStore";
+import { NoteColor, useReaderDataStore } from "@/app/store/useReaderDataStore";
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { toast } from "sonner";
+
+const NOTE_HIGHLIGHT_COLORS: Record<NoteColor, string> = {
+  yellow: "rgba(253, 224, 71, 0.6)",
+  green: "rgba(134, 239, 172, 0.6)",
+  blue: "rgba(147, 197, 253, 0.6)",
+  pink: "rgba(249, 168, 212, 0.6)",
+  purple: "rgba(196, 181, 253, 0.6)",
+};
 
 interface Props {
   initialHtml: string;
@@ -117,6 +126,74 @@ export default function IframeBookReader({
       (note) => note.bookSlug === bookSlug && note.userId === userId
     );
   }, [bookSlug, notesStore, userId]);
+
+  const applyNoteHighlights = useCallback(
+    (doc: Document, notes: typeof bookNotes) => {
+      const body = doc.body;
+      if (!body) return;
+
+      const existing = doc.querySelectorAll("mark[data-note-highlight]");
+      existing.forEach((node) => {
+        const parent = node.parentNode;
+        if (!parent) return;
+        parent.replaceChild(doc.createTextNode(node.textContent ?? ""), node);
+        parent.normalize();
+      });
+
+      const highlightNote = (note: (typeof notes)[number]) => {
+        const text = note.selectedText?.trim();
+        if (!text) return;
+
+        const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            if (!node.nodeValue || !node.nodeValue.trim()) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            const parent = (node as Text).parentElement;
+            if (!parent) return NodeFilter.FILTER_REJECT;
+            if (parent.closest("mark[data-note-highlight]")) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            const tag = parent.tagName;
+            if (tag === "SCRIPT" || tag === "STYLE") {
+              return NodeFilter.FILTER_REJECT;
+            }
+            return NodeFilter.FILTER_ACCEPT;
+          },
+        });
+
+        while (walker.nextNode()) {
+          const node = walker.currentNode as Text;
+          const idx = node.nodeValue?.indexOf(text) ?? -1;
+          if (idx === -1) continue;
+
+          const range = doc.createRange();
+          range.setStart(node, idx);
+          range.setEnd(node, idx + text.length);
+
+          const mark = doc.createElement("mark");
+          mark.setAttribute("data-note-highlight", "true");
+          const color = note.color ?? "yellow";
+          mark.setAttribute("data-color", color);
+          mark.style.backgroundColor = NOTE_HIGHLIGHT_COLORS[color];
+          mark.style.color = "inherit";
+          mark.style.padding = "0 2px";
+          mark.style.borderRadius = "2px";
+
+          range.surroundContents(mark);
+          break;
+        }
+      };
+
+      notes.forEach(highlightNote);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!ready || !iframeRef.current?.contentDocument) return;
+    applyNoteHighlights(iframeRef.current.contentDocument, bookNotes);
+  }, [applyNoteHighlights, bookNotes, ready]);
 
   const getThemeColor = useCallback((varName: string) => {
     if (typeof window === "undefined") return "";
@@ -294,7 +371,7 @@ export default function IframeBookReader({
     });
   };
 
-  const saveNote = (noteText: string) => {
+  const saveNote = (noteText: string, color: NoteColor) => {
     if (!bookSlug || !selectedText || !noteText.trim()) {
       return;
     }
@@ -307,6 +384,7 @@ export default function IframeBookReader({
       page: currentPage,
       selectedText,
       note: noteText.trim(),
+      color,
       bookId: null,
     });
     setSelectedText("");
@@ -316,7 +394,7 @@ export default function IframeBookReader({
 
   const handleNoteClick = () => {
     if (selectedText) setShowNoteDialog(true);
-    else alert("Vui lòng bôi đen văn bản để tạo ghi chú");
+    else toast.error("Vui lòng bôi đen văn bản để tạo ghi chú");
   };
 
   const isSettingsOpen = openPanel === "settings";

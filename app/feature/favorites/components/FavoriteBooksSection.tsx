@@ -23,7 +23,7 @@ export function FavoriteBooksSection() {
 
   if (!user) {
     return (
-      <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
+      <div className="rounded-2xl p-10 text-center space-y-4">
         <h2 className="text-2xl font-semibold">Bạn chưa đăng nhập</h2>
         <p className="text-sm text-muted-foreground">
           Đăng nhập để xem danh sách sách yêu thích của bạn.
@@ -39,11 +39,11 @@ export function FavoriteBooksSection() {
   const canGoNext = Boolean(meta?.hasNextPage);
 
   return (
-    <section className="rounded-2xl border bg-card p-6 space-y-6">
+    <section className="rounded-2xl  p-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">
-            Favourite Book
+            Sách yêu thích
           </h2>
           <p className="text-sm text-muted-foreground">
             Bạn có {totalFavorites} truyện yêu thích.

@@ -8,7 +8,7 @@ export interface BookAudioTrack {
   id: string;
   title: string;
   episode?: string;
-  coverImage?: string | null;
+  coverImage: string;
   duration: number;
 }
 
@@ -37,7 +37,7 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
         id: payload.id,
         title: payload.title,
         episode: payload.episode,
-        coverImage: payload.coverImage ?? null,
+        coverImage: payload.coverImage,
         duration: payload.duration ?? DEFAULT_DURATION_MS,
       },
       isPlaying: true,

@@ -11,11 +11,15 @@ import {
 interface TrendingBookFilterProps {
   value: TimeFrame;
   paramKey?: string;
+  onChange?: (timeframe: TimeFrame) => void;
+  syncToUrl?: boolean;
 }
 
 export default function TrendingBookFilter({
   value,
   paramKey = "trendingPeriod",
+  onChange,
+  syncToUrl = true,
 }: TrendingBookFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -24,6 +28,11 @@ export default function TrendingBookFilter({
 
   const updateFilter = (timeframe: TimeFrame) => {
     if (timeframe === value) return;
+
+    if (!syncToUrl) {
+      onChange?.(timeframe);
+      return;
+    }
 
     startTransition(() => {
       const params = new URLSearchParams(searchParams?.toString());

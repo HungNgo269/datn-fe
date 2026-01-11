@@ -47,7 +47,7 @@ export function ChangePasswordForm() {
 
   if (!user) {
     return (
-      <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
+      <div className="rounded-2xl  p-10 text-center space-y-4">
         <Shield className="h-8 w-8 text-muted-foreground mx-auto" />
         <h2 className="text-2xl font-semibold">Đăng nhập để đổi mật khẩu</h2>
         <p className="text-sm text-muted-foreground">
@@ -60,7 +60,7 @@ export function ChangePasswordForm() {
   const isPending = changePasswordMutation.isPending;
 
   return (
-    <section className="rounded-2xl border bg-card p-6 space-y-4">
+    <section className="rounded-2xl  p-6 space-y-4">
       <div>
         <h2 className="text-2xl font-semibold">Đổi mật khẩu</h2>
         <p className="text-sm text-muted-foreground">

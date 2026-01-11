@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccountSidebar } from "../feature/account/components/account-nav";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 
 export default function AccountLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -23,7 +24,11 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
             <AccountSidebar />
           </div>
         </aside>
-
+        <Separator
+          orientation="vertical"
+          className="w-[1px] bg-border"
+          style={{ height: "100vh" }}
+        />
         <div className="lg:hidden fixed bottom-6 right-6 z-50">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -44,9 +49,7 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      <div className="border-t mt-auto">
-        <FooterComponent />
-      </div>
+      <FooterComponent />
     </div>
   );
 }

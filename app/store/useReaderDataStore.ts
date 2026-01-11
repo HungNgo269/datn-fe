@@ -16,9 +16,12 @@ export interface ReaderBookmark {
   createdAt: string;
 }
 
+export type NoteColor = "yellow" | "green" | "blue" | "pink" | "purple";
+
 export interface ReaderNote extends ReaderBookmark {
   selectedText: string;
   note: string;
+  color?: NoteColor;
 }
 
 export interface ContinueReadingEntry {
@@ -120,6 +123,7 @@ export const useReaderDataStore = create<ReaderDataState>()(
             ...payload,
             chapterSlug: payload.chapterSlug ?? null,
             chapterTitle: payload.chapterTitle ?? null,
+            color: payload.color ?? "yellow",
             id: createId(),
             createdAt: new Date().toISOString(),
           };

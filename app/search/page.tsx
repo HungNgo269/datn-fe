@@ -1,31 +1,30 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import type { ReactNode } from "react";
 
-// Imports từ BookPage & Share
+// Imports from BookPage & Share
 import Header from "../share/components/ui/header/header";
 import FooterComponent from "../share/components/ui/footer/footer";
 import {
   HeaderSkeleton,
   TrendingBookSkeleton,
 } from "../share/components/ui/skeleton/skeleton";
-import TrendingBook from "../feature/books-trending/components/trendingBook";
+import TrendingBookClient from "../feature/books-trending/components/trendingBookClient";
 import PopularBook from "../feature/books-popular/components/popularBook";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResultSection } from "../feature/search/components/ResultSection";
+import { BookResultCard } from "../feature/search/components/BookResultCard";
+import { AuthorResultCard } from "../feature/search/components/AuthorResultCard";
 
 import { getBooksAction } from "../feature/books/action/books.action";
-import { Book } from "../feature/books/types/books.type";
 import { searchAuthorsAction } from "../feature/author/actions/authors.actions";
-import { AuthorInfo } from "../feature/author/types/authors.types";
 import { getURL } from "@/lib/helper";
-import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
-import { cn } from "@/lib/utils";
+import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 
-const SEARCH_PAGE_TITLE = "Tìm kiếm sách & tác giả | NextBook";
+const SEARCH_PAGE_TITLE = "Search books & authors | NextBook";
 
 const SEARCH_PAGE_DESCRIPTION =
-  "Tìm kiếm sách hoặc tác giả trong thư viện NextBook và truy cập nhanh những câu chuyện phù hợp với sở thích của bạn.";
+  "Search books or authors in the NextBook library and quickly find stories that match your taste.";
 
 const SEARCH_PAGE_URL = getURL("search");
 
@@ -48,31 +47,55 @@ export const metadata: Metadata = {
 interface SearchPageProps {
   searchParams: Promise<{
     q?: string;
+    page?: string;
+    type?: string;
   }>;
 }
 
-const BOOK_RESULT_LIMIT = 12;
+const BOOK_RESULT_LIMIT = 6;
 const AUTHOR_RESULT_LIMIT = 6;
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const resolvedParams = await searchParams;
   const query = resolvedParams.q?.trim() ?? "";
+  const activeType =
+    resolvedParams.type === "books" || resolvedParams.type === "authors"
+      ? resolvedParams.type
+      : "all";
+  const currentPage = Math.max(1, parseInt(resolvedParams.page ?? "1", 10));
 
   const [bookResults, authorResults] = await Promise.all([
     query
-      ? getBooksAction({ search: query, limit: BOOK_RESULT_LIMIT, page: 1 })
+      ? activeType === "authors"
+        ? Promise.resolve(null)
+        : getBooksAction({
+            search: query,
+            limit: BOOK_RESULT_LIMIT,
+            page: activeType === "books" ? currentPage : 1,
+          })
       : Promise.resolve(null),
     query
-      ? searchAuthorsAction({
-          query,
-          limit: AUTHOR_RESULT_LIMIT,
-          page: 1,
-        })
+      ? activeType === "books"
+        ? Promise.resolve(null)
+        : searchAuthorsAction({
+            query,
+            limit: AUTHOR_RESULT_LIMIT,
+            page: activeType === "authors" ? currentPage : 1,
+          })
       : Promise.resolve(null),
   ]);
 
   const books = bookResults?.data ?? [];
   const authors = authorResults?.data ?? [];
+  const bookCount = bookResults?.meta?.total ?? books.length;
+  const authorCount = authorResults?.meta?.total ?? authors.length;
+
+  const buildSearchUrl = (type: "all" | "books" | "authors") => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (type !== "all") params.set("type", type);
+    return `/search?${params.toString()}`;
+  };
 
   return (
     <div className="overflow-x-hidden">
@@ -88,49 +111,157 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 <div className="w-full lg:w-[850px] flex flex-col gap-8">
                   {query ? (
                     <>
-                      <ResultSection
-                        title="Tác giả"
-                        count={authors.length}
-                        emptyMessage=""
-                        hideIfEmpty={true}
-                      >
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {authors.map((author) => (
-                            <AuthorResultCard
-                              key={author.id}
-                              author={author}
-                              query={query}
-                            />
-                          ))}
-                        </div>
-                      </ResultSection>
+                      <Tabs defaultValue={activeType}>
+                        <TabsList className="flex flex-wrap items-center  border-0 border-b p-0 h-auto">
+                          <TabsTrigger
+                            value="all"
+                            asChild
+                            className="rounded-none border-b-2 border-transparent px-4 pb-2 text-sm font-semibold text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
+                          >
+                            <Link href={buildSearchUrl("all")}>
+                              Tất cả ({bookCount + authorCount})
+                            </Link>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="books"
+                            asChild
+                            className="rounded-none border-b-2 border-transparent px-4 pb-2 text-sm font-semibold text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
+                          >
+                            <Link href={buildSearchUrl("books")}>
+                              Sách ({bookCount})
+                            </Link>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="authors"
+                            asChild
+                            className="rounded-none border-b-2 border-transparent px-4 pb-2 text-sm font-semibold text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
+                          >
+                            <Link href={buildSearchUrl("authors")}>
+                              Tác giả ({authorCount})
+                            </Link>
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
 
-                      <ResultSection
-                        title="Sách"
-                        count={books.length}
-                        emptyMessage="Không tìm thấy cuốn sách nào phù hợp"
-                        hideIfEmpty={false}
-                      >
-                        {books.length > 0 ? (
-                          <div className="grid gap-4 md:grid-cols-2">
-                            {books.map((book) => (
-                              <BookResultCard
-                                key={book.id}
-                                book={book}
-                                query={query}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="py-10 text-center text-muted-foreground bg-muted/30 rounded-xl">
-                            No books found matching {query}.
-                          </div>
-                        )}
-                      </ResultSection>
+                      {activeType === "all" && (
+                        <>
+                          <ResultSection
+                            id="books"
+                            title="Sách"
+                            count={bookCount}
+                            emptyMessage="Không có kết quả, thử tìm kiếm với từ khóa khác"
+                            hideIfEmpty={false}
+                          >
+                            {books.length > 0 ? (
+                              <div className="grid gap-4 md:grid-cols-2">
+                                {books.map((book) => (
+                                  <BookResultCard
+                                    key={book.id}
+                                    book={book}
+                                    query={query}
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="py-10 text-center text-muted-foreground bg-muted/30 rounded-xl">
+                                Không có cuốn sách nào phù hợp với {query}.
+                              </div>
+                            )}
+                          </ResultSection>
+
+                          <ResultSection
+                            id="authors"
+                            title="Tác giả"
+                            count={authorCount}
+                            emptyMessage=""
+                            hideIfEmpty={true}
+                          >
+                            <div className="grid gap-4 md:grid-cols-2">
+                              {authors.map((author) => (
+                                <AuthorResultCard
+                                  key={author.id}
+                                  author={author}
+                                  query={query}
+                                />
+                              ))}
+                            </div>
+                          </ResultSection>
+                        </>
+                      )}
+
+                      {activeType === "books" && (
+                        <>
+                          <ResultSection
+                            id="books"
+                            title="Sách"
+                            count={bookCount}
+                            emptyMessage="Hãy thử tìm kiếm với từ khóa khác"
+                            hideIfEmpty={false}
+                          >
+                            {books.length > 0 ? (
+                              <div className="grid gap-4 md:grid-cols-2">
+                                {books.map((book) => (
+                                  <BookResultCard
+                                    key={book.id}
+                                    book={book}
+                                    query={query}
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="py-10 text-center text-muted-foreground bg-muted/30 rounded-xl">
+                                Không có cuốn sách nào phù hợp với {query}.
+                              </div>
+                            )}
+                          </ResultSection>
+                          {bookResults?.meta &&
+                            bookResults.meta.totalPages > 1 && (
+                              <div className="pt-2">
+                                <Pagination
+                                  meta={bookResults.meta}
+                                  hashUrl="books"
+                                />
+                              </div>
+                            )}
+                        </>
+                      )}
+
+                      {activeType === "authors" && (
+                        <>
+                          <ResultSection
+                            id="authors"
+                            title="Tác giả"
+                            count={authorCount}
+                            emptyMessage="Hãy thử tìm kiếm với từ khóa khác"
+                            hideIfEmpty={false}
+                          >
+                            <div className="grid gap-4 md:grid-cols-2">
+                              {authors.map((author) => (
+                                <AuthorResultCard
+                                  key={author.id}
+                                  author={author}
+                                  query={query}
+                                />
+                              ))}
+                            </div>
+                          </ResultSection>
+                          {authorResults?.meta &&
+                            authorResults.meta.totalPages > 1 && (
+                              <div className="pt-2">
+                                <Pagination
+                                  meta={authorResults.meta}
+                                  hashUrl="authors"
+                                />
+                              </div>
+                            )}
+                        </>
+                      )}
 
                       {books.length === 0 && authors.length === 0 && (
                         <div className="text-center py-20">
-                          <p className="text-lg text-muted-foreground">{`Không có cuốn sách hay tác giả phù hợp nào`}</p>
+                          <p className="text-lg text-muted-foreground">
+                            Không có kết quả nào
+                          </p>
                         </div>
                       )}
                     </>
@@ -141,7 +272,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
           <div className="flex flex-col w-[200px] md:w-[250px] xl:w-[300px] gap-5 mt-10 lg:mt-0">
             <Suspense fallback={<TrendingBookSkeleton />}>
-              <TrendingBook period={"month"} />
+              <TrendingBookClient period={"month"} />
             </Suspense>
             <Suspense fallback={<TrendingBookSkeleton />}>
               <PopularBook />
@@ -159,178 +290,4 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </div>
     </div>
   );
-}
-
-function ResultSection({
-  title,
-  count,
-  children,
-  emptyMessage,
-  hideIfEmpty = false,
-}: {
-  title: string;
-  count: number;
-  children: ReactNode;
-  emptyMessage: string;
-  hideIfEmpty?: boolean;
-}) {
-  if (count === 0 && hideIfEmpty) return null;
-
-  return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between border-b pb-5">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          {title}
-          <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-            {count}
-          </span>
-        </h2>
-      </div>
-      {count > 0 ? (
-        children
-      ) : (
-        <p className="text-sm text-muted-foreground italic">{emptyMessage}</p>
-      )}
-    </section>
-  );
-}
-
-function BookResultCard({ book, query }: { book: Book; query: string }) {
-  const authorNames =
-    book.authors?.map((item) => item.author.name).join(", ") || "Unknown";
-  const sanitizedDescription = sanitizeRichHtml(book.description);
-
-  return (
-    <Link
-      href={`/books/${book.slug}`}
-      className="flex gap-4  p-4 "
-      prefetch={true}
-    >
-      <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted shadow-sm">
-        <Image
-          src={book.coverImage || "/images/sachFallback.jpg"}
-          alt={book.title}
-          fill
-          sizes="100px"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          unoptimized
-        />
-      </div>
-      <div className="flex flex-1 flex-col gap-1.5">
-        <h3 className="text-base font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-          <HighlightedText text={book.title} query={query} />
-        </h3>
-        <p className="text-xs text-muted-foreground line-clamp-1">
-          Bởi{" "}
-          <HighlightedText
-            text={authorNames}
-            query={query}
-            fallback="Unknown"
-          />
-        </p>
-
-        <div className="mt-1">
-          {sanitizedDescription ? (
-            <div
-              className="text-sm text-muted-foreground line-clamp-3 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
-            />
-          ) : (
-            <p className="text-xs text-muted-foreground italic">
-              Cuốn sách chưa có mô tả
-            </p>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function AuthorResultCard({
-  author,
-  query,
-}: {
-  author: AuthorInfo;
-  query: string;
-}) {
-  return (
-    <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition hover:border-primary/50">
-      <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border">
-        {author.avatar ? (
-          <Image
-            src={author.avatar}
-            alt={author.name}
-            fill
-            sizes="56px"
-            className="object-cover"
-            unoptimized
-          />
-        ) : (
-          <span className="text-lg font-bold text-muted-foreground">
-            {author.name?.[0]?.toUpperCase() ?? "?"}
-          </span>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col">
-        <p className="text-base font-semibold leading-tight">
-          <HighlightedText text={author.name} query={query} />
-        </p>
-        <Link
-          prefetch={true}
-          href={`/books?search=${encodeURIComponent(author.name)}`}
-          className="text-xs text-primary hover:underline mt-1"
-        >
-          Xem các cuốn sách của tác giả này &rarr;
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function HighlightedText({
-  text,
-  query,
-  fallback,
-  className,
-}: {
-  text?: string | null;
-  query: string;
-  fallback?: string;
-  className?: string;
-}) {
-  if (!text) {
-    return (
-      <span className={cn("text-muted-foreground", className)}>
-        {fallback ?? "Updating soon"}
-      </span>
-    );
-  }
-
-  const normalizedQuery = query.trim();
-
-  if (!normalizedQuery) {
-    return <span className={className}>{text}</span>;
-  }
-
-  const escapedQuery = escapeRegExp(normalizedQuery);
-  const regex = new RegExp(`(${escapedQuery})`, "gi");
-  const parts = text.split(regex);
-
-  return (
-    <span className={className}>
-      {parts.map((part, index) =>
-        index % 2 === 1 ? (
-          <span key={`${part}-${index}`} className="font-bold text-primary">
-            {part}
-          </span>
-        ) : (
-          <span key={`${part}-${index}`}>{part}</span>
-        )
-      )}
-    </span>
-  );
-}
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

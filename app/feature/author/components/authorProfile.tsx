@@ -80,13 +80,6 @@ export default function AuthorProfile({
 
           <div className="flex flex-wrap gap-3">
             <Link
-              href={`/books?author=${author.slug}&page=1`}
-              prefetch={true}
-              className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90"
-            >
-              Xem tất cả sách của tác giả
-            </Link>
-            <Link
               href="/authors"
               prefetch={true}
               className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-muted"

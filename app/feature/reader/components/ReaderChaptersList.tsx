@@ -3,7 +3,11 @@
 import { List, X, Bookmark, StickyNote, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
-import { ReaderBookmark, ReaderNote } from "@/app/store/useReaderDataStore";
+import {
+  ReaderBookmark,
+  ReaderNote,
+  NoteColor,
+} from "@/app/store/useReaderDataStore";
 import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
 
 interface ReaderChaptersListProps {
@@ -19,6 +23,17 @@ interface ReaderChaptersListProps {
   onRemoveBookmark?: (id: string) => void;
   onRemoveNote?: (id: string) => void;
 }
+
+const NOTE_COLOR_CLASSES: Record<NoteColor, string> = {
+  yellow: "border-l-4 border-yellow-400/80 bg-yellow-50/50",
+  green: "border-l-4 border-green-400/80 bg-green-50/50",
+  blue: "border-l-4 border-blue-400/80 bg-blue-50/50",
+  pink: "border-l-4 border-pink-400/80 bg-pink-50/50",
+  purple: "border-l-4 border-purple-400/80 bg-purple-50/50",
+};
+
+const getNoteColorClass = (color?: NoteColor) =>
+  NOTE_COLOR_CLASSES[color ?? "yellow"];
 
 export default function ReaderChaptersList({
   chapters,
@@ -71,7 +86,7 @@ export default function ReaderChaptersList({
               onChapterClick(chapter.slug);
               onClose();
             }}
-            className={`w-full text-left px-3 py-2 rounded-md transition-colors mb-1 ${
+            className={`w-full text-left px-3 py-2 rounded-md transition-colors mb-1 cursor-pointer ${
               chapter.slug === currentChapterSlug
                 ? "bg-primary text-primary-foreground font-medium"
                 : "hover:bg-muted text-foreground"
@@ -104,8 +119,8 @@ export default function ReaderChaptersList({
                 >
                   <div className="flex items-center gap-2">
                     <button
-                      className="flex-1 text-left font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => onBookmarkSelect?.(bookmark)}
+                      className="flex-1 text-left font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
+                      onClick={() => { onBookmarkSelect?.(bookmark); onClose(); }}
                     >
                       {bookmark.chapterTitle || "Chương chưa xác định"}
                     </button>
@@ -145,12 +160,14 @@ export default function ReaderChaptersList({
               sortedNotes.map((note) => (
                 <div
                   key={note.id}
-                  className="rounded-md border border-border/70 bg-muted/30 p-2 text-xs space-y-1"
+                  className={`rounded-md border border-border/70 p-2 text-xs space-y-1 ${getNoteColorClass(
+                    note.color
+                  )}`}
                 >
                   <div className="flex items-center gap-2">
                     <button
-                      className="flex-1 text-left font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => onNoteSelect?.(note)}
+                      className="flex-1 text-left font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
+                      onClick={() => { onNoteSelect?.(note); onClose(); }}
                     >
                       {note.chapterTitle || "Chương chưa xác định"}
                     </button>

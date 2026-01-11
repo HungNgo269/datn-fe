@@ -49,7 +49,7 @@ export default function ReaderFrame({
           onLoad();
         }
       }
-    }, 1000);
+    }, 500);
     return () => clearTimeout(checkTimer);
   }, [isReady, onLoad, iframeRef]);
 

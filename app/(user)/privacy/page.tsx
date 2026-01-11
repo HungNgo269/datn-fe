@@ -5,13 +5,13 @@ export const metadata: Metadata = { title: "Privacy | NextBook" };
 
 export default function AccountPrivacyPage() {
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm">
+    <div className="rounded-2xl p-6">
       <div className="mb-4">
         <h2 className="text-2xl font-semibold text-foreground">
-          Privacy & Security
+          Riêng tư & Bảo mật
         </h2>
         <p className="text-sm text-muted-foreground">
-          Update your password to keep your account secure.
+          Bảo vệ tài khoản của bạn
         </p>
       </div>
       <ChangePasswordForm />

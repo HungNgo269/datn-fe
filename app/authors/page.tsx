@@ -49,7 +49,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
                   Tìm tác giả yêu thích
                 </p>
                 <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                  Bộ sưu tập tác giả NextBook
+                  Tác giả
                 </h1>
                 <p className="text-muted-foreground text-sm md:text-base max-w-3xl">
                   Duyệt qua những cây bút đang được yêu thích nhất, khám phá tác

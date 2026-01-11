@@ -17,7 +17,7 @@ export function AccountProfilePanel() {
 
   if (!user) {
     return (
-      <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
+      <div className="rounded-2xl  p-10 text-center space-y-4">
         <h2 className="text-2xl font-semibold">You&apos;re not logged in</h2>
         <p className="text-sm text-muted-foreground">
           Sign in to manage your profile, bookmarks, and privacy settings.
@@ -30,7 +30,7 @@ export function AccountProfilePanel() {
   const lastLogin = formatDate(user.lastLoginAt);
 
   return (
-    <section className="rounded-2xl border bg-card p-6 space-y-6 shadow-sm">
+    <section className="rounded-2xl  p-6 space-y-6">
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-semibold text-foreground">
           Quản lý thông tin
@@ -40,7 +40,7 @@ export function AccountProfilePanel() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2">
         <ProfileItem
           icon={<UserRound className="h-5 w-5" />}
           label="Username"
@@ -53,23 +53,18 @@ export function AccountProfilePanel() {
         />
         <ProfileItem
           icon={<ShieldCheck className="h-5 w-5" />}
-          label="Subscription"
+          label="Hội viên ?"
           value={user.subscriptionPlan || "Standard"}
         />
         <ProfileItem
           icon={<Clock className="h-5 w-5" />}
-          label="Member since"
+          label="Gia nhập khi"
           value={createdDate || "N/A"}
         />
         <ProfileItem
           icon={<Clock className="h-5 w-5" />}
-          label="Last login"
+          label="Lần cuối đăng nhập"
           value={lastLogin || "N/A"}
-        />
-        <ProfileItem
-          icon={<ShieldCheck className="h-5 w-5" />}
-          label="Status"
-          value={user.status || "Active"}
         />
       </div>
     </section>
@@ -86,7 +81,7 @@ function ProfileItem({
   value?: string | null;
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-muted/30 p-4">
+    <div className="rounded-xl p-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {icon}
         <span>{label}</span>

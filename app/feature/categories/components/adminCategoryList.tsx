@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ interface CategoriesTableProps {
   onEdit: (category: Category) => void;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
+  isFetching?: boolean;
 }
 
 export function AdminCategoryList({
@@ -34,6 +35,7 @@ export function AdminCategoryList({
   onEdit,
   onDelete,
   isDeleting,
+  isFetching,
 }: CategoriesTableProps) {
   return (
     <div className="border rounded-md">
@@ -47,7 +49,15 @@ export function AdminCategoryList({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.length === 0 ? (
+          {isFetching ? (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24">
+                <div className="flex items-center justify-center">
+                  <Loader2 className="animate-spin text-primary" />
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : categories.length === 0 ? (
             <TableRow>
               <TableCell colSpan={4} className="text-center h-24">
                 Chưa có dữ liệu

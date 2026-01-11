@@ -6,6 +6,7 @@ import { StickyNote, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import {
+  NoteColor,
   ReaderNote,
   useReaderDataStore,
 } from "@/app/store/useReaderDataStore";
@@ -21,6 +22,17 @@ const formatDateSafe = (value?: string) => {
   if (!timestamp) return null;
   return format(timestamp, "dd/MM/yyyy");
 };
+
+const NOTE_COLOR_CLASSES: Record<NoteColor, string> = {
+  yellow: "border-l-4 border-yellow-400/80 bg-yellow-50/50",
+  green: "border-l-4 border-green-400/80 bg-green-50/50",
+  blue: "border-l-4 border-blue-400/80 bg-blue-50/50",
+  pink: "border-l-4 border-pink-400/80 bg-pink-50/50",
+  purple: "border-l-4 border-purple-400/80 bg-purple-50/50",
+};
+
+const getNoteColorClass = (color?: NoteColor) =>
+  NOTE_COLOR_CLASSES[color ?? "yellow"];
 
 export function ReaderNotesSection() {
   const userId = useAuthStore((state) => state.user?.id ?? null);
@@ -41,7 +53,7 @@ export function ReaderNotesSection() {
   );
 
   return (
-    <section className="rounded-2xl border bg-card p-6 shadow-sm space-y-4 min-h-[300px]">
+    <section className="rounded-2xl  p-6  space-y-4 min-h-[300px]">
       <header>
         <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-2">
           <StickyNote className="w-4 h-4" />
@@ -80,7 +92,11 @@ function NoteListItem({
     : `/books/${note.bookSlug}`;
 
   return (
-    <li className="rounded-xl border border-border/70 bg-muted/30 p-4 text-sm space-y-2">
+    <li
+      className={`rounded-xl border border-border/70 p-4 text-sm space-y-2 ${getNoteColorClass(
+        note.color
+      )}`}
+    >
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="font-semibold text-foreground">{note.bookTitle}</p>

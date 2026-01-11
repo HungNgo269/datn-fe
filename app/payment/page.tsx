@@ -77,7 +77,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
             Bạn phải có tài khoản          </p> */}
         </div>
 
-        <div className="rounded-xl border border-border bg-card/60 p-6 shadow-sm">
+        <div className="rounded-xl border border-/60 p-6 shadow-sm">
           {book ? (
             <div className="flex flex-col gap-4 sm:flex-row">
               <div className="w-full max-w-[140px] overflow-hidden rounded-md border border-border sm:w-[140px]">

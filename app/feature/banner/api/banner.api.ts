@@ -1,7 +1,7 @@
 import { handlePaginatedRequest, handleRequest } from "@/lib/handleApiRequest";
 import { axiosClient } from "@/lib/api";
 import { Banner, BannerPosition } from "../types/banner.types";
-import { BannerPayload } from "../schema/banner.schema";
+import { BannerFormValues } from "../schema/banner.schema";
 
 export async function getBannersHomeSlider(params: {
   page: number;
@@ -23,7 +23,7 @@ export async function getBannerById(id: number) {
   return handleRequest<Banner>(() => axiosClient.get(`/admin/banners/${id}`));
 }
 
-export async function createBanner(payload: BannerPayload) {
+export async function createBanner(payload: BannerFormValues) {
   return handleRequest<Banner>(() =>
     axiosClient.post("/admin/banners", payload)
   );
@@ -31,7 +31,7 @@ export async function createBanner(payload: BannerPayload) {
 
 export async function updateBanner(
   id: number,
-  payload: Partial<BannerPayload>
+  payload: Partial<BannerFormValues>
 ) {
   return handleRequest<Banner>(() =>
     axiosClient.patch(`/admin/banners/${id}`, payload)

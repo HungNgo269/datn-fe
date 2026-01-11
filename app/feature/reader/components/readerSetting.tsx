@@ -108,7 +108,7 @@ export default function ReaderSettings({
         </h3>
         <button
           onClick={onClose}
-          className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-full p-1 transition-colors"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-full p-1 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -124,7 +124,7 @@ export default function ReaderSettings({
               key={t.id}
               onClick={() => setTheme(t.id)}
               className={`
-                aspect-square rounded-full border-2 flex items-center justify-center transition-all shadow-sm
+                aspect-square rounded-full border-2 flex items-center justify-center transition-all shadow-sm cursor-pointer
                 ${t.bgClass} 
                 ${t.fgClass}
                 ${t.borderClass}
@@ -155,7 +155,7 @@ export default function ReaderSettings({
             <button
               key={mode.id}
               onClick={() => setReadMode(mode.id)}
-              className={`flex items-center justify-center px-3 py-2 rounded text-sm transition-colors ${
+              className={`flex items-center justify-center px-3 py-2 rounded text-sm transition-colors cursor-pointer ${
                 readMode === mode.id
                   ? "bg-success/10 text-success font-medium"
                   : "hover:bg-muted"
@@ -171,7 +171,7 @@ export default function ReaderSettings({
         <div className="flex items-center gap-3 bg-muted p-1.5 rounded-lg">
           <button
             onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-            className="flex-1 h-8 flex items-center justify-center hover:bg-background rounded shadow-sm text-sm transition-colors"
+            className="flex-1 h-8 flex items-center justify-center hover:bg-background rounded shadow-sm text-sm transition-colors cursor-pointer"
           >
             A-
           </button>
@@ -180,7 +180,7 @@ export default function ReaderSettings({
           </span>
           <button
             onClick={() => setFontSize(Math.min(32, fontSize + 2))}
-            className="flex-1 h-8 flex items-center justify-center hover:bg-background rounded shadow-sm text-lg transition-colors"
+            className="flex-1 h-8 flex items-center justify-center hover:bg-background rounded shadow-sm text-lg transition-colors cursor-pointer"
           >
             A+
           </button>
@@ -196,7 +196,7 @@ export default function ReaderSettings({
             <button
               key={font.id}
               onClick={() => setFont(font.id)}
-              className={`flex items-center justify-between px-3 py-2 rounded text-sm transition-colors ${
+              className={`flex items-center justify-between px-3 py-2 rounded text-sm transition-colors cursor-pointer ${
                 currentFont === font.id
                   ? "bg-success/10 text-success font-medium"
                   : "hover:bg-muted"

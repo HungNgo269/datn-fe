@@ -30,6 +30,8 @@ export default function AuthorsPage() {
   const [searchQuery, setSearchQuery] = useState(queryParams);
   const debouncedSearch = useDebounce(searchQuery, 300);
   const prevSearchRef = useRef(debouncedSearch);
+  const [showFetching, setShowFetching] = useState(false);
+  const fetchStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     setSearchQuery(queryParams);
@@ -67,6 +69,27 @@ export default function AuthorsPage() {
       ),
     placeholderData: (previousData) => previousData,
   });
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    if (isFetching) {
+      fetchStartRef.current = Date.now();
+      setShowFetching(true);
+    } else if (showFetching) {
+      const elapsed = Date.now() - (fetchStartRef.current ?? 0);
+      const remaining = Math.max(0, 500 - elapsed);
+      timeoutId = setTimeout(() => {
+        setShowFetching(false);
+      }, remaining);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isFetching, showFetching]);
 
   const deleteMutation = useMutation({
     mutationFn: deleteAuthor,
@@ -119,15 +142,12 @@ export default function AuthorsPage() {
         <div className="relative w-full">
           <input
             type="text"
-            placeholder="Search author..."
+            placeholder="Tìm kiếm tác giả..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="border rounded-md p-2 pr-9 w-full"
           />
-          {isFetching && (
-            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-          )}
-        </div>
+</div>
       </div>
 
       {isLoading ? (
@@ -141,6 +161,7 @@ export default function AuthorsPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             isDeleting={deleteMutation.isPending}
+            isFetching={showFetching}
           />
           {meta && <Pagination meta={meta} />}
         </>
@@ -154,3 +175,5 @@ export default function AuthorsPage() {
     </div>
   );
 }
+
+
