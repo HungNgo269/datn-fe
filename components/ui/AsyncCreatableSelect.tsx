@@ -26,6 +26,9 @@ export interface Option {
   [key: string]: unknown;
 }
 
+const EMPTY_VALUES: (string | number)[] = [];
+const EMPTY_OPTIONS: Option[] = [];
+
 interface AsyncCreatableSelectProps {
   value?: (string | number)[];
   onChange: (value: (string | number)[]) => void;
@@ -38,17 +41,20 @@ interface AsyncCreatableSelectProps {
   displayMode?: "popover" | "inline";
 }
 
-export function AsyncCreatableSelect({
-  value = [],
-  onChange,
-  fetchOptions,
-  onCreateOption,
-  valueOptions = [],
-  placeholder = "Tìm kiếm...",
-  label = "mục",
-  className,
-  displayMode = "popover",
-}: AsyncCreatableSelectProps) {
+export function AsyncCreatableSelect(props: AsyncCreatableSelectProps) {
+  const {
+    value,
+    onChange,
+    fetchOptions,
+    onCreateOption,
+    valueOptions,
+    placeholder = "Tìm kiếm...",
+    label = "mục",
+    className,
+    displayMode = "popover",
+  } = props;
+  const selectedValues = value ?? EMPTY_VALUES;
+  const selectedValueOptions = valueOptions ?? EMPTY_OPTIONS;
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [options, setOptions] = React.useState<Option[]>([]);
@@ -91,8 +97,8 @@ export function AsyncCreatableSelect({
   }, [debouncedQuery, fetchOptions, open, isInline]);
 
   React.useEffect(() => {
-    if (!value || value.length === 0) {
-      setSelectedOptions([]);
+    if (selectedValues.length === 0) {
+      setSelectedOptions((prev) => (prev.length === 0 ? prev : []));
       return;
     }
 
@@ -104,29 +110,40 @@ export function AsyncCreatableSelect({
           map.set(opt.value, opt);
         }
       });
-      valueOptions.forEach((opt) => {
+      selectedValueOptions.forEach((opt) => {
         map.set(opt.value, opt);
       });
 
-      return value.map((val) => {
+      const nextSelected = selectedValues.map((val) => {
         if (map.has(val)) return map.get(val)!;
         return { value: val, label: String(val) };
       });
+
+      if (prev.length !== nextSelected.length) return nextSelected;
+      for (let i = 0; i < prev.length; i += 1) {
+        if (
+          prev[i].value !== nextSelected[i].value ||
+          prev[i].label !== nextSelected[i].label
+        ) {
+          return nextSelected;
+        }
+      }
+      return prev;
     });
-  }, [value, options, valueOptions]);
+  }, [selectedValues, options, selectedValueOptions]);
 
   const handleSelect = (option: Option) => {
-    const isSelected = value.some((val) => val === option.value);
+    const isSelected = selectedValues.some((val) => val === option.value);
     let newValues;
     let newSelectedOptions;
 
     if (isSelected) {
-      newValues = value.filter((val) => val !== option.value);
+      newValues = selectedValues.filter((val) => val !== option.value);
       newSelectedOptions = selectedOptions.filter(
         (o) => o.value !== option.value
       );
     } else {
-      newValues = [...value, option.value];
+      newValues = [...selectedValues, option.value];
       const exists = selectedOptions.find((o) => o.value === option.value);
       newSelectedOptions = exists
         ? selectedOptions
@@ -143,7 +160,7 @@ export function AsyncCreatableSelect({
     try {
       const newOption = await onCreateOption(trimmedQuery);
       setSelectedOptions((prev) => [...prev, newOption]);
-      onChange([...value, newOption.value]);
+      onChange([...selectedValues, newOption.value]);
       setQuery("");
       if (!isInline) {
         setOpen(false);
@@ -158,12 +175,12 @@ export function AsyncCreatableSelect({
   const handleRemove = (e: React.MouseEvent, val: string | number) => {
     e.preventDefault();
     e.stopPropagation();
-    const newValues = value.filter((v) => v !== val);
+    const newValues = selectedValues.filter((v) => v !== val);
     const newSelectedOptions = selectedOptions.filter((o) => o.value !== val);
     setSelectedOptions(newSelectedOptions);
     onChange(newValues);
   };
-  console.log("op[", selectedOptions);
+
   const renderSelectedBadges = () => (
     <div className="flex flex-wrap gap-1 justify-start items-center w-full">
       {selectedOptions.length > 0 ? (
@@ -217,7 +234,9 @@ export function AsyncCreatableSelect({
 
         <CommandGroup>
           {options.map((option) => {
-            const isSelected = value.some((val) => val === option.value);
+            const isSelected = selectedValues.some(
+              (val) => val === option.value
+            );
             return (
               <CommandItem
                 key={option.value}

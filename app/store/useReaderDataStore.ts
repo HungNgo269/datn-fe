@@ -2,41 +2,12 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-export interface ReaderBookmark {
-  id: string;
-  userId: number | null;
-  bookId: number | null;
-  bookSlug: string;
-  bookTitle: string;
-  bookCoverImage?: string | null;
-  chapterSlug?: string | null;
-  chapterTitle?: string | null;
-  page: number;
-  createdAt: string;
-}
-
-export type NoteColor = "yellow" | "green" | "blue" | "pink" | "purple";
-
-export interface ReaderNote extends ReaderBookmark {
-  selectedText: string;
-  note: string;
-  color?: NoteColor;
-}
-
-export interface ContinueReadingEntry {
-  userId: number | null;
-  bookId?: number | null;
-  bookSlug: string;
-  bookTitle: string;
-  bookCoverImage?: string | null;
-  chapterSlug?: string | null;
-  chapterTitle?: string | null;
-  page: number;
-  updatedAt: string;
-}
-
-export type ReaderReadMode = "paged" | "scroll";
+import {
+  ContinueReadingEntry,
+  ReaderBookmark,
+  ReaderNote,
+  ReaderReadMode,
+} from "../types/book.types";
 
 const getDefaultReadMode = (): ReaderReadMode => {
   if (typeof window === "undefined") {
@@ -68,9 +39,9 @@ interface ReaderDataState {
 }
 
 const createId = () =>
-  (typeof crypto !== "undefined" && crypto.randomUUID
+  typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 export const useReaderDataStore = create<ReaderDataState>()(
   persist(
@@ -95,7 +66,9 @@ export const useReaderDataStore = create<ReaderDataState>()(
 
           if (exists) {
             return {
-              bookmarks: state.bookmarks.filter((bookmark) => !matcher(bookmark)),
+              bookmarks: state.bookmarks.filter(
+                (bookmark) => !matcher(bookmark)
+              ),
             };
           }
 
@@ -149,8 +122,7 @@ export const useReaderDataStore = create<ReaderDataState>()(
           const filteredHistory = state.readingHistory.filter(
             (item) =>
               !(
-                item.userId === entry.userId &&
-                item.bookSlug === entry.bookSlug
+                item.userId === entry.userId && item.bookSlug === entry.bookSlug
               )
           );
 

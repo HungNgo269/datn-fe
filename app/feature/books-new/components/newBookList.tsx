@@ -6,9 +6,9 @@ export default async function NewBookList() {
   const Books = await getNewBookAction(10);
   console.log("boook", Books);
   return (
-    <div className="flex flex-col justify-center items-center gap-4 ">
+    <div className="flex flex-col justify-center items-center gap-2">
       <div className="flex flex-row items-center justify-between w-full gap-2">
-        <span className="font-bold text-2xl text-start flex-1 min-w-0 truncate ">
+        <span className="text-lg sm:text-xl md:text-2xl font-semibold mb-1 block">
           Những đầu sách mới nhất
         </span>
         <ViewMoreButton context="book" url="/books"></ViewMoreButton>

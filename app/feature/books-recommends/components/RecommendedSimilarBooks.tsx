@@ -1,31 +1,22 @@
 import { Separator } from "@/components/ui/separator";
-import { getRecommendedBooksAction } from "../actions/recommendBooks.action";
-import RecommendBookContent from "./recommendBookContent";
+import { getRecommendedSimilarBooks } from "../actions/recommendBooks.action";
+import RecommendedSimilarBookContent from "./recommendSimilarBookContent";
 
 interface RecommendBookProps {
-  limit?: number;
+  bookId: number;
+  limit: number;
   title?: string;
 }
 
-export default async function RecommendBook({
-  limit = 10,
+export default async function RecommendedSimilarBooks({
+  bookId,
+  limit,
   title = "Những người đọc tác phẩm này cũng thích",
 }: RecommendBookProps) {
   try {
-    const books = await getRecommendedBooksAction(limit);
-
+    const books = await getRecommendedSimilarBooks(bookId, limit);
     if (!books?.length) {
-      return (
-        <div className="flex flex-col gap-2">
-          <span className="font-bold text-lg text-start line-clamp-2">
-            {title}
-          </span>
-          <Separator />
-          <div className="text-sm text-muted-foreground">
-            Chưa có gợi ý nào để hiển thị.
-          </div>
-        </div>
-      );
+      return <></>;
     }
 
     return (
@@ -38,7 +29,7 @@ export default async function RecommendBook({
         <Separator />
 
         <div className="space-y-3 mt-2">
-          <RecommendBookContent books={books} />
+          <RecommendedSimilarBookContent books={books} />
         </div>
       </div>
     );

@@ -150,20 +150,6 @@ export function Step2Form({
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {step1Data?.title && (
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-center gap-3 text-sm text-muted-foreground mb-4">
-                    <div className="bg-background p-2 rounded-full border shadow-sm">
-                        <BookOpen className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                        Đang thiết lập thông tin chi tiết cho sách:{" "}
-                        <span className="font-semibold text-foreground">
-                            {step1Data.title}
-                        </span>
-                    </div>
-                </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
                 <div className="space-y-1 md:col-span-3">
                     <Label>

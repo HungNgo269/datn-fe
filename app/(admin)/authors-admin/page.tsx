@@ -138,7 +138,7 @@ export default function AuthorsPage() {
           <Button className="h-10" onClick={handleCreate}>
             <Plus className=" h-5 w-5" /> Thêm mới
           </Button>
-          <div className="relative max-w-[300px]">
+          <div className="relative min-w-[300px]">
             <input
               type="text"
               placeholder="Tìm kiếm tác giả..."

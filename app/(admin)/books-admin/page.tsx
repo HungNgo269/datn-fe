@@ -150,7 +150,7 @@ export default function BooksPage() {
               <Plus className="mr-2 h-4 w-4" /> Thêm mới
             </Button>
           </Link>
-          <div className="relative max-w-[300px]">
+          <div className="relative min-w-[300px]">
             <input
               type="text"
               placeholder="Tìm kiếm sách..."

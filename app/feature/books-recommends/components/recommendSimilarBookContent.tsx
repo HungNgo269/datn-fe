@@ -9,13 +9,13 @@ function buildAuthorHref(name: string, slug?: string | null): string {
   return `/authors`;
 }
 
-interface RecommendBookContentProps {
+interface RecommendedSimilarBookContentProps {
   books: BookCardProps[];
 }
 
-export default function RecommendBookContent({
+export default function RecommendedSimilarBookContent({
   books,
-}: RecommendBookContentProps) {
+}: RecommendedSimilarBookContentProps) {
   return (
     <div className="space-y-3">
       {books.map((book: BookCardProps) => (

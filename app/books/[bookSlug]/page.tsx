@@ -4,17 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
-import { getBookBySlug } from "@/app/feature/books/action/books.action";
 import { getChaptersOfBook } from "@/app/feature/chapters/actions/chapters.actions";
 import { ChapterContainer } from "@/app/feature/chapters/components/chapterContainer";
 import Header from "@/app/share/components/ui/header/header";
 import FooterComponent from "@/app/share/components/ui/footer/footer";
-import RecommendBook from "@/app/feature/books-recommends/components/recommendBook";
 import { FavoriteButton } from "@/app/feature/favorites/components/FavoriteButton";
 import BookDesc from "@/app/feature/books/components/bookDesc";
 import { RecommendBookSkeleton } from "@/app/share/components/ui/skeleton/skeleton";
 import { BookAudioPlayButton } from "@/app/feature/book-audio/components/BookAudioPlayButton";
 import { ContinueReadingButton } from "@/app/feature/books-continue/components/ContinueReadingButton";
+import RecommendedSimilarBooks from "@/app/feature/books-recommends/components/RecommendedSimilarBooks";
+import { getBookBySlugAction } from "@/app/feature/books/action/books.action";
 
 type PageProps = {
   params: Promise<{
@@ -29,7 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { bookSlug } = await params;
   try {
-    const book = await getBookBySlug(bookSlug);
+    const book = await getBookBySlugAction(bookSlug);
     if (book?.title) {
       return { title: `${book.title} | NextBook` };
     }
@@ -44,7 +44,7 @@ export default async function BookPage({ params }: PageProps) {
   const { bookSlug } = await params;
 
   const [book, chapters] = await Promise.all([
-    getBookBySlug(bookSlug),
+    getBookBySlugAction(bookSlug),
     getChaptersOfBook(bookSlug),
   ]);
 
@@ -175,12 +175,10 @@ export default async function BookPage({ params }: PageProps) {
                 />
               </div>
 
-              <aside className="space-y-2 hidden lg:block">
-                <div className="sticky top-0">
-                  <Suspense fallback={<RecommendBookSkeleton />}>
-                    <RecommendBook />
-                  </Suspense>
-                </div>
+              <aside className="hidden lg:block self-start space-y-2 sticky top-0">
+                <Suspense fallback={<RecommendBookSkeleton />}>
+                  <RecommendedSimilarBooks bookId={book.id} limit={10} />
+                </Suspense>
               </aside>
 
               <div className="lg:hidden mt-8">
@@ -188,7 +186,7 @@ export default async function BookPage({ params }: PageProps) {
                   Có thể bạn thích
                 </h3>
                 <Suspense fallback={<RecommendBookSkeleton />}>
-                  <RecommendBook />
+                  <RecommendedSimilarBooks bookId={book.id} limit={10} />
                 </Suspense>
               </div>
             </div>

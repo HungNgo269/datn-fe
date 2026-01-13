@@ -5,9 +5,9 @@ import {
   getChaptersOfBook,
 } from "@/app/feature/chapters/actions/chapters.actions";
 import IframeBookReader from "@/app/feature/reader/components/IframeBookReader";
-import { getBookBySlug } from "@/app/feature/books/action/books.action";
 import { redirect } from "next/navigation";
 import Cookies from "js-cookie";
+import { getBookBySlugAction } from "@/app/feature/books/action/books.action";
 
 type PageProps = {
   params: Promise<{
@@ -24,7 +24,7 @@ export async function generateMetadata({
   const { bookSlug, chapterSlug } = await params;
   try {
     const [book, chapter] = await Promise.all([
-      getBookBySlug(bookSlug),
+      getBookBySlugAction(bookSlug),
       getChaptersDetails(bookSlug, chapterSlug),
     ]);
     const bookTitle = book?.title;
@@ -52,7 +52,7 @@ export default async function ChapterPage({ params }: PageProps) {
   const [response, chapters, book] = await Promise.all([
     getChaptersDetails(bookSlug, chapterSlug),
     getChaptersOfBook(bookSlug),
-    getBookBySlug(bookSlug),
+    getBookBySlugAction(bookSlug),
   ]);
 
   const chapterPath = `/books/${bookSlug}/chapter/${chapterSlug}`;

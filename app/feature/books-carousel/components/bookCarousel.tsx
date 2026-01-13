@@ -10,11 +10,11 @@ export type Variant = "lg" | "sm";
 export const CAROUSEL_CONFIG = {
   lg: {
     container: "w-full lg:w-[950px] xl:w-[1190px]",
-    grid: "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-items-center",
+    grid: "grid grid-cols-2  md:grid-cols-5 gap-4 justify-items-center",
   },
   sm: {
     container: "w-full lg:w-[700px] xl:w-[850px]",
-    grid: "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 justify-items-center",
+    grid: "grid grid-cols-2  md:grid-cols-5 gap-2 justify-items-center",
   },
 } as const;
 
@@ -79,7 +79,10 @@ export default function BookCarousel({
           {slides.map((page, index) => (
             <div key={index} className={`w-full flex-shrink-0 ${cfg.grid}`}>
               {page.map((book, bIndex) => (
-                <div key={book?.id ?? `skel-${index}-${bIndex}`} className="w-full">
+                <div
+                  key={book?.id ?? `skel-${index}-${bIndex}`}
+                  className="w-full"
+                >
                   {isLoading ? (
                     <BookCardSkeleton variant={variant} />
                   ) : (

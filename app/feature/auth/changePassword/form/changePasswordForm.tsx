@@ -32,17 +32,17 @@ export function ChangePasswordForm() {
   const changePasswordMutation = useMutation({
     mutationFn: ChangePasswordRequest,
     onSuccess: (data) => {
-      toast.success(data?.message || "?? ?†i m ?-t kh ?cu thA?nh cA'ng.");
+      toast.success(data?.message || "Thay đổi mật khẩu thành công");
       reset();
     },
     onError: () => {
-      toast.error("KhA'ng th ?? ?` ?†i m ?-t kh ?cu. Vui lA?ng th ?- l ??i.");
+      toast.error("Không thể thay đổi mật khẩu");
     },
   });
 
   const onSubmit = (data: ChangePasswordFields) => {
     if (!user) {
-      toast.error("B ??n c ?Ωn ?`??ng nh ?-p ?` ?? ?` ?†i m ?-t kh ?cu.");
+      toast.error("Mật khẩu mới phải khác mật khẩu cũ");
       return;
     }
     changePasswordMutation.mutate(data);
@@ -61,9 +61,9 @@ export function ChangePasswordForm() {
   return (
     <section className="rounded-2xl  p-6 space-y-4">
       <div>
-        <h2 className="text-2xl font-semibold">?? ?†i m ?-t kh ?cu</h2>
+        <h2 className="text-2xl font-semibold">Thay đổi mật khẩu</h2>
         <p className="text-sm text-muted-foreground">
-          C ?-p nh ?-t m ?-t kh ?cu ?` ?? b ??o v ?? tA?i kho ??n c ?%a b ??n.
+          Cập nhật mật khẩu của bạn
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export function ChangePasswordForm() {
           <Input
             id="currentPassword"
             type="password"
-            placeholder="M ?-t kh ?cu hi ??n t ??i"
+            placeholder="Mật khẩu hiện tại"
             disabled={isPending}
             {...register("currentPassword")}
             className={errors.currentPassword ? "border-destructive" : ""}
@@ -88,7 +88,7 @@ export function ChangePasswordForm() {
           <Input
             id="newPassword"
             type="password"
-            placeholder="M ?-t kh ?cu m ?>i"
+            placeholder="Mật khẩu cũ"
             disabled={isPending}
             {...register("newPassword")}
             className={errors.newPassword ? "border-destructive" : ""}
@@ -104,7 +104,7 @@ export function ChangePasswordForm() {
           <Input
             id="confirmPassword"
             type="password"
-            placeholder="XA?c nh ?-n m ?-t kh ?cu m ?>i"
+            placeholder="Xác nhận mật khẩu cũ"
             disabled={isPending}
             {...register("confirmPassword")}
             className={errors.confirmPassword ? "border-destructive" : ""}
@@ -120,7 +120,7 @@ export function ChangePasswordForm() {
           <div className="flex items-center space-x-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
             <AlertCircle className="h-5 w-5 text-destructive" />
             <p className="text-sm text-destructive">
-              KhA'ng th ?? ?` ?†i m ?-t kh ?cu. Ki ??m tra l ??i thA'ng tin ho ??c th ?- l ??i sau.
+              Không thể thay đổi mật khẩu, xin thử lại sau
             </p>
           </div>
         )}
@@ -129,10 +129,10 @@ export function ChangePasswordForm() {
           {isPending ? (
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              ??ang c ?-p nh ?-t...
+              Đang cập nhật mật khẩu
             </div>
           ) : (
-            "L??u m ?-t kh ?cu m ?>i"
+            "Xác nhận thay đổi"
           )}
         </Button>
       </form>

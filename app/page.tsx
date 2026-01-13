@@ -14,11 +14,10 @@ import {
   TrendingBookSkeleton,
 } from "./share/components/ui/skeleton/skeleton";
 import { normalizeTimeFrame } from "@/lib/timeCount";
-import Swipper from "./share/components/ui/swipper/swipper";
 import SwipperNewBook from "./feature/books-new/components/newBookSwipperWrapper";
-import ContinueReadingCard from "./feature/books-continue/components/ContinueReadingCard";
-import { ReaderBookmarksSection } from "./feature/account/components/readerBookmarksSection";
 import ContinueReadingCarousel from "./feature/books-continue/components/ContinueReadingCarousel";
+import RecommendedPersonalBookList from "./feature/books-recommends/components/recommendedPersonalBookList";
+import RecommendedSimilarByLastBookWrapper from "./feature/books-recommends/components/RecommendedSimilarByLastBookWrapper";
 // import Header from "@/app/ui/user/headerCustomer/headerMain";
 // import BestSellerContainer from "@/app/ui/user/books/bestSellerContainer";
 // import NewBookList from "@/app/ui/user/books/newBookList";
@@ -52,11 +51,9 @@ export default async function HomePage({
         <BannerComponent />
       </Suspense>
       <div className="w-full mx-auto mt-10 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
-        <div className="hidden md:block">
-          <Suspense fallback={<CategoryShowcaseSkeleton />}>
-            <CategoryBookWrapper />
-          </Suspense>
-        </div>
+        <Suspense fallback={<CategoryShowcaseSkeleton />}>
+          <CategoryBookWrapper />
+        </Suspense>
       </div>
       <div className="w-full mx-auto mt-10 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
         <div className="flex  justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
@@ -73,9 +70,13 @@ export default async function HomePage({
             </div>
 
             <ContinueReadingCarousel />
-            <Suspense>{/* <BookRecommend></BookRecommend> */}</Suspense>
+
+            <Suspense fallback={<BookListSkeleton count={10} />}>
+              <RecommendedPersonalBookList />
+            </Suspense>
+            <RecommendedSimilarByLastBookWrapper></RecommendedSimilarByLastBookWrapper>
           </div>
-          <div className="flex flex-col  w-[200px] md:w-[250px] xl:w-[300px] gap-5">
+          <div className="flex flex-col  w-4/5 md:w-[250px] xl:w-[300px] gap-5">
             <Suspense fallback={<TrendingBookSkeleton />}>
               <TrendingBook period={trendingPeriod} />
             </Suspense>
@@ -83,11 +84,6 @@ export default async function HomePage({
               <PopularBook />
             </Suspense>
           </div>
-        </div>
-        <div className="hidden sm:block">
-          {/* <Suspense>
-            <SectionComponent></SectionComponent>
-          </Suspense> */}
         </div>
       </div>
       <div className="w-full ">

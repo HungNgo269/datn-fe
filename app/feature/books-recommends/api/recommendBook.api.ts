@@ -1,9 +1,12 @@
 import { handleRequest } from "@/lib/handleApiRequest";
-import { BookCardProps } from "../../books/types/books.type";
+import { Book } from "../../books/types/books.type";
 import { axiosClient } from "@/lib/api";
 
-export async function getTrendingBooks(period: string, limit: number) {
-  return handleRequest<BookCardProps[]>(() =>
-    axiosClient.get(`/books/trending?period=${period}&limit=${limit}`)
+export async function getRecommendSimilarBooks(
+  bookId: number,
+  limit: number
+) {
+  return handleRequest<Book[]>(() =>
+    axiosClient.get(`/recommendations/similar/${bookId}?limit=${limit}`)
   );
 }

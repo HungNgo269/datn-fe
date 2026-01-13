@@ -159,7 +159,7 @@ export default async function BookPage({ searchParams }: BookPageProps) {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col  w-[200px] md:w-[250px] xl:w-[300px] gap-5">
+                <div className="flex flex-col  w-4/5 md:w-[250px] xl:w-[300px] gap-5">
                   <Suspense fallback={<TrendingBookSkeleton />}>
                     <TrendingBook period={"month"} />
                   </Suspense>

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import ViewMoreButton from "@/app/share/components/ui/button/viewMoreButton";
 import CategorySelector from "./categorySelector";
 import BookCarousel from "../../books-carousel/components/bookCarousel";
+import Swipper from "@/app/share/components/ui/swipper/swipper";
 import { Category } from "../types/listCategories";
 import {
   Book,
@@ -58,7 +59,7 @@ export default function BookCategoryClient({
     books &&
     selectedCategory && (
       <div className="mt-6 w-full space-y-4">
-        <span className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 block">
+        <span className="text-lg sm:text-xl md:text-2xl font-semibold mb-1 block">
           {dynamicTitle}
         </span>
 
@@ -76,7 +77,12 @@ export default function BookCategoryClient({
               )}&page=1`}
             />
           </div>
-          <BookCarousel books={books} variant="lg" isLoading={isPending} />
+          <div className="block md:hidden w-full">
+            <Swipper books={books} showHeader={false} showViewMore={false} />
+          </div>
+          <div className="hidden md:block w-full">
+            <BookCarousel books={books} variant="lg" isLoading={isPending} />
+          </div>
         </div>
       </div>
     )

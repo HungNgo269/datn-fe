@@ -44,10 +44,10 @@ export function FavoriteBooksSection() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">
-            Favorite books
+            Sách yêu thích của bạn
           </h2>
           <p className="text-sm text-muted-foreground">
-            You have {totalFavorites} favorite books.
+            Bạn có {totalFavorites} cuốn sách yêu thích.
           </p>
         </div>
         <Button

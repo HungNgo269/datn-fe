@@ -4,8 +4,13 @@ import {
 } from "@/lib/handleActionRequest";
 import { Book, GetBooksParams } from "../types/books.type";
 
-export async function getBookBySlug(slug: string) {
+export async function getBookBySlugAction(slug: string) {
   return handleActionRequest<Book>(`/books/${slug}`, {
+    revalidate: 10,
+  });
+}
+export async function getBookByIdAction(id: number) {
+  return handleActionRequest<Book>(`/books/${id}`, {
     revalidate: 10,
   });
 }
