@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-export function LoginButton() {
+function LoginButtonContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -28,5 +29,13 @@ export function LoginButton() {
     >
       Đăng nhập
     </Button>
+  );
+}
+
+export function LoginButton() {
+  return (
+    <Suspense fallback={null}>
+      <LoginButtonContent />
+    </Suspense>
   );
 }

@@ -22,7 +22,7 @@ export function BookResultCard({ book, query }: BookResultCardProps) {
     >
       <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted shadow-sm">
         <Image
-          src={book.coverImage || "/images/sachFallback.jpg"}
+          src={book.coverImage}
           alt={book.title}
           fill
           sizes="100px"

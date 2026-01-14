@@ -4,7 +4,7 @@ import React from "react";
 import { Check, Palette, X } from "lucide-react";
 
 import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
-import type { ReaderReadMode } from "@/app/store/useReaderDataStore";
+import type { ReaderReadMode } from "@/app/types/book.types";
 
 export const THEMES = [
   {

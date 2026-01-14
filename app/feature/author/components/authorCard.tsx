@@ -3,14 +3,12 @@ import Link from "next/link";
 import { AuthorInfo } from "../types/authors.types";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
-const FALLBACK_IMAGE = "/images/sachFallback.jpg";
-
 interface AuthorCardProps {
   author: AuthorInfo;
 }
 
 export default function AuthorCard({ author }: AuthorCardProps) {
-  const avatar = author.avatar || FALLBACK_IMAGE;
+  const avatar = author.avatar;
   const safeBio = sanitizeRichHtml(author.bio);
 
   return (
@@ -24,7 +22,7 @@ export default function AuthorCard({ author }: AuthorCardProps) {
         <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-muted shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg">
           <div className="relative aspect-[3/4] w-full">
             <Image
-              src={avatar}
+              src={avatar!}
               alt={author.name}
               fill
               priority={false}

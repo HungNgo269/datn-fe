@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import type { NoteColor } from "@/app/store/useReaderDataStore";
+import type { NoteColor } from "@/app/types/book.types";
 import { toast, Toaster } from "sonner";
 
 interface ReaderNoteDialogProps {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { Suspense, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
@@ -18,7 +18,7 @@ interface CategoryFilterProps {
   categories: Category[];
 }
 
-export default function CategoryFilter({
+function CategoryFilterContent({
   currentCategory,
   categories,
 }: CategoryFilterProps) {
@@ -67,5 +67,13 @@ export default function CategoryFilter({
         </SelectContent>
       </Select>
     </div>
+  );
+}
+
+export default function CategoryFilter(props: CategoryFilterProps) {
+  return (
+    <Suspense fallback={<div className="h-10 w-[200px]" />}>
+      <CategoryFilterContent {...props} />
+    </Suspense>
   );
 }

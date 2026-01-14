@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +12,7 @@ import { Loader2, RefreshCw } from "lucide-react";
 
 const PAGE_SIZE = 12;
 
-export function FavoriteBooksSection() {
+function FavoriteBooksSectionContent() {
   const user = useAuthStore((state) => state.user);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -93,5 +93,13 @@ export function FavoriteBooksSection() {
 
       {meta && <Pagination meta={meta} />}
     </section>
+  );
+}
+
+export function FavoriteBooksSection() {
+  return (
+    <Suspense fallback={<div className="min-h-[200px] w-full" />}>
+      <FavoriteBooksSectionContent />
+    </Suspense>
   );
 }

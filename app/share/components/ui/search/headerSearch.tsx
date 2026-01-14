@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, Suspense, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 
@@ -11,16 +11,15 @@ interface HeaderSearchProps {
   compact?: boolean;
 }
 
-export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
+function HeaderSearchContent({ compact = false }: HeaderSearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(() => searchParams?.get("q") ?? "");
+  const paramQuery = useMemo(() => searchParams?.get("q") ?? "", [searchParams]);
+  const queryRef = useRef(paramQuery);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQuery(searchParams?.get("q") ?? "");
-  }, [searchParams]);
+  if (queryRef.current !== paramQuery) {
+    queryRef.current = paramQuery;
+  }
 
   useEffect(() => {
     return () => {
@@ -52,7 +51,7 @@ export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-    navigateToResults(query);
+    navigateToResults(queryRef.current);
   };
 
   return (
@@ -65,10 +64,11 @@ export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
     >
       <Search className="absolute left-3 h-4 w-4 text-primary z-10" />
       <Input
-        value={query}
+        key={paramQuery}
+        defaultValue={paramQuery}
         onChange={(event) => {
           const nextValue = event.target.value;
-          setQuery(nextValue);
+          queryRef.current = nextValue;
           scheduleNavigation(nextValue);
         }}
         placeholder="Tìm kiếm sách / tác giả"
@@ -79,5 +79,13 @@ export default function HeaderSearch({ compact = false }: HeaderSearchProps) {
         aria-label="Tìm kiếm sách / tác giả"
       />
     </form>
+  );
+}
+
+export default function HeaderSearch(props: HeaderSearchProps) {
+  return (
+    <Suspense fallback={<div className="h-9 w-full" />}>
+      <HeaderSearchContent {...props} />
+    </Suspense>
   );
 }

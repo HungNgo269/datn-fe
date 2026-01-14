@@ -19,10 +19,7 @@ export default function RecommendedSimilarByLastBook({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!bookId) {
-      setBooks([]);
-      return;
-    }
+    if (!bookId) return;
 
     let active = true;
     setIsLoading(true);

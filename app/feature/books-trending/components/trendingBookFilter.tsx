@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { Suspense, useTransition } from "react";
 import {
   DEFAULT_TIMEFRAME,
   sort_OPTIONS_time,
@@ -15,7 +15,7 @@ interface TrendingBookFilterProps {
   syncToUrl?: boolean;
 }
 
-export default function TrendingBookFilter({
+function TrendingBookFilterContent({
   value,
   paramKey = "trendingPeriod",
   onChange,
@@ -72,5 +72,13 @@ export default function TrendingBookFilter({
         })}
       </div>
     </div>
+  );
+}
+
+export default function TrendingBookFilter(props: TrendingBookFilterProps) {
+  return (
+    <Suspense fallback={<div className="h-5 w-full" />}>
+      <TrendingBookFilterContent {...props} />
+    </Suspense>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,7 @@ interface FavoriteButtonProps {
   className?: string;
 }
 
-export function FavoriteButton({
+function FavoriteButtonContent({
   bookId,
   userId,
   className,
@@ -173,5 +174,13 @@ export function FavoriteButton({
         {formattedTotal} {isFavorited ? "Đã thích" : "Thích"}
       </span>
     </Button>
+  );
+}
+
+export function FavoriteButton(props: FavoriteButtonProps) {
+  return (
+    <Suspense fallback={<div className="h-12 w-full" />}>
+      <FavoriteButtonContent {...props} />
+    </Suspense>
   );
 }

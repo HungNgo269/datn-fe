@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useAuthStore } from "@/app/store/useAuthStore";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { getChaptersOfBook } from "@/app/feature/chapters/actions/chapters.actions";
 import { ChapterContainer } from "@/app/feature/chapters/components/chapterContainer";
@@ -15,6 +13,7 @@ import { BookAudioPlayButton } from "@/app/feature/book-audio/components/BookAud
 import { ContinueReadingButton } from "@/app/feature/books-continue/components/ContinueReadingButton";
 import RecommendedSimilarBooks from "@/app/feature/books-recommends/components/RecommendedSimilarBooks";
 import { getBookBySlugAction } from "@/app/feature/books/action/books.action";
+import { BookPaymentActions } from "@/app/feature/payments/components/BookPaymentActions";
 
 type PageProps = {
   params: Promise<{
@@ -40,7 +39,6 @@ export async function generateMetadata({
 }
 
 export default async function BookPage({ params }: PageProps) {
-  const user = useAuthStore.getInitialState().user;
   const { bookSlug } = await params;
 
   const [book, chapters] = await Promise.all([
@@ -136,10 +134,15 @@ export default async function BookPage({ params }: PageProps) {
                   <div className="w-full sm:w-auto">
                     <FavoriteButton
                       bookId={book.id}
-                      userId={user?.id || undefined}
                       className="w-full sm:w-auto h-12"
                     />
                   </div>
+
+                  <BookPaymentActions
+                    bookId={book.id}
+                    accessType={book.accessType}
+                    price={book.price}
+                  />
 
                   {firstChapter && (
                     <ContinueReadingButton

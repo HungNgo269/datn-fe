@@ -17,7 +17,9 @@ export function useReaderPagination({
 }: UseReaderPaginationProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [isPositionRestored, setIsPositionRestored] = useState(false);
+  const [restoredKey, setRestoredKey] = useState<string | null>(null);
+  const restoreKey = `${storageKey}-${readMode}`;
+  const isPositionRestored = restoredKey === restoreKey;
 
   const calculateTotalPages = useCallback(() => {
     const iframe = iframeRef.current;
@@ -78,33 +80,23 @@ export function useReaderPagination({
   }, [currentPage, goToPage]);
 
   useEffect(() => {
-    setIsPositionRestored(false);
-    setCurrentPage(1);
-    setTotalPages(0);
-  }, [readMode, storageKey]);
-
-  useEffect(() => {
-    if (ready) {
-      setTimeout(() => {
-        const total = calculateTotalPages();
-        if (typeof window !== "undefined") {
-          const savedPage = localStorage.getItem(storageKey);
-          if (savedPage) {
-            const pageNum = parseInt(savedPage, 10);
-            if (
-              !isNaN(pageNum) &&
-              pageNum > 1 &&
-              total > 0 &&
-              pageNum <= total
-            ) {
-              goToPage(pageNum);
-            }
+    if (!ready) return;
+    const timer = setTimeout(() => {
+      const total = calculateTotalPages();
+      setCurrentPage(1);
+      if (typeof window !== "undefined") {
+        const savedPage = localStorage.getItem(storageKey);
+        if (savedPage) {
+          const pageNum = parseInt(savedPage, 10);
+          if (!isNaN(pageNum) && pageNum > 1 && total > 0 && pageNum <= total) {
+            goToPage(pageNum);
           }
         }
-        setIsPositionRestored(true);
-      }, 300);
-    }
-  }, [ready, calculateTotalPages, goToPage, storageKey]);
+      }
+      setRestoredKey(restoreKey);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [ready, calculateTotalPages, goToPage, restoreKey, storageKey]);
 
   useEffect(() => {
     if (ready && isPositionRestored && currentPage > 0) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { Suspense, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BookSortBy } from "../../books/types/books.type";
@@ -15,7 +15,7 @@ const SORT_OPTIONS = [
   { id: 3, name: "Vừa cập nhật", slug: BookSortBy.UPDATED_AT },
 ];
 
-export default function SortSelection({ currentSort }: Props) {
+function SortSelectionContent({ currentSort }: Props) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,5 +50,13 @@ export default function SortSelection({ currentSort }: Props) {
         );
       })}
     </div>
+  );
+}
+
+export default function SortSelection(props: Props) {
+  return (
+    <Suspense fallback={<div className="h-8 w-full" />}>
+      <SortSelectionContent {...props} />
+    </Suspense>
   );
 }

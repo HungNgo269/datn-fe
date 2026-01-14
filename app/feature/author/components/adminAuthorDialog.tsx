@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -61,7 +61,6 @@ export function AuthorDialog({
   onOpenChange,
   authorToEdit,
 }: AuthorDialogProps) {
-  const [coverPreview, setAvatarPreview] = useState<string | null>(null);
   const { submitAuthor } = useAuthorSubmit();
 
   const queryClient = useQueryClient();
@@ -77,6 +76,26 @@ export function AuthorDialog({
       isActive: true,
     },
   });
+  const avatarValue = form.watch("avatar");
+  const filePreviewUrl = useMemo(() => {
+    if (avatarValue instanceof File) {
+      return URL.createObjectURL(avatarValue);
+    }
+    return null;
+  }, [avatarValue]);
+  const resolvedPreview =
+    filePreviewUrl ??
+    (typeof avatarValue === "string"
+      ? avatarValue
+      : authorToEdit?.avatar ?? null);
+
+  useEffect(() => {
+    return () => {
+      if (filePreviewUrl) {
+        URL.revokeObjectURL(filePreviewUrl);
+      }
+    };
+  }, [filePreviewUrl]);
 
   useEffect(() => {
     if (open) {
@@ -88,8 +107,6 @@ export function AuthorDialog({
           isActive: authorToEdit.isActive,
           avatar: authorToEdit.avatar || undefined,
         });
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setAvatarPreview(authorToEdit.avatar || null);
       } else {
         form.reset({
           name: "",
@@ -98,21 +115,16 @@ export function AuthorDialog({
           avatar: "",
           isActive: true,
         });
-        setAvatarPreview(null);
       }
     }
   }, [open, authorToEdit, form]);
 
   const handleAvatarChange = (file: File) => {
     form.setValue("avatar", file, { shouldValidate: true });
-    const reader = new FileReader();
-    reader.onloadend = () => setAvatarPreview(reader.result as string);
-    reader.readAsDataURL(file);
   };
 
   const removeAvatar = () => {
     form.setValue("avatar", undefined);
-    setAvatarPreview(null);
   };
   const mutation = useMutation({
     mutationFn: async (values: AuthorSubmitData) => {
@@ -230,10 +242,10 @@ export function AuthorDialog({
                 </Label>
 
                 <div className="relative group w-full aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 overflow-hidden flex flex-col items-center justify-center hover:bg-muted/50 transition-colors">
-                  {coverPreview ? (
+                  {resolvedPreview ? (
                     <>
                       <ImagePreview
-                        src={coverPreview}
+                        src={resolvedPreview}
                         alt="Author Avatar"
                         onRemove={removeAvatar}
                       />
@@ -259,7 +271,7 @@ export function AuthorDialog({
                   <UploadBookButton
                     label=""
                     accept="image/*"
-                    buttonText={coverPreview ? "Thay đổi ảnh" : "Tải ảnh lên"}
+                    buttonText={resolvedPreview ? "Thay đổi ảnh" : "Tải ảnh lên"}
                     onChange={handleAvatarChange}
                   />
                 </div>

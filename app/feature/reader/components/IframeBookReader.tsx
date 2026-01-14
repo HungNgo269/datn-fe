@@ -19,7 +19,8 @@ import ReaderChaptersList from "./ReaderChaptersList";
 import ReaderNoteDialog from "./ReaderNoteDialog";
 import { useReaderHtml } from "../hook/useReaderHTML";
 import { useReaderPagination } from "../hook/useReaderPagination";
-import { NoteColor, useReaderDataStore } from "@/app/store/useReaderDataStore";
+import { useReaderDataStore } from "@/app/store/useReaderDataStore";
+import type { NoteColor } from "@/app/types/book.types";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { toast } from "sonner";
 
@@ -82,8 +83,14 @@ export default function IframeBookReader({
   const setFontId = useReaderDataStore((state) => state.setFontId);
   const setThemeId = useReaderDataStore((state) => state.setThemeId);
   const setReadMode = useReaderDataStore((state) => state.setReadMode);
-  const [containerBg, setContainerBg] = useState("transparent");
-  const [loading, setLoading] = useState(false);
+  const containerBg = useMemo(() => {
+    if (typeof window === "undefined") return "transparent";
+    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
+    const bgColor = getComputedStyle(document.documentElement)
+      .getPropertyValue(theme.bgVar)
+      .trim();
+    return bgColor || "transparent";
+  }, [themeId]);
   const fontsSnapshotRef = useRef({ fontId, fontSize, readMode });
   const hasCalculatedLayoutRef = useRef(false);
   const processedHtml = useReaderHtml({
@@ -195,19 +202,6 @@ export default function IframeBookReader({
     applyNoteHighlights(iframeRef.current.contentDocument, bookNotes);
   }, [applyNoteHighlights, bookNotes, ready]);
 
-  const getThemeColor = useCallback((varName: string) => {
-    if (typeof window === "undefined") return "";
-    return getComputedStyle(document.documentElement)
-      .getPropertyValue(varName)
-      .trim();
-  }, []);
-
-  useEffect(() => {
-    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
-    const bgColor = getThemeColor(theme.bgVar);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (bgColor) setContainerBg(bgColor);
-  }, [themeId, getThemeColor]);
 
   const currentChapter = useMemo(() => {
     return chapters.find((chapter) => chapter.slug === chapterSlug);
@@ -318,8 +312,6 @@ export default function IframeBookReader({
 
     if (!shouldRecalculate) return;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
     let cancelled = false;
 
     const timer = setTimeout(() => {
@@ -333,14 +325,12 @@ export default function IframeBookReader({
       if (!cancelled) {
         goToPage(targetPage);
         hasCalculatedLayoutRef.current = true;
-        setLoading(false);
       }
     }, 150);
 
     return () => {
       cancelled = true;
       clearTimeout(timer);
-      setLoading(false);
     };
   }, [
     calculateTotalPages,
@@ -406,7 +396,7 @@ export default function IframeBookReader({
 
   const closePanels = useCallback(() => setOpenPanel(null), []);
 
-  const showBlockingOverlay = loading || !ready || !isPositionRestored;
+  const showBlockingOverlay = !ready || !isPositionRestored;
 
   const isBookmarked = bookBookmarks.some(
     (bookmark) =>

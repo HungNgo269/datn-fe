@@ -47,6 +47,9 @@ export default function EditBookPage() {
           return;
         }
 
+        const parsedPrice =
+          typeof book.price === "number" ? book.price : Number(book.price);
+
         const mappedData: BookFormState = {
           id: book.id,
           title: book.title,
@@ -60,7 +63,7 @@ export default function EditBookPage() {
           categoryIds: book.categories.map((c) => c.category.id),
 
           description: book.description || "",
-          price: book.price || 0,
+          price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
           freeChapters: book.freeChapters || 0,
         };
 

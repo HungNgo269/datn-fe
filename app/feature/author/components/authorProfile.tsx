@@ -3,8 +3,6 @@ import Link from "next/link";
 import { AuthorInfo } from "../types/authors.types";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
-const FALLBACK_IMAGE = "/images/sachFallback.jpg";
-
 interface AuthorProfileProps {
   author: AuthorInfo;
   bookCount?: number;
@@ -25,7 +23,7 @@ export default function AuthorProfile({
   author,
   bookCount,
 }: AuthorProfileProps) {
-  const avatar = author.avatar || FALLBACK_IMAGE;
+  const avatar = author.avatar;
   const joined = formatDate(author.createdAt);
 
   return (
@@ -34,7 +32,7 @@ export default function AuthorProfile({
         <div className="flex items-center justify-center">
           <div className="relative h-32 w-32 overflow-hidden rounded-2xl border border-border/50 bg-muted md:h-40 md:w-40">
             <Image
-              src={avatar}
+              src={avatar!}
               alt={author.name}
               fill
               sizes="160px"

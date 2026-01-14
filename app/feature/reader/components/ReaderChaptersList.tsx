@@ -3,11 +3,11 @@
 import { List, X, Bookmark, StickyNote, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
-import {
+import type {
   ReaderBookmark,
   ReaderNote,
   NoteColor,
-} from "@/app/store/useReaderDataStore";
+} from "@/app/types/book.types";
 import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
 
 interface ReaderChaptersListProps {

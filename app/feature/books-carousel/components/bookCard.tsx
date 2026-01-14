@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
-import { BookAccessButton } from "./BookAccessButton";
-import { formatCurrency, toNumericPrice } from "@/lib/helper";
+import { Badge } from "@/components/ui/badge";
+import { toNumericPrice } from "@/lib/helper";
 
 type Variant = "lg" | "sm";
 const MAP = {
@@ -39,16 +39,15 @@ export default function BookCard({
     normalizedAccessType === "PURCHASE" ||
     normalizedAccessType === "MEMBERSHIP" ||
     (!isFreeBook && priceValue > 0);
-  const priceLabel = isFreeBook
-    ? "FREE"
-    : priceValue > 0
-    ? formatCurrency(priceValue)
-    : normalizedAccessType === "MEMBERSHIP"
-    ? "MEMBERSHIP"
-    : "PAID";
-  const priceBadgeClasses = isFreeBook
-    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-    : "border-amber-200 bg-amber-50 text-amber-700";
+  const accessBadgeLabel = requiresPayment
+    ? normalizedAccessType === "MEMBERSHIP"
+      ? "MEMBER"
+      : "PURCHASE"
+    : null;
+  const badgeClasses =
+    normalizedAccessType === "MEMBERSHIP"
+      ? "border-sky-200 bg-sky-50 text-sky-700"
+      : "border-amber-200 bg-amber-50 text-amber-700";
   return (
     book && (
       <div className={`flex flex-col ${image.card}`}>
@@ -65,6 +64,14 @@ export default function BookCard({
               bookName={book.title}
               key={book.id}
             />
+            {accessBadgeLabel && (
+              <Badge
+                variant="outline"
+                className={`absolute right-2 top-2 z-10 border ${badgeClasses}`}
+              >
+                {accessBadgeLabel}
+              </Badge>
+            )}
           </div>
         </Link>
 

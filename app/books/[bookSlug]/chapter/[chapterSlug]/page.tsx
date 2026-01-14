@@ -64,7 +64,7 @@ export default async function ChapterPage({ params }: PageProps) {
   }
 
   if (!response.contentUrl) {
-    throw new Error("KhA'ng t §œi Ž`’ø ¯œc n ¯'i dung ch’ø’­ng nAÿy.");
+    throw new Error("Không tải được nội dung chương");
   }
 
   const chapterContent = await getChaptersContent(response.contentUrl);

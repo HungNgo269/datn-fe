@@ -10,7 +10,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { PaginationMeta } from "@/app/types/api.types";
 import { generatePagination } from "./generatePagination";
 
@@ -20,7 +20,7 @@ interface PaginationProps {
   pageParamKey?: string;
 }
 
-export function Pagination({
+function PaginationContent({
   meta,
   hashUrl,
   pageParamKey = "page",
@@ -78,6 +78,14 @@ export function Pagination({
         isDisabled={!meta.hasNextPage}
       />
     </div>
+  );
+}
+
+export function Pagination(props: PaginationProps) {
+  return (
+    <Suspense fallback={<div className="h-10 w-full" />}>
+      <PaginationContent {...props} />
+    </Suspense>
   );
 }
 

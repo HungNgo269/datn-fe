@@ -1,22 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface ImageCardProps {
-  bookImage: string;
+  bookImage?: string | null;
   bookName: string;
   priority?: boolean;
 }
 
-const FALLBACK_SRC = "/images/sachFallback.jpg";
+const PROXY_IMAGE_ROUTE = "/api/view-image";
+const FALLBACK_IMAGE = "/images/sachFallBack.jpg";
 
 function normalizeSrc(src?: string | null) {
-  if (!src) return FALLBACK_SRC;
+  if (!src) return;
   const trimmed = src.trim();
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   if (trimmed.startsWith("/")) return trimmed;
-  return `/${trimmed.replace(/^\/+/, "")}`;
+  return `${PROXY_IMAGE_ROUTE}?key=${encodeURIComponent(trimmed)}`;
 }
 
 export default function ImageCard({
@@ -24,15 +25,19 @@ export default function ImageCard({
   bookName,
   priority = false,
 }: ImageCardProps) {
-  const [imgSrc, setImgSrc] = useState(() => normalizeSrc(bookImage));
+  const normalizedSrc = useMemo(() => normalizeSrc(bookImage), [bookImage]);
+  const [hasError, setHasError] = useState(false);
+  const imgSrc = hasError
+    ? FALLBACK_IMAGE
+    : normalizedSrc ?? FALLBACK_IMAGE;
 
   useEffect(() => {
-    setImgSrc(normalizeSrc(bookImage));
-  }, [bookImage]);
+    setHasError(false);
+  }, [normalizedSrc]);
 
   const handleError = () => {
-    if (imgSrc !== FALLBACK_SRC) {
-      setImgSrc(FALLBACK_SRC);
+    if (!hasError && imgSrc !== FALLBACK_IMAGE) {
+      setHasError(true);
     }
   };
 

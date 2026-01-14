@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Controller, useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -45,7 +45,6 @@ export function BannerDialog({
   onOpenChange,
   bannerToEdit,
 }: BannerDialogProps) {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { submitBanner } = useBannerSubmit();
 
   const queryClient = useQueryClient();
@@ -70,6 +69,26 @@ export function BannerDialog({
     control,
     formState: { errors },
   } = form;
+  const imageValue = form.watch("imageUrl");
+  const filePreviewUrl = useMemo(() => {
+    if (imageValue instanceof File) {
+      return URL.createObjectURL(imageValue);
+    }
+    return null;
+  }, [imageValue]);
+  const resolvedPreview =
+    filePreviewUrl ??
+    (typeof imageValue === "string"
+      ? imageValue
+      : bannerToEdit?.imageUrl ?? null);
+
+  useEffect(() => {
+    return () => {
+      if (filePreviewUrl) {
+        URL.revokeObjectURL(filePreviewUrl);
+      }
+    };
+  }, [filePreviewUrl]);
 
   useEffect(() => {
     if (open) {
@@ -85,8 +104,6 @@ export function BannerDialog({
           isActive: bannerToEdit.isActive,
           imageUrl: bannerToEdit.imageUrl,
         });
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setImagePreview(bannerToEdit.imageUrl);
       } else {
         form.reset({
           title: "",
@@ -99,21 +116,16 @@ export function BannerDialog({
           isActive: true,
           imageUrl: undefined,
         });
-        setImagePreview(null);
       }
     }
   }, [open, bannerToEdit, form]);
 
   const handleImageChange = (file: File) => {
     form.setValue("imageUrl", file, { shouldValidate: true });
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
     form.setValue("imageUrl", undefined, { shouldValidate: true });
-    setImagePreview(null);
   };
 
   const mutation = useMutation({
@@ -295,10 +307,10 @@ export function BannerDialog({
                 </Label>
 
                 <div className="relative group w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 overflow-hidden flex flex-col items-center justify-center hover:bg-muted/50 transition-colors">
-                  {imagePreview ? (
+                  {resolvedPreview ? (
                     <>
                       <ImagePreview
-                        src={imagePreview}
+                        src={resolvedPreview}
                         alt="Banner Image"
                         onRemove={removeImage}
                       />
@@ -323,7 +335,7 @@ export function BannerDialog({
                   <UploadBookButton
                     label=""
                     accept="image/*"
-                    buttonText={imagePreview ? "Thay đổi ảnh" : "Tải ảnh lên"}
+                    buttonText={resolvedPreview ? "Thay đổi ảnh" : "Tải ảnh lên"}
                     onChange={handleImageChange}
                   />
                 </div>

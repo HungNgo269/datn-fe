@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { SearchIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
-export default function AdminSearch({ placeholder }: { placeholder: string }) {
+function AdminSearchContent({ placeholder }: { placeholder: string }) {
   const searchParams = useSearchParams();
   const { replace } = useRouter();
   const pathname = usePathname();
@@ -35,5 +36,13 @@ export default function AdminSearch({ placeholder }: { placeholder: string }) {
       />
       <SearchIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
     </div>
+  );
+}
+
+export default function AdminSearch(props: { placeholder: string }) {
+  return (
+    <Suspense fallback={<div className="h-10 w-full" />}>
+      <AdminSearchContent {...props} />
+    </Suspense>
   );
 }

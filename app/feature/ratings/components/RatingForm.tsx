@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,16 +36,6 @@ export function RatingForm({
   const [score, setScore] = useState(initialData?.score || 5);
   const [review, setReview] = useState(initialData?.review || "");
   const [hoverScore, setHoverScore] = useState(0);
-  useEffect(() => {
-    if (initialData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setScore(initialData.score || 5);
-      setReview(initialData.review || "");
-    } else {
-      setScore(5);
-      setReview("");
-    }
-  }, [initialData]);
 
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -109,6 +99,10 @@ export function RatingForm({
       const callbackUrl = encodeURIComponent(pathname || "/");
       router.push(`/login?callbackUrl=${callbackUrl}`);
       return;
+    }
+    if (nextOpen) {
+      setScore(initialData?.score || 5);
+      setReview(initialData?.review || "");
     }
     setOpen(nextOpen);
   };

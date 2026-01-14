@@ -5,10 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookOpen } from "lucide-react";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import {
-  ContinueReadingEntry,
-  useReaderDataStore,
-} from "@/app/store/useReaderDataStore";
+import { useReaderDataStore } from "@/app/store/useReaderDataStore";
+import type { ContinueReadingEntry } from "@/app/types/book.types";
 import { cn } from "@/lib/utils";
 
 interface ContinueReadingButtonProps {

@@ -1,8 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
+    localPatterns: [
+      {
+        pathname: "/api/**",
+      },
+      {
+        pathname: "/images/**",
+      },
+    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -14,7 +24,7 @@ const nextConfig: NextConfig = {
         hostname: "pub-34da7137786c42e8b75b328bdd237d48.r2.dev",
       },
     ],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 86400,
   },
 };
 

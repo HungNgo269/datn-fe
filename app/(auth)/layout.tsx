@@ -8,7 +8,9 @@ export default async function AuthLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <Header></Header>
+      <Suspense fallback={<div className="h-[66px] w-full" />}>
+        <Header />
+      </Suspense>
       <Suspense>
         <main className="flex  items-center justify-center my-auto">
           <div className="relative w-full">{children}</div>

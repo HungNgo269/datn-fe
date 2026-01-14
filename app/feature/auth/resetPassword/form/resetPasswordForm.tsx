@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -14,9 +15,8 @@ import {
 } from "@/app/schema/resetPasswordSchema";
 import { ResetPassword } from "../api/resetPassword.api";
 import Link from "next/link";
-import { useEffect } from "react";
 
-export default function ResetPasswordForm() {
+function ResetPasswordFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -162,5 +162,13 @@ export default function ResetPasswordForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordForm() {
+  return (
+    <Suspense fallback={<div className="min-h-[300px] w-full" />}>
+      <ResetPasswordFormContent />
+    </Suspense>
   );
 }
