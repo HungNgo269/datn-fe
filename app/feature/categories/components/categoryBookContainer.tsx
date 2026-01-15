@@ -6,13 +6,8 @@ import CategorySelector from "./categorySelector";
 import BookCarousel from "../../books-carousel/components/bookCarousel";
 import Swipper from "@/app/share/components/ui/swipper/swipper";
 import { Category } from "../types/listCategories";
-import {
-  Book,
-  BookSortBy,
-  GetBooksParams,
-  SortOrder,
-} from "../../books/types/books.type";
-import { getBooksAction } from "../../books/action/books.action";
+import { Book, BookSortBy, SortOrder } from "../../books/types/books.type";
+import { getBooksByQuery } from "../../books/api/books.api";
 
 interface BookCategoryClientProps {
   categories: Category[];
@@ -38,19 +33,21 @@ export default function BookCategoryClient({
   const handleCategoryChange = (categoryId: number) => {
     if (categoryId === selectedCategory) return;
 
-    const targetCategory = categories.find((cat) => cat.id === categoryId);
-
-    const params: GetBooksParams = {
-      sortBy: BookSortBy.VIEW_COUNT,
-      category: targetCategory?.slug || currentCategory?.slug,
-      limit: 10,
-      page: 1,
-      sortOrder: SortOrder.DESC,
-    };
-
+    // Set category và clear books cùng lúc
     setSelectedCategory(categoryId);
+
     startTransition(async () => {
-      const newBooks = await getBooksAction(params);
+      // Show skeleton ngay
+      setBooks([]); // ⭐ Hoặc setBooks(Array(10).fill(null))
+
+      const targetCategory = categories.find((cat) => cat.id === categoryId);
+      const newBooks = await getBooksByQuery({
+        page: 1,
+        limit: 10,
+        category: targetCategory?.slug || currentCategory?.slug,
+        sortBy: BookSortBy.VIEW_COUNT,
+        sortOrder: SortOrder.DESC,
+      });
       setBooks(newBooks.data);
     });
   };
@@ -81,7 +78,11 @@ export default function BookCategoryClient({
             <Swipper books={books} showHeader={false} showViewMore={false} />
           </div>
           <div className="hidden md:block w-full">
-            <BookCarousel books={books} variant="lg" isLoading={isPending} />
+            <BookCarousel
+              books={books}
+              variant="lg"
+              isLoading={isPending || books.length === 0}
+            />
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { handlePaginatedRequest, handleRequest } from "@/lib/handleApiRequest";
-import { Book, CreateBookDto } from "../types/books.type";
+import { Book, BookSortBy, CreateBookDto, SortOrder } from "../types/books.type";
 import { axiosClient } from "@/lib/api";
 import { BookFields } from "@/app/feature/books/schema/bookSchema";
 
@@ -12,6 +12,18 @@ export async function getBooks(params: {
   const { endpoint = "/books", ...query } = params;
   return handlePaginatedRequest<Book>(() =>
     axiosClient.get(endpoint, { params: query })
+  );
+}
+
+export async function getBooksByQuery(params: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  sortBy?: BookSortBy;
+  sortOrder?: SortOrder;
+}) {
+  return handlePaginatedRequest<Book>(() =>
+    axiosClient.get("/books", { params })
   );
 }
 export async function getBookByCategory(

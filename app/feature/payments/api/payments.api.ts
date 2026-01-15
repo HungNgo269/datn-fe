@@ -2,6 +2,7 @@ import { axiosClient } from "@/lib/api";
 import { handleRequest } from "@/lib/handleApiRequest";
 import type {
   BookPurchaseStatus,
+  BookPurchase,
   CheckoutResponse,
   UserSubscription,
 } from "../types/payment.type";
@@ -27,5 +28,17 @@ export async function getUserSubscription() {
 export async function createSubscriptionCheckout(plan: "PREMIUM") {
   return handleRequest<CheckoutResponse>(() =>
     axiosClient.post("/payments/subscription", { plan })
+  );
+}
+
+export async function getUserPurchasedBooks() {
+  return handleRequest<BookPurchase[]>(() =>
+    axiosClient.get("/payments/purchases")
+  );
+}
+
+export async function cancelUserSubscription() {
+  return handleRequest<UserSubscription>(() =>
+    axiosClient.post("/payments/subscription/cancel")
   );
 }

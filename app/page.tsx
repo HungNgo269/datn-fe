@@ -50,12 +50,12 @@ export default async function HomePage({
       <Suspense fallback={<SlideSkeleton />}>
         <BannerComponent />
       </Suspense>
-      <div className="w-full mx-auto mt-10 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
+      <div className="w-full mx-auto mt-5 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
         <Suspense fallback={<CategoryShowcaseSkeleton />}>
           <CategoryBookWrapper />
         </Suspense>
       </div>
-      <div className="w-full mx-auto mt-10 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
+      <div className="w-full mx-auto mt-5 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
         <div className="flex  justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
           <div className="md:w-[700px] lg:w-[800px] xl:w-[850px]  flex flex-col gap-5">
             <div className="block md:hidden">

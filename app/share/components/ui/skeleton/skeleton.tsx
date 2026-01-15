@@ -3,7 +3,7 @@ const shimmer =
 
 const surfaceShell =
   "relative overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm";
-const solidBlock = "animate-pulse rounded-lg bg-muted";
+const solidBlock = "animate-pulse rounded-lg bg-muted-foreground/20";
 const softBlock = "animate-pulse rounded-md bg-muted-foreground/20";
 const chipBlock = "animate-pulse rounded-full bg-muted-foreground/30";
 
@@ -56,14 +56,16 @@ const CARD_MAP = {
   lg: {
     card: "xl:w-[230px] lg:w-[170px] md:w-[130px] w-full h-fit",
     image:
-      "xl:w-[230px] xl:h-[250px] lg:w-[170px] lg:h-[221px] md:w-[130px] h-[207px] w-full",
+      "xl:w-[230px] xl:h-[300px] lg:w-[170px] lg:h-[190px] md:w-[130px] h-[205px] w-full",
+    title: "h-5",
+    author: "h-4",
   },
   sm: {
     card: "xl:w-[160px] lg:w-[130px] md:w-[130px] w-full h-fit",
     image:
-      "xl:w-[160px] xl:h-[207px] lg:w-[130px] lg:h-[182px] md:w-[130px] h-[207px] w-full",
+      "xl:w-[160px] xl:h-[207px] lg:w-[130px] lg:h-[182px] md:w-[130px] h-[205px] w-full",
     title: "h-3",
-    meta: "h-3",
+    author: "h-2",
   },
 } as const;
 
@@ -73,16 +75,23 @@ export function BookCardSkeleton({ variant = "lg" }: { variant?: Variant }) {
   return (
     <div className={`flex flex-col ${s.card}`}>
       <div
-        className={`${shimmer} ${surfaceShell} flex flex-col gap-3 p-2 h-full`}
+        className={`${shimmer} relative overflow-hidden rounded-[8px] ${s.image}`}
       >
-        <div className="w-full overflow-hidden rounded-[8px]">
-          <div className={`${s.image} ${solidBlock}`} />
+        <div className={`w-full h-full ${solidBlock}`} />
+
+        <div className="absolute right-2 top-2 z-10">
+          <div className={`w-16 h-5 ${chipBlock}`} />
         </div>
+      </div>
+
+      <div className="flex flex-col mt-3 h-fit justify-between gap-2">
+        <div className={`w-full ${s.title} ${solidBlock}`} />
+
+        <div className={`w-3/4 ${s.author} ${softBlock}`} />
       </div>
     </div>
   );
 }
-
 export function TrendingBookSkeleton() {
   return (
     <div className="space-y-3">

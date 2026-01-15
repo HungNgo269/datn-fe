@@ -188,36 +188,55 @@ function BookPaymentActionsContent({
     }
   };
 
+  // Ẩn button nếu không phải purchase hoặc membership
   if (!isPurchase && !isMembership) {
     return null;
   }
 
+  // Nếu là PURCHASE: ẩn button khi đã mua sách
+  if (isPurchase && isPurchased) {
+    return null;
+  }
+
+  // Nếu là MEMBERSHIP: ẩn button khi đã có premium
+  if (isMembership && hasActiveSubscription) {
+    return null;
+  }
+
+  // Render button tương ứng
   if (isPurchase) {
-    const purchasedLabel = isPurchased ? "Đã mua" : `Mua với ${priceLabel}`;
     return (
       <Button
         type="button"
         onClick={handlePurchase}
-        disabled={isLoading || isPurchased === true}
-        className={cn("h-12 w-full sm:w-auto", className)}
+        disabled={isLoading}
+        className={cn(
+          "h-12 w-full sm:w-auto px-4 rounded-sm border border-border flex items-center justify-center gap-2 font-semibold transition-all bg-primary text-primary-foreground text-base",
+          className
+        )}
       >
-        {purchasedLabel}
+        Mua với {priceLabel}
       </Button>
     );
   }
 
-  const subscribedLabel = hasActiveSubscription ? "subscribed" : "Hội viên";
+  if (isMembership) {
+    return (
+      <Button
+        type="button"
+        onClick={handleSubscription}
+        disabled={isLoading}
+        className={cn(
+          "h-12 w-full sm:w-auto px-4 rounded-sm border border-border flex items-center justify-center gap-2 font-semibold transition-all bg-primary text-primary-foreground text-base",
+          className
+        )}
+      >
+        Hội viên
+      </Button>
+    );
+  }
 
-  return (
-    <Button
-      type="button"
-      onClick={handleSubscription}
-      disabled={isLoading || hasActiveSubscription}
-      className={cn("h-12 w-full sm:w-auto", className)}
-    >
-      {subscribedLabel}
-    </Button>
-  );
+  return null;
 }
 
 export function BookPaymentActions(props: BookPaymentActionsProps) {

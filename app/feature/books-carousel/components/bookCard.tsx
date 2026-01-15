@@ -36,16 +36,16 @@ export default function BookCard({
     : undefined;
   const isFreeBook = normalizedAccessType === "FREE";
   const requiresPayment =
-    normalizedAccessType === "PURCHASE" ||
-    normalizedAccessType === "MEMBERSHIP" ||
+    normalizedAccessType === "Sách bán" ||
+    normalizedAccessType === "Hội viên" ||
     (!isFreeBook && priceValue > 0);
   const accessBadgeLabel = requiresPayment
-    ? normalizedAccessType === "MEMBERSHIP"
+    ? normalizedAccessType === "Hội viên"
       ? "MEMBER"
-      : "PURCHASE"
+      : "Sách bán"
     : null;
   const badgeClasses =
-    normalizedAccessType === "MEMBERSHIP"
+    normalizedAccessType === "Hội viên"
       ? "border-sky-200 bg-sky-50 text-sky-700"
       : "border-amber-200 bg-amber-50 text-amber-700";
   return (

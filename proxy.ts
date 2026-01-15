@@ -11,23 +11,36 @@ const adminRoutes = [
   "/users-admin",
 ];
 
+const userRoutes = [
+  "/profile",
+  "/favourite-book",
+  "/bookmark",
+  "/purchased",
+  "/subscription-settings",
+  "/privacy",
+];
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
-  if (isAdminRoute) {
-    console.log("ré", request);
+  const isUserRoute = userRoutes.some((route) => pathname.startsWith(route));
+
+  if (isAdminRoute || isUserRoute) {
+    console.log("reI?", request);
     const token = request.cookies.get("accessToken")?.value;
     console.log("checktoken", token);
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    const decodedToken = parseJwt(token);
-    const userRoles = decodedToken?.roles || [];
-    console.log("decodedToken", userRoles);
-    if (!userRoles.includes("admin")) {
-      return NextResponse.next();
-      //   return NextResponse.redirect(new URL("/", request.url));
+    if (isAdminRoute) {
+      const decodedToken = parseJwt(token);
+      const userRoles = decodedToken?.roles || [];
+      console.log("decodedToken", userRoles);
+      if (!userRoles.includes("admin")) {
+        return NextResponse.next();
+        //   return NextResponse.redirect(new URL("/", request.url));
+      }
     }
   }
 

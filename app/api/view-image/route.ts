@@ -1,4 +1,4 @@
-import { getPresignedUrl } from "@/app/share/api/share.api";
+import { BackendResponse } from "@/app/types/api.types";
 import { NextRequest } from "next/server";
 
 const CACHE_SECONDS = 60 * 60 * 24 * 365;
@@ -10,39 +10,54 @@ export async function GET(request: NextRequest) {
     return new Response("Missing filename", { status: 400 });
   }
 
-  let filename = rawFilename;
+  let key = rawFilename;
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (!backendUrl) {
+    return new Response("Backend URL is not configured", { status: 500 });
+  }
 
   try {
-    filename = decodeURIComponent(rawFilename);
+    key = decodeURIComponent(rawFilename);
   } catch {
-    filename = rawFilename;
-  }
-
-  filename = filename.replace(/^\/+/, "");
-  if (filename.startsWith("uploads/")) {
-    filename = filename.slice("uploads/".length);
+    key = rawFilename;
   }
 
   try {
-    const parts = filename.split("/");
-    let folderType = "cover";
-
-    if (parts.length > 1) {
-      const rawType = parts[parts.length - 2];
-      if (rawType.includes("cover")) folderType = "cover";
-      if (rawType.includes("avatar")) folderType = "avatar";
-      if (rawType.includes("book")) folderType = "book";
+    key = key.replace(/^\/+/, "");
+    if (!key.startsWith("uploads/")) {
+      key = `uploads/${key}`;
     }
 
-    const response = await getPresignedUrl(filename, folderType);
+    const presignedResponse = await fetch(
+      `${backendUrl}/storage/presigned-download?key=${encodeURIComponent(key)}`
+    );
 
-    if (!response || !response.uploadUrl) {
-      console.error("Presigned URL Response Error:", response);
+    if (!presignedResponse.ok) {
+      const errorBody = await presignedResponse.text().catch(() => "");
+      console.error("Presigned URL Response Error:", {
+        status: presignedResponse.status,
+        body: errorBody,
+      });
+      return new Response("Could not get presigned URL from Backend", {
+        status:
+          presignedResponse.status === 401 || presignedResponse.status === 403
+            ? presignedResponse.status
+            : 502,
+      });
+    }
+
+    const payload =
+      (await presignedResponse.json()) as BackendResponse<{ url: string }>;
+    const response = payload?.data;
+
+    if (!payload?.success || !response?.url) {
+      console.error("Presigned URL Response Error:", payload);
       return new Response("Could not get presigned URL from Backend", {
         status: 502,
       });
     }
-    const presignedUrl = response.uploadUrl;
+    const presignedUrl = response.url;
 
     const imageResponse = await fetch(presignedUrl);
     if (!imageResponse.ok) {

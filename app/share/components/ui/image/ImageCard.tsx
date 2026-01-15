@@ -15,7 +15,11 @@ const FALLBACK_IMAGE = "/images/sachFallBack.jpg";
 function normalizeSrc(src?: string | null) {
   if (!src) return;
   const trimmed = src.trim();
+  if (!trimmed) return;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/uploads/")) {
+    return `${PROXY_IMAGE_ROUTE}?key=${encodeURIComponent(trimmed.slice(1))}`;
+  }
   if (trimmed.startsWith("/")) return trimmed;
   return `${PROXY_IMAGE_ROUTE}?key=${encodeURIComponent(trimmed)}`;
 }
@@ -41,7 +45,8 @@ export default function ImageCard({
     }
   };
 
-  const bypassOptimization = /^https?:\/\//i.test(imgSrc);
+  const bypassOptimization =
+    imgSrc.startsWith(PROXY_IMAGE_ROUTE) || /^https?:\/\//i.test(imgSrc);
 
   return (
     <Image

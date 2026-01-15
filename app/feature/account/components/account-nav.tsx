@@ -11,6 +11,7 @@ import {
   CreditCard,
   LogOut,
   Wallet,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,6 +33,18 @@ const NAV_LINKS = [
     href: "/bookmark",
     label: "Tủ sách cá nhân",
     icon: <Bookmark className="w-4 h-4" />,
+  },
+
+  {
+    href: "/purchased",
+    label: "Sách đã mua",
+    icon: <ShoppingBag className="w-4 h-4" />,
+  },
+
+  {
+    href: "/subscription-settings",
+    label: "Hội viên",
+    icon: <CreditCard className="w-4 h-4" />,
   },
 
   {

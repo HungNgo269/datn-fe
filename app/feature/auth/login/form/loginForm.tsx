@@ -20,6 +20,8 @@ function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const isSecureContext =
+    typeof window !== "undefined" && window.location.protocol === "https:";
   const {
     register,
     handleSubmit,
@@ -40,7 +42,7 @@ function LoginFormContent() {
 
       Cookies.set("accessToken", data.accessToken, {
         expires: 15 * 60 * 1000,
-        secure: process.env.NODE_ENV === "production",
+        secure: isSecureContext,
         sameSite: "strict",
         path: "/",
       });

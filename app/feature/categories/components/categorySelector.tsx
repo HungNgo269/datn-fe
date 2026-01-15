@@ -19,6 +19,7 @@ export default function CategorySelector({
         return (
           <div key={category.id} className="flex items-center">
             <button
+              type="button"
               onClick={() => onCategoryChange(category.id)}
               className={`text-nowrap transition-colors hover:text-primary hover:cursor-pointer
                 ${

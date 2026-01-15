@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
@@ -10,7 +10,7 @@ import { createSubscriptionCheckout } from "@/app/feature/payments/api/payments.
 const RETURN_STORAGE_KEY = "payment:return";
 const PAYMENT_TYPE_KEY = "payment:type";
 
-export default function SubscriptionPage() {
+function SubscriptionPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -46,10 +46,10 @@ export default function SubscriptionPage() {
         window.location.assign(response.checkoutUrl);
         return;
       }
-      toast.error("Khong tao duoc duong dan thanh toan.");
+      toast.error("Không tạo được đường dẫn thanh toán.");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Khong tao duoc goi hoi vien."
+        error instanceof Error ? error.message : "Không tạo được gói hội viên."
       );
     } finally {
       setIsLoading(false);
@@ -83,5 +83,13 @@ export default function SubscriptionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SubscriptionPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <SubscriptionPageContent />
+    </Suspense>
   );
 }
