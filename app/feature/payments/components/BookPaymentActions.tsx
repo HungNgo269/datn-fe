@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatCurrency, toNumericPrice } from "@/lib/helper";
@@ -23,6 +24,7 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   "TRIALING",
 ]);
 const RETURN_STORAGE_KEY = "payment:return";
+const PAYMENT_TYPE_KEY = "payment:type";
 
 interface BookPaymentActionsProps {
   bookId: number;
@@ -42,6 +44,9 @@ function BookPaymentActionsContent({
   const searchParams = useSearchParams();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
+  const accessToken = Cookies.get("accessToken");
+  const hasAuthToken = Boolean(accessToken);
+  const isUserAuthenticated = isAuthenticated || hasAuthToken;
 
   const normalizedAccessType = accessType
     ? accessType.toString().toUpperCase()
@@ -56,12 +61,29 @@ function BookPaymentActionsContent({
     return query ? `${pathname}?${query}` : pathname;
   }, [pathname, searchParams]);
 
-  const shouldCheckPurchase = isAuthenticated && isPurchase;
-  const shouldCheckSubscription = isAuthenticated && isMembership;
+  const returnPath = useMemo(() => {
+    const rawReturn = searchParams.get("return");
+    if (rawReturn && rawReturn.startsWith("/")) {
+      return rawReturn;
+    }
+    return currentPath;
+  }, [currentPath, searchParams]);
+
+  const shouldCheckPurchase = isPurchase && isUserAuthenticated;
+  const shouldCheckSubscription = isMembership && isUserAuthenticated;
 
   const { data: purchaseStatus } = useQuery({
     queryKey: ["payment", "purchase", bookId],
-    queryFn: () => getBookPurchaseStatus(bookId),
+    queryFn: async () => {
+      try {
+        return await getBookPurchaseStatus(bookId);
+      } catch (error) {
+        if (error instanceof ApiError && error.statusCode === 401) {
+          return null;
+        }
+        throw error;
+      }
+    },
     enabled: shouldCheckPurchase,
     staleTime: 60 * 1000,
     retry: false,
@@ -106,7 +128,7 @@ function BookPaymentActionsContent({
   const handleCheckoutRedirect = (checkoutUrl?: string | null) => {
     if (checkoutUrl) {
       try {
-        localStorage.setItem(RETURN_STORAGE_KEY, currentPath);
+        localStorage.setItem(RETURN_STORAGE_KEY, returnPath);
       } catch {}
       window.location.assign(checkoutUrl);
     } else {
@@ -115,7 +137,7 @@ function BookPaymentActionsContent({
   };
 
   const handlePurchase = async () => {
-    if (!isAuthenticated) {
+    if (!isUserAuthenticated) {
       handleAuthRedirect();
       return;
     }
@@ -126,6 +148,9 @@ function BookPaymentActionsContent({
 
     setIsLoading(true);
     try {
+      try {
+        localStorage.setItem(PAYMENT_TYPE_KEY, "book");
+      } catch {}
       const response = await createBookCheckout(bookId);
       handleCheckoutRedirect(response.checkoutUrl);
     } catch (error) {
@@ -138,7 +163,7 @@ function BookPaymentActionsContent({
   };
 
   const handleSubscription = async () => {
-    if (!isAuthenticated) {
+    if (!isUserAuthenticated) {
       handleAuthRedirect();
       return;
     }
@@ -149,13 +174,14 @@ function BookPaymentActionsContent({
 
     setIsLoading(true);
     try {
+      try {
+        localStorage.setItem(PAYMENT_TYPE_KEY, "subscription");
+      } catch {}
       const response = await createSubscriptionCheckout("PREMIUM");
       handleCheckoutRedirect(response.checkoutUrl);
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Không thể tạo gói hội viên."
+        error instanceof Error ? error.message : "Không thể tạo gói hội viên."
       );
     } finally {
       setIsLoading(false);
@@ -167,7 +193,7 @@ function BookPaymentActionsContent({
   }
 
   if (isPurchase) {
-    const purchasedLabel = isPurchased ? "bought" : `Buy ${priceLabel}`;
+    const purchasedLabel = isPurchased ? "Đã mua" : `Mua với ${priceLabel}`;
     return (
       <Button
         type="button"
@@ -180,7 +206,7 @@ function BookPaymentActionsContent({
     );
   }
 
-  const subscribedLabel = hasActiveSubscription ? "subscribed" : "Subscribe";
+  const subscribedLabel = hasActiveSubscription ? "subscribed" : "Hội viên";
 
   return (
     <Button

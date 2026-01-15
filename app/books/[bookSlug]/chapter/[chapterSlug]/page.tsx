@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import {
   getChaptersContent,
   getChaptersDetails,
@@ -31,7 +31,7 @@ export async function generateMetadata({
     const chapterTitle = chapter?.title;
 
     if (chapterTitle && bookTitle) {
-      return { title: `${chapterTitle} – ${bookTitle} | NextBook` };
+      return { title: `${chapterTitle} ƒ?" ${bookTitle} | NextBook` };
     }
     if (chapterTitle) {
       return { title: `${chapterTitle} | NextBook` };
@@ -58,13 +58,13 @@ export default async function ChapterPage({ params }: PageProps) {
   const chapterPath = `/books/${bookSlug}/chapter/${chapterSlug}`;
   if (!response.hasAccess) {
     if (accessToken) {
-      redirect(`/payment?book=${bookSlug}&chapter=${chapterSlug}`);
+      redirect(`/subscription?return=${encodeURIComponent(chapterPath)}`);
     }
     redirect(`/login?next=${encodeURIComponent(chapterPath)}`);
   }
 
   if (!response.contentUrl) {
-    throw new Error("Không tải được nội dung chương");
+    throw new Error("Không thể tải nội dung chương");
   }
 
   const chapterContent = await getChaptersContent(response.contentUrl);

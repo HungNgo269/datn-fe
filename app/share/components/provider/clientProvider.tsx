@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/app/share/components/provider/themeProvider";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
 import dynamic from "next/dynamic";
+import PaymentSuccessToast from "@/app/share/components/provider/paymentSuccessToast";
 
 const BookAudioStickyPlayer = dynamic(
   () =>
@@ -27,6 +28,7 @@ export default function ClientProvider({
         enableSystem
         disableTransitionOnChange
       >
+        <PaymentSuccessToast />
         {children}
         <Suspense fallback={null}>
           <BookAudioStickyPlayer />

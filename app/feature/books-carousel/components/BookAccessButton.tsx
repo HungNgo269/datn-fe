@@ -4,7 +4,6 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface BookAccessButtonProps {
   slug: string;
@@ -20,22 +19,10 @@ export function BookAccessButton({
   requiresPayment,
 }: BookAccessButtonProps) {
   const router = useRouter();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const handleClick = useCallback(() => {
-    if (!requiresPayment) {
-      router.push(`/books/${slug}`);
-      return;
-    }
-
-    const paymentUrl = `/payment?book=${slug}`;
-    if (isAuthenticated) {
-      router.push(paymentUrl);
-      return;
-    }
-
-    router.push(`/login?next=${encodeURIComponent(paymentUrl)}`);
-  }, [isAuthenticated, requiresPayment, router, slug]);
+    router.push(`/books/${slug}`);
+  }, [router, slug]);
 
   return (
     <Button

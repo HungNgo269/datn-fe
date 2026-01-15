@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   addBookToFavorites,
+  getFavoriteCount,
   getFavoriteStatus,
   removeBookFromFavorites,
 } from "../api/favorites.api";
@@ -35,6 +36,7 @@ function FavoriteButtonContent({
   const searchParams = useSearchParams();
 
   const shouldFetchStatus = Boolean(bookId && effectiveUserId);
+  const shouldFetchCount = Boolean(bookId && !effectiveUserId);
 
   const {
     data: favoriteStatus,
@@ -57,8 +59,19 @@ function FavoriteButtonContent({
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: favoriteCount } = useQuery({
+    queryKey: ["favorite-count", bookId],
+    queryFn: async () => {
+      return await getFavoriteCount(bookId);
+    },
+    enabled: shouldFetchCount,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   const isFavorited = favoriteStatus?.isFavorited ?? false;
-  const totalFavorites = favoriteStatus?.totalFavorites ?? 0;
+  const totalFavorites =
+    favoriteStatus?.totalFavorites ?? favoriteCount?.totalFavorites ?? 0;
   const mutation = useMutation({
     mutationFn: async (currentlyFavorited: boolean) => {
       if (!effectiveUserId) {
@@ -148,10 +161,6 @@ function FavoriteButtonContent({
 
     mutation.mutate(isFavorited);
   };
-
-  if (!effectiveUserId) {
-    return null;
-  }
 
   return (
     <Button

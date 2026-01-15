@@ -10,6 +10,7 @@ type State = {
 
 type Action = {
   setUser: (user: User) => void;
+  setSubscriptionPlan: (plan: string) => void;
   clearUser: () => void;
 };
 
@@ -24,6 +25,15 @@ export const useAuthStore = create<Action & State>()(
         set({
           user: user,
           isAuthenticated: true,
+        });
+      },
+      setSubscriptionPlan: (plan: string) => {
+        set((state) => {
+          if (!state.user) return state;
+          return {
+            ...state,
+            user: { ...state.user, subscriptionPlan: plan },
+          };
         });
       },
       clearUser: () => {

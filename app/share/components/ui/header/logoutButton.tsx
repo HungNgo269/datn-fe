@@ -17,7 +17,7 @@ export function LogOutButton() {
     mutationFn: logout,
     onSuccess: async () => {
       useAuthStore.getState().clearUser();
-      Cookies.remove("accessToken");
+      Cookies.remove("accessToken", { path: "/" });
       await queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Đăng xuất thành công!");
       // router.push("/books");

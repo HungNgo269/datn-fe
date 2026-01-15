@@ -83,7 +83,7 @@ export default function AdminLayout({
     mutationFn: logout,
     onSuccess: async () => {
       useAuthStore.getState().clearUser();
-      Cookies.remove("accessToken");
+      Cookies.remove("accessToken", { path: "/" });
       await queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Đã đăng xuất tài khoản quản trị.");
       router.push("/login");

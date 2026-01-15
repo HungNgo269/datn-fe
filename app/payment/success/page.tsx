@@ -3,28 +3,35 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 const RETURN_STORAGE_KEY = "payment:return";
+const PAYMENT_TYPE_KEY = "payment:type";
+const PAYMENT_SUCCESS_KEY = "payment:success";
+const DEFAULT_RETURN_PATH = "/books";
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
 
   useEffect(() => {
-    let targetPath = "/books";
+    let returnPath = DEFAULT_RETURN_PATH;
     try {
-      const storedPath = localStorage.getItem(RETURN_STORAGE_KEY);
-      if (storedPath && storedPath.startsWith("/")) {
-        targetPath = storedPath;
+      const stored = localStorage.getItem(RETURN_STORAGE_KEY);
+      if (stored && stored.startsWith("/")) {
+        returnPath = stored;
       }
       localStorage.removeItem(RETURN_STORAGE_KEY);
+
+      const paymentType = localStorage.getItem(PAYMENT_TYPE_KEY);
+      if (paymentType === "subscription") {
+        useAuthStore.getState().setSubscriptionPlan("PREMIUM");
+      }
+      localStorage.removeItem(PAYMENT_TYPE_KEY);
+      localStorage.setItem(PAYMENT_SUCCESS_KEY, "1");
     } catch {}
 
-    toast.success("Thanh toán thành công.", { position: "top-center" });
-    const timer = window.setTimeout(() => {
-      router.replace(targetPath);
-    }, 1500);
-
-    return () => window.clearTimeout(timer);
+    toast.success("Thanh toan thanh cong.");
+    router.replace(returnPath);
   }, [router]);
 
   return null;
