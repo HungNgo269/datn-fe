@@ -1,14 +1,14 @@
-"use client";
+﻿"use client";
 
-import { Suspense, useEffect } from "react";
-import { useAuthStore } from "@/app/store/useAuthStore";
+import { Suspense, useCallback, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getMyFavoriteBooks } from "../api/favorites.api";
-import { FavoriteBookCard } from "./FavoriteBookCard";
+import { Loader2, RefreshCw } from "lucide-react";
+import { useAuthStore } from "@/app/store/useAuthStore";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { getMyFavoriteBooks } from "../api/favorites.api";
+import { FavoriteBookCard } from "./FavoriteBookCard";
 
 const PAGE_SIZE = 12;
 
@@ -27,6 +27,10 @@ function FavoriteBooksSectionContent() {
     enabled: Boolean(user),
   });
 
+  const handleRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
   useEffect(() => {
     if (!user) {
       router.replace("/login");
@@ -40,7 +44,7 @@ function FavoriteBooksSectionContent() {
   const totalFavorites = meta?.total ?? 0;
 
   return (
-    <section className="rounded-2xl p-6 space-y-6">
+    <section className="space-y-6 rounded-2xl p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">
@@ -53,7 +57,7 @@ function FavoriteBooksSectionContent() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => refetch()}
+          onClick={handleRefresh}
           disabled={isFetching}
           className="flex items-center gap-2"
         >
@@ -62,13 +66,13 @@ function FavoriteBooksSectionContent() {
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          Refresh
+          Làm mới
         </Button>
       </div>
 
       {isError && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          Unable to load favorites. Please try again.
+          Không thể tải danh sách yêu thích. Vui lòng thử lại.
         </div>
       )}
 
@@ -78,9 +82,9 @@ function FavoriteBooksSectionContent() {
         </div>
       ) : favorites.length === 0 ? (
         <div className="flex min-h-[200px] flex-col items-center justify-center space-y-2 rounded-xl border border-dashed p-10 text-center">
-          <p className="text-base font-medium">No favorites yet</p>
+          <p className="text-base font-medium">Chưa có sách yêu thích</p>
           <p className="text-sm text-muted-foreground">
-            Add books to your favorites to see them here.
+            Hãy thêm sách vào danh sách yêu thích để xem tại đây.
           </p>
         </div>
       ) : (

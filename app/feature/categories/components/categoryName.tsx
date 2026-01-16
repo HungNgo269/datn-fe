@@ -1,4 +1,4 @@
-import { getCategoryBySlugAction } from "../actions/categories.action"; // Đảm bảo import đúng action
+﻿import { getCategoryBySlugAction } from "../actions/categories.action";
 
 interface CategoryNameProps {
   currentSlug?: string;
@@ -7,8 +7,8 @@ interface CategoryNameProps {
 export default async function CategoryName({ currentSlug }: CategoryNameProps) {
   if (!currentSlug) {
     return (
-      <span className="text-lg sm:text-xl md:text-2xl font-semibold mb-2">
-        Tất cả các sách
+      <span className="mb-2 text-lg font-semibold sm:text-xl md:text-2xl">
+        Tất cả các sách
       </span>
     );
   }
@@ -20,7 +20,7 @@ export default async function CategoryName({ currentSlug }: CategoryNameProps) {
 
     return (
       <div className="mb-2">
-        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold capitalize">
+        <h1 className="text-lg font-semibold capitalize sm:text-xl md:text-2xl">
           {displayName}
         </h1>
       </div>

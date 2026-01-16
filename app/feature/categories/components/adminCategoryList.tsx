@@ -1,5 +1,4 @@
-import { Loader2, Pencil, Trash2 } from "lucide-react";
-
+﻿import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -38,7 +37,7 @@ export function AdminCategoryList({
   isFetching,
 }: CategoriesTableProps) {
   return (
-    <div className="border rounded-md">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -59,7 +58,7 @@ export function AdminCategoryList({
             </TableRow>
           ) : categories.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center h-24">
+              <TableCell colSpan={4} className="h-24 text-center">
                 Chưa có dữ liệu
               </TableCell>
             </TableRow>
@@ -71,7 +70,7 @@ export function AdminCategoryList({
                   {cat.slug}
                 </TableCell>
                 <TableCell>{cat.description || "--"}</TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell className="space-x-2 text-right">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -97,8 +96,8 @@ export function AdminCategoryList({
                           Bạn có chắc chắn muốn xóa?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Hành động này không thể hoàn tác. Danh mục {cat.name}{" "}
-                          sẽ bị xóa vĩnh viễn.
+                          Hành động này không thể hoàn tác. Danh mục {cat.name} sẽ
+                          bị xóa vĩnh viễn.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

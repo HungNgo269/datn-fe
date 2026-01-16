@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import BannerContent from "./bannerContent";
 import BannerControls from "./bannerController";
 import { Banner } from "../types/banner.types";
@@ -16,14 +16,30 @@ export default function BannerHomeSliderClient({
 }: BannerHomeSliderClientProps) {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
-  const handleBannerChange = (nextIndex: number) => {
+  const handleBannerChange = useCallback((nextIndex: number) => {
     setIsTransitioning(true);
     setCurrentBanner(nextIndex);
-    setTimeout(() => setIsTransitioning(false), 300);
-  };
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+    }
+    transitionTimeoutRef.current = setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
+  }, []);
 
   const totalBanners = total ?? banners.length;
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!banners.length) {
     return null;
@@ -41,4 +57,3 @@ export default function BannerHomeSliderClient({
     </div>
   );
 }
-

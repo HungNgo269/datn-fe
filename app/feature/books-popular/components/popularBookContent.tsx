@@ -1,27 +1,7 @@
 import Link from "next/link";
 import { BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
-
-function slugifyAuthorName(name?: string | null): string | null {
-  if (!name) return null;
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function buildAuthorHref(
-  authorName?: string | null,
-  slug?: string | null
-): string {
-  const normalizedSlug = slug || slugifyAuthorName(authorName);
-  if (normalizedSlug) {
-    return `/authors/${normalizedSlug}`;
-  }
-  return "/authors";
-}
+import { buildAuthorHref } from "../../books/utils/authorLinks";
 
 interface PopularBookContentProps {
   books: BookCardProps[];
@@ -36,7 +16,7 @@ export default function PopularBookContent({ books }: PopularBookContentProps) {
           className="flex flex-row items-center gap-2 h-[80px]"
         >
           <Link
-            prefetch={true}
+            prefetch={false}
             href={`/books/${book.slug}`}
             className="relative min-w-[60px] max-w-[60px] h-full overflow-hidden rounded-[4px] group "
           >
@@ -47,9 +27,9 @@ export default function PopularBookContent({ books }: PopularBookContentProps) {
           </div>
           <div className="flex flex-col justify-center h-full xl:max-w-[250px] lg:max-w-[150px] md:max-w-[150px] max-w-full">
             <Link
-              prefetch={true}
+              prefetch={false}
               href={`/books/${book.slug}`}
-              className="text-sm font-semibold cursor-pointer hover:underline hover:text-primary not-[]:line-clamp-2"
+              className="text-sm font-semibold cursor-pointer hover:underline hover:text-primary line-clamp-2"
             >
               {book.title}
             </Link>
@@ -62,7 +42,7 @@ export default function PopularBookContent({ books }: PopularBookContentProps) {
                   return (
                     <span key={author.id}>
                       <Link
-                        prefetch={true}
+                        prefetch={false}
                         href={authorHref}
                         className="hover:underline"
                       >

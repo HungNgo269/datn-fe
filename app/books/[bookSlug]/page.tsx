@@ -156,6 +156,7 @@ export default async function BookPage({ params }: PageProps) {
                     <BookAudioPlayButton
                       bookSlug={book.slug}
                       bookTitle={book.title}
+                      coverImage={book.coverImage}
                     />
                   </div>
 

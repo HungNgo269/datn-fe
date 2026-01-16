@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo } from "react";
 import { AuthorInfo } from "../types/authors.types";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
@@ -24,7 +25,8 @@ export default function AuthorProfile({
   bookCount,
 }: AuthorProfileProps) {
   const avatar = author.avatar;
-  const joined = formatDate(author.createdAt);
+  const joined = useMemo(() => formatDate(author.createdAt), [author.createdAt]);
+  const safeBio = useMemo(() => sanitizeRichHtml(author.bio), [author.bio]);
 
   return (
     <section className="flex flex-col gap-6 ">
@@ -48,11 +50,11 @@ export default function AuthorProfile({
             <h1 className="text-2xl font-semibold uppercase tracking-tight sm:text-3xl">
               {author.name}
             </h1>
-            {author.bio && (
+            {safeBio && (
               <div
                 className="prose prose-sm mt-3 text-muted-foreground leading-relaxed"
                 dangerouslySetInnerHTML={{
-                  __html: sanitizeRichHtml(author.bio),
+                  __html: safeBio,
                 }}
               />
             )}
@@ -79,7 +81,7 @@ export default function AuthorProfile({
           <div className="flex flex-wrap gap-3">
             <Link
               href="/authors"
-              prefetch={true}
+              prefetch={false}
               className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-muted"
             >
               Quay lại danh sách tác giả

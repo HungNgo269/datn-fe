@@ -1,9 +1,11 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Star } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner"; // Hoặc library toast bạn dùng
+import { Textarea } from "@/components/ui/textarea";
+import { useAuthStore } from "@/app/store/useAuthStore";
 import {
   createBookRating,
   deleteBookRating,
   updateBookRating,
 } from "../api/ratings.api";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface RatingFormProps {
   bookId: number;
@@ -27,14 +27,16 @@ interface RatingFormProps {
   isEdit?: boolean;
 }
 
+const STAR_VALUES = [1, 2, 3, 4, 5];
+
 export function RatingForm({
   bookId,
   initialData,
   isEdit = false,
 }: RatingFormProps) {
   const [open, setOpen] = useState(false);
-  const [score, setScore] = useState(initialData?.score || 5);
-  const [review, setReview] = useState(initialData?.review || "");
+  const [score, setScore] = useState(() => initialData?.score ?? 5);
+  const [review, setReview] = useState(() => initialData?.review ?? "");
   const [hoverScore, setHoverScore] = useState(0);
 
   const queryClient = useQueryClient();
@@ -78,34 +80,41 @@ export function RatingForm({
     },
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (score === 0) {
       toast.error("Vui lòng chọn số sao");
       return;
     }
     saveMutation.mutate();
-  };
+  }, [saveMutation, score]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!isEdit) return;
-    if (!window.confirm("Bạn có chắc chắn muốn xóa đánh giá của mình cho sách này?")) {
+    if (
+      !window.confirm(
+        "Bạn có chắc chắn muốn xóa đánh giá của mình cho sách này?"
+      )
+    ) {
       return;
     }
     deleteMutation.mutate();
-  };
+  }, [deleteMutation, isEdit]);
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen && !isAuthenticated) {
-      const callbackUrl = encodeURIComponent(pathname || "/");
-      router.push(`/login?callbackUrl=${callbackUrl}`);
-      return;
-    }
-    if (nextOpen) {
-      setScore(initialData?.score || 5);
-      setReview(initialData?.review || "");
-    }
-    setOpen(nextOpen);
-  };
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen && !isAuthenticated) {
+        const callbackUrl = encodeURIComponent(pathname || "/");
+        router.push(`/login?callbackUrl=${callbackUrl}`);
+        return;
+      }
+      if (nextOpen) {
+        setScore(initialData?.score ?? 5);
+        setReview(initialData?.review ?? "");
+      }
+      setOpen(nextOpen);
+    },
+    [initialData?.review, initialData?.score, isAuthenticated, pathname, router]
+  );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -122,7 +131,7 @@ export function RatingForm({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex justify-center gap-2">
-            {[1, 2, 3, 4, 5].map((star) => (
+            {STAR_VALUES.map((star) => (
               <button
                 key={star}
                 type="button"
@@ -132,7 +141,7 @@ export function RatingForm({
                 onClick={() => setScore(star)}
               >
                 <Star
-                  className={`w-8 h-8 ${
+                  className={`h-8 w-8 ${
                     star <= (hoverScore || score)
                       ? "fill-yellow-400 text-yellow-400"
                       : "text-gray-300"
@@ -141,7 +150,7 @@ export function RatingForm({
               </button>
             ))}
           </div>
-          <div className="text-center font-medium text-sm text-muted-foreground">
+          <div className="text-center text-sm font-medium text-muted-foreground">
             {hoverScore || score} / 5
           </div>
           <Textarea

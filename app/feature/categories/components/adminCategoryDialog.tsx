@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -6,18 +6,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-
 import { Category } from "../types/listCategories";
 import { CategoryFields, CategorySchema } from "@/app/schema/categorySchema";
 import { createCategory, updateCategory } from "../api/categories.api";
@@ -35,7 +34,8 @@ export function CategoryDialog({
   categoryToEdit,
 }: CategoryDialogProps) {
   const queryClient = useQueryClient();
-  const isEditMode = !!categoryToEdit;
+  const isEditMode = Boolean(categoryToEdit);
+  type CategoryFormInput = z.input<typeof CategorySchema>;
 
   const {
     register,
@@ -44,7 +44,7 @@ export function CategoryDialog({
     control,
     setValue,
     formState: { errors },
-  } = useForm<CategoryFields>({
+  } = useForm<CategoryFormInput>({
     resolver: zodResolver(CategorySchema),
     defaultValues: {
       name: "",
@@ -104,8 +104,9 @@ export function CategoryDialog({
     },
   });
 
-  const onSubmit = (data: CategoryFields) => {
-    mutation.mutate(data);
+  const onSubmit = (data: CategoryFormInput) => {
+    const parsedData: CategoryFields = CategorySchema.parse(data);
+    mutation.mutate(parsedData);
   };
 
   const nameField = register("name");
@@ -119,7 +120,7 @@ export function CategoryDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">
               Tên danh mục <span className="text-destructive">*</span>
@@ -172,7 +173,7 @@ export function CategoryDialog({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="parentId">Danh mục cha (ID)</Label>
               <Input
@@ -212,7 +213,7 @@ export function CategoryDialog({
           </div>
 
           {mutation.isError && (
-            <p className="text-sm text-destructive text-right">
+            <p className="text-right text-sm text-destructive">
               {mutation.error instanceof Error
                 ? mutation.error.message
                 : "Không thể lưu danh mục. Thử lại sau."}

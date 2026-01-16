@@ -2,10 +2,9 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   BookOpen,
-  Users,
   ChevronLeft,
   Menu,
   GalleryHorizontal,
@@ -15,70 +14,59 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "../store/useAuthStore";
 import { usePathname, useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { queryClient } from "@/lib/query-client";
+import { useAuthStore } from "../store/useAuthStore";
 import { logout } from "../feature/auth/logout/api/logout.api";
+
 interface MenuItem {
   name: string;
   icon: React.ReactNode;
   path: string;
 }
 
+const MENU_ITEMS: MenuItem[] = [
+  {
+    name: "Sách",
+    icon: <BookOpen className="w-5 h-5" />,
+    path: "/books-admin",
+  },
+  {
+    name: "Thể loại",
+    icon: <ChartBarStacked className="w-5 h-5" />,
+    path: "/categories-admin",
+  },
+  {
+    name: "Tác giả",
+    icon: <UserPen className="w-5 h-5" />,
+    path: "/authors-admin",
+  },
+  {
+    name: "Banners",
+    icon: <GalleryHorizontal className="w-5 h-5" />,
+    path: "/banners-admin",
+  },
+];
+
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const listItems: MenuItem[] = [
-    // {
-    //   name: "Analytics",
-    //   icon: <BarChart3 className="w-5 h-5" />,
-    //   path: "/analytics-admin",
-    // },
-    {
-      name: "Sách",
-      icon: <BookOpen className="w-5 h-5" />,
-      path: "/books-admin",
-    },
-
-    {
-      name: "Thể loại",
-      icon: <ChartBarStacked className="w-5 h-5" />,
-      path: "/categories-admin",
-    },
-    {
-      name: "Tác giả",
-      icon: <UserPen className="w-5 h-5" />,
-      path: "/authors-admin",
-    },
-    {
-      name: "Banners",
-      icon: <GalleryHorizontal className="w-5 h-5" />,
-      path: "/banners-admin",
-    },
-
-    // {
-    //   name: "Người dùng",
-    //   icon: <Users className="w-5 h-5" />,
-    //   path: "/users-admin",
-    // },
-  ];
-  const userRole = useAuthStore.getState().user?.roles;
-  if (!userRole?.includes("admin")) {
-    //logout
-  }
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const activeItem =
-    listItems.find((item) => pathname.startsWith(item.path)) ||
-    listItems[0] ||
-    null;
+  const activeItem = useMemo(() => {
+    return (
+      MENU_ITEMS.find((item) => pathname.startsWith(item.path)) ||
+      MENU_ITEMS[0] ||
+      null
+    );
+  }, [pathname]);
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: async () => {
@@ -93,18 +81,19 @@ export default function AdminLayout({
     },
   });
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     if (!logoutMutation.isPending) {
       logoutMutation.mutate();
     }
-  };
-  const handleChangePage = (name: string) => {
-    const currentActive = listItems.find((item: MenuItem) => {
-      return item.name === name;
-    });
-    router.push(`${currentActive?.path}`);
-    setMobileOpen(false);
-  };
+  }, [logoutMutation]);
+
+  const handleChangePage = useCallback(
+    (path: string) => {
+      router.push(path);
+      setMobileOpen(false);
+    },
+    [router]
+  );
 
   return (
     <div className="flex h-screen bg-background">
@@ -125,14 +114,14 @@ export default function AdminLayout({
         <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border">
           {!collapsed && (
             <h1 className="text-xl font-bold text-sidebar-foreground">
-              Trang quản lý
+              Trang quản lý
             </h1>
           )}
           <Button
             variant="ghost"
             size="icon"
             className="hidden lg:flex"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => setCollapsed((prev) => !prev)}
           >
             <ChevronLeft
               className={cn(
@@ -144,7 +133,7 @@ export default function AdminLayout({
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-          {listItems.map((item) => (
+          {MENU_ITEMS.map((item) => (
             <Button
               key={item.name}
               variant={activeItem?.name === item.name ? "default" : "ghost"}
@@ -154,7 +143,7 @@ export default function AdminLayout({
                 activeItem?.name === item.name &&
                   "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
               )}
-              onClick={() => handleChangePage(item.name)}
+              onClick={() => handleChangePage(item.path)}
             >
               {item.icon}
               {!collapsed && <span>{item.name}</span>}
@@ -173,7 +162,7 @@ export default function AdminLayout({
             disabled={logoutMutation.isPending}
           >
             <LogOut className="w-5 h-5" />
-            {!collapsed && <span>Log out</span>}
+            {!collapsed && <span>Đăng xuất</span>}
           </Button>
           {!collapsed && (
             <div className="text-xs text-muted-foreground text-center">

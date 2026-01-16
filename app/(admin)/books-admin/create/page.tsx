@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ChevronLeft, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -32,34 +32,44 @@ export default function CreateBookPage() {
   });
   const { submitBook, isSubmitting, statusMessage, error } = useBookSubmit();
 
-  const handleStep1Next = (data: Step1FormData) => {
+  const handleStep1Next = useCallback((data: Step1FormData) => {
     setFormData((prev) => ({ ...prev, ...data }));
     setCurrentStep(2);
-  };
+  }, []);
 
-  const handleStep2Back = (data: Step2FormData) => {
+  const handleStep2Back = useCallback((data: Step2FormData) => {
     setFormData((prev) => ({ ...prev, ...data }));
     setCurrentStep(1);
-  };
+  }, []);
 
-  const handleStep2Submit = async (data: Step2FormData) => {
-    const finalData = { ...formData, ...data };
-    const result = await submitBook(finalData, "create");
+  const handleStep2Submit = useCallback(
+    async (data: Step2FormData) => {
+      const finalData = { ...formData, ...data };
+      const result = await submitBook(finalData, "create");
 
-    if (result?.success) {
-      toast.success(
-        "Upload sách thành công!, Hãy chờ một chút để chúng tôi cập nhật sách"
-      );
-      router.push("/books-admin");
-    } else {
-      toast.error(result?.error || "Có lỗi xảy ra trong quá trình upload.");
-    }
-  };
-  const handleCancel = () => {
-    if (confirm("Bạn có chắc muốn hủy upload? Dữ liệu sẽ không được lưu.")) {
+      if (result?.success) {
+        toast.success(
+          "Upload sách thành công! Hãy chờ một chút để hệ thống cập nhật sách."
+        );
+        router.push("/books-admin");
+      } else {
+        toast.error(
+          result?.error || "Có lỗi xảy ra trong quá trình upload."
+        );
+      }
+    },
+    [formData, router, submitBook]
+  );
+
+  const handleCancel = useCallback(() => {
+    if (
+      confirm(
+        "Bạn có chắc muốn hủy upload? Dữ liệu sẽ không được lưu."
+      )
+    ) {
       router.back();
     }
-  };
+  }, [router]);
 
   return (
     <div className="bg-background min-h-screen pb-10">
@@ -143,8 +153,7 @@ export default function CreateBookPage() {
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 animate-in fade-in slide-in-from-top-2 mt-4 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
               <p className="text-sm font-medium text-destructive">
-                {error}. Vui lòng kiểm tra và nhấn nút Hoàn tất & Đăng bên dưới
-                để thử lại.
+                {error}. Vui lòng kiểm tra và thử lại.
               </p>
             </div>
           )}

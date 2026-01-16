@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Bookmark } from "lucide-react";
@@ -29,6 +29,7 @@ export function ReaderBookmarksSection() {
       ),
     [userBookmarks]
   );
+
   const itemsPerPage = 5;
   const totalPages = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
   const [page, setPage] = useState(1);
@@ -39,21 +40,21 @@ export function ReaderBookmarksSection() {
   );
 
   return (
-    <section className="rounded-2xl  p-6  space-y-4 min-h-[300px]">
+    <section className="min-h-[300px] space-y-4 rounded-2xl p-6">
       <header>
-        <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-2">
-          <Bookmark className="w-4 h-4" />
+        <p className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          <Bookmark className="h-4 w-4" />
           Đánh dấu của tôi
         </p>
-        <h2 className="text-2xl font-semibold text-foreground mt-1">
+        <h2 className="mt-1 text-2xl font-semibold text-foreground">
           Những trang bạn muốn quay lại
         </h2>
       </header>
 
       {sorted.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Bạn chưa lưu đánh dấu nào. Dùng nút đánh dấu trong trình đọc để lưu
-          trang quan trọng.
+          Bạn chưa lưu đánh dấu nào. Đánh dấu trong trình đọc để lưu trang quan
+          trọng.
         </p>
       ) : (
         <ul className="space-y-3">
@@ -76,7 +77,7 @@ export function ReaderBookmarksSection() {
             disabled={safePage === 1}
             className="rounded-md border border-border px-2.5 py-1 text-foreground disabled:opacity-50"
           >
-            Prev
+            Trước
           </button>
           <span>
             {safePage} / {totalPages}
@@ -89,7 +90,7 @@ export function ReaderBookmarksSection() {
             disabled={safePage === totalPages}
             className="rounded-md border border-border px-2.5 py-1 text-foreground disabled:opacity-50"
           >
-            Next
+            Sau
           </button>
         </div>
       )}

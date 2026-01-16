@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo } from "react";
 import { AuthorInfo } from "../types/authors.types";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
@@ -9,13 +10,13 @@ interface AuthorCardProps {
 
 export default function AuthorCard({ author }: AuthorCardProps) {
   const avatar = author.avatar;
-  const safeBio = sanitizeRichHtml(author.bio);
+  const safeBio = useMemo(() => sanitizeRichHtml(author.bio), [author.bio]);
 
   return (
     <div className="flex w-full max-w-[230px] flex-col gap-3">
       <Link
         href={`/authors/${author.slug}`}
-        prefetch={true}
+        prefetch={false}
         className="group block"
         aria-label={`View profile for ${author.name}`}
       >
@@ -37,7 +38,7 @@ export default function AuthorCard({ author }: AuthorCardProps) {
       <div className="flex flex-1 flex-col gap-2">
         <Link
           href={`/authors/${author.slug}`}
-          prefetch={true}
+          prefetch={false}
           className="w-fit"
         >
           <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors hover:text-primary -foreground">
@@ -59,7 +60,7 @@ export default function AuthorCard({ author }: AuthorCardProps) {
 
         <Link
           href={`/books?author=${author.slug}&page=1`}
-          prefetch={true}
+          prefetch={false}
           className="mt-auto text-sm font-medium text-primary hover:underline w-fit"
         >
           Xem sách của tác giả

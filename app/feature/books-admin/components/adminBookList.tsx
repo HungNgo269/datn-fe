@@ -48,8 +48,6 @@ export function AdminBookList({
   isDeleting,
   isFetching,
 }: BookListProps) {
-  console.log(books);
-
   return (
     <div className="border rounded-md">
       <Table>
@@ -120,7 +118,7 @@ export function AdminBookList({
                               book.authors.map((author, index) => (
                                 <span key={author.author.id}>
                                   <Link
-                                    prefetch={true}
+                                    prefetch={false}
                                     href={`${book.viewCount}`}
                                     className="hover:underline"
                                   >
@@ -146,10 +144,10 @@ export function AdminBookList({
                     <div className="text-xs text-muted-foreground truncate">
                       {book.authors &&
                         book.authors.map((author, index) => (
-                          <span key={author.author.id}>
+                          <span key={author.author.slug}>
                             <Link
-                              prefetch={true}
-                              href={`${book.viewCount}`}
+                              prefetch={false}
+                              href={`/authors/${author.author.slug}`}
                               className="hover:underline"
                             >
                               {author.author.name}

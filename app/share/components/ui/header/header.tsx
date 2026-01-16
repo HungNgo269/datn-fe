@@ -19,11 +19,7 @@ export default function Header() {
           <div className="max-w-screen mx-auto w-full">
             <div className="flex items-center justify-between h-16 md:px-4 lg:px-8 xl:px-12 mx-3">
               <div className="flex flex-row items-center">
-                <Link
-                  prefetch={true}
-                  href={"/"}
-                  className="sm:text-xl md:text-2xl lg:text-3xl"
-                >
+                <Link href="/" className="sm:text-xl md:text-2xl lg:text-3xl">
                   <Logo />
                 </Link>
               </div>

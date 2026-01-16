@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import BookCarouselNavigation from "./bookCarouselNavigation";
 import BookCard from "./bookCard";
 import { Book } from "../../books/types/books.type";
@@ -50,19 +50,19 @@ export default function BookCarousel({
     return chunks;
   }, [books, isLoading]);
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     if (currentSlide < slides.length - 1 && !isTransitioning) {
       setIsTransitioning(true);
       setCurrentSlide((p) => p + 1);
     }
-  };
+  }, [currentSlide, isTransitioning, slides.length]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     if (currentSlide > 0 && !isTransitioning) {
       setIsTransitioning(true);
       setCurrentSlide((p) => p - 1);
     }
-  };
+  }, [currentSlide, isTransitioning]);
 
   if (!isLoading && (!books || books.length === 0)) {
     return null;

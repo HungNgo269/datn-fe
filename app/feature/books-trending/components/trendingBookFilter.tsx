@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useTransition } from "react";
+import { Suspense, useCallback, useTransition } from "react";
 import {
   DEFAULT_TIMEFRAME,
   sort_OPTIONS_time,
@@ -26,28 +26,31 @@ function TrendingBookFilterContent({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const updateFilter = (timeframe: TimeFrame) => {
-    if (timeframe === value) return;
+  const updateFilter = useCallback(
+    (timeframe: TimeFrame) => {
+      if (timeframe === value) return;
 
-    if (!syncToUrl) {
-      onChange?.(timeframe);
-      return;
-    }
-
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams?.toString());
-
-      if (timeframe === DEFAULT_TIMEFRAME) {
-        params.delete(paramKey);
-      } else {
-        params.set(paramKey, timeframe);
+      if (!syncToUrl) {
+        onChange?.(timeframe);
+        return;
       }
 
-      const query = params.toString();
-      const nextUrl = query ? `${pathname}?${query}` : pathname;
-      router.replace(nextUrl, { scroll: false });
-    });
-  };
+      startTransition(() => {
+        const params = new URLSearchParams(searchParams?.toString());
+
+        if (timeframe === DEFAULT_TIMEFRAME) {
+          params.delete(paramKey);
+        } else {
+          params.set(paramKey, timeframe);
+        }
+
+        const query = params.toString();
+        const nextUrl = query ? `${pathname}?${query}` : pathname;
+        router.replace(nextUrl, { scroll: false });
+      });
+    },
+    [onChange, paramKey, pathname, router, searchParams, syncToUrl, value]
+  );
 
   return (
     <div className="flex items-center gap-3">

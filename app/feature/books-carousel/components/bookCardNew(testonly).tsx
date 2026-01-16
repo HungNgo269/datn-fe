@@ -1,3 +1,6 @@
+﻿"use client";
+
+import { useMemo } from "react";
 import Link from "next/link";
 import { Book, BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
@@ -10,12 +13,13 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, Headphones, Heart } from "lucide-react";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
-const formatPrice = (price?: number | null) => {
-  if (!price || price === 0) return "Miễn phí";
+const formatPrice = (price?: number | string | null) => {
+  const numericPrice = typeof price === "string" ? Number(price) : price ?? 0;
+  if (!numericPrice || Number.isNaN(numericPrice)) return "Miễn phí";
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-  }).format(price);
+  }).format(numericPrice);
 };
 
 export default function BookCard({
@@ -32,21 +36,26 @@ export default function BookCard({
 
   const popupWidth =
     variant === "sm"
-      ? "w-[320px] md:w-[380px] lg:w-[420px]   md:h-[215px] lg:h-[250px] "
-      : "w-[350px] md:w-[420px] lg:w-[480px]   md:h-[290px] lg:h-[350px] ";
+      ? "w-[320px] md:w-[380px] lg:w-[420px] md:h-[215px] lg:h-[250px]"
+      : "w-[350px] md:w-[420px] lg:w-[480px] md:h-[290px] lg:h-[350px]";
 
   const popupImageWidth =
     variant === "sm" ? "w-[100px] md:w-[120px]" : "w-[110px] md:w-[140px]";
 
+  const sanitizedContent = useMemo(() => {
+    return sanitizeRichHtml(book?.description);
+  }, [book?.description]);
+
   if (!book) return null;
-  const sanitizedContent = sanitizeRichHtml(book?.description);
+
   return (
-    <div className={`flex flex-col w-full `}>
+    <div className="flex w-full flex-col">
       <HoverCard openDelay={0} closeDelay={100}>
         <HoverCardTrigger asChild>
           <Link
+            prefetch={false}
             href={`/books/${book.slug}`}
-            className="relative group cursor-pointer w-full"
+            className="relative w-full cursor-pointer group"
           >
             <div className="overflow-hidden rounded-md shadow-sm transition-all">
               <div className="aspect-[3/4] w-full relative">
@@ -59,10 +68,10 @@ export default function BookCard({
             </div>
 
             <div className="mt-2 space-y-1">
-              <h3 className="text-sm font-semibold line-clamp-1 group-hover:text-green-600 transition-colors">
+              <h3 className="line-clamp-1 text-sm font-semibold transition-colors group-hover:text-green-600">
                 {book.title}
               </h3>
-              <p className="text-xs text-muted-foreground line-clamp-1">
+              <p className="line-clamp-1 text-xs text-muted-foreground">
                 {book.authors?.map((a) => a.author.name).join(", ")}
               </p>
             </div>
@@ -70,51 +79,50 @@ export default function BookCard({
         </HoverCardTrigger>
 
         <HoverCardContent
-          className={`${popupWidth} p-0 border-none 
-           bg-card text-card-foreground overflow-visible z-50 hidden md:block`}
+          className={`${popupWidth} hidden border-none bg-card p-0 text-card-foreground overflow-visible z-50 md:block`}
           side="right"
           align="start"
           sideOffset={overlayOffset}
           avoidCollisions={false}
         >
           <div
-            className="absolute inset-0 opacity-10 bg-cover bg-center blur-2xl z-0 rounded-lg"
+            className="absolute inset-0 z-0 rounded-lg bg-cover bg-center opacity-10 blur-2xl"
             style={{ backgroundImage: `url(${book.coverImage})` }}
           />
 
-          <div className="relative z-10 flex gap-3 md:gap-4 p-3 md:p-4">
+          <div className="relative z-10 flex gap-3 p-3 md:gap-4 md:p-4">
             <div
-              className={`flex-shrink-0 ${popupImageWidth}  rounded-sm overflow-hidden border border-white/10 self-start`}
+              className={`flex-shrink-0 ${popupImageWidth} overflow-hidden rounded-sm border border-white/10 self-start`}
             >
               <div className="aspect-[3/4] relative">
                 <ImageCard bookImage={book.coverImage} bookName={book.title} />
               </div>
             </div>
 
-            <div className="flex flex-col flex-1 min-h-[180px]">
+            <div className="flex min-h-[180px] flex-1 flex-col">
               <div>
-                <h4 className="text-base md:text-xl font-bold leading-tight mb-1 text-card-foreground line-clamp-2 max-w-[200px] truncate">
+                <h4 className="mb-1 max-w-[200px] truncate text-base font-bold leading-tight text-card-foreground line-clamp-2 md:text-xl">
                   {book.title}
                 </h4>
-                <div className="text-xs md:text-sm text-gray-400 mb-2 font-medium">
+                <div className="mb-2 text-xs font-medium text-gray-400 md:text-sm">
                   {book.authors?.map((a) => a.author.name).join(", ")}
                 </div>
 
-                <div className="flex items-center gap-2 mb-3">
+                <div className="mb-3 flex items-center gap-2">
                   {isMember && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#B48811]/20 border border-[#B48811]/50">
+                    <div className="flex items-center gap-1 rounded border border-[#B48811]/50 bg-[#B48811]/20 px-1.5 py-0.5">
                       <span className="text-[10px] font-bold text-[#FFD700]">
                         HỘI VIÊN
                       </span>
                     </div>
                   )}
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-900/40 text-green-400 border border-green-500/30">
+                  <span className="rounded border border-green-500/30 bg-green-900/40 px-1.5 py-0.5 text-[10px] font-bold text-green-400">
                     {bookPrice}
                   </span>
                 </div>
                 {sanitizedContent ? (
                   <div
-                    className="prose prose-sm max-w-none text-foreground leading-relaxed w-full break-words text-justify line-clamp-4"
+                    className="prose prose-sm w-full max-w-none break-words text-justify text-foreground leading-relaxed line-clamp-4"
                     dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                   />
                 ) : (
@@ -124,13 +132,13 @@ export default function BookCard({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 mt-auto">
-                <Link href={`/books/${book.slug}/read`} className="flex-1">
+              <div className="mt-auto flex items-center gap-2">
+                <Link prefetch={false} href={`/books/${book.slug}/read`} className="flex-1">
                   <Button
                     size="sm"
-                    className="w-full bg-primary/80 hover:bg-primary text-primary-foreground font-bold h-8 md:h-9 text-xs shadow-lg transition-transform active:scale-95"
+                    className="h-8 w-full bg-primary/80 text-xs font-bold text-primary-foreground shadow-lg transition-transform active:scale-95 hover:bg-primary md:h-9"
                   >
-                    <BookOpen className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    <BookOpen className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                     <span className="hidden md:inline">Đọc ngay</span>
                     <span className="md:hidden">Đọc</span>
                   </Button>
@@ -139,17 +147,17 @@ export default function BookCard({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-white/10 bg-white/5 hover:bg-white/10 text-white h-8 md:h-9 w-8 md:w-9 p-0 rounded-full"
+                  className="h-8 w-8 rounded-full border-white/10 bg-white/5 p-0 text-white hover:bg-white/10 md:h-9 md:w-9"
                 >
-                  <Headphones className="w-3 h-3 md:w-4 md:h-4" />
+                  <Headphones className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
 
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-gray-400 hover:text-destructive hover:bg-transparent h-8 md:h-9 w-8 md:w-9 p-0"
+                  className="h-8 w-8 p-0 text-gray-400 hover:bg-transparent hover:text-destructive md:h-9 md:w-9"
                 >
-                  <Heart className="w-4 h-4 md:w-5 md:h-5" />
+                  <Heart className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </div>
             </div>

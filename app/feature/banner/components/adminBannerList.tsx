@@ -1,6 +1,5 @@
-import { Pencil, Trash2, ExternalLink } from "lucide-react";
+﻿import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
-
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -44,7 +43,7 @@ export function AdminBannerList({
   isDeleting,
 }: BannersTableProps) {
   return (
-    <div className="border rounded-md">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -60,7 +59,7 @@ export function AdminBannerList({
         <TableBody>
           {banners.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center h-24">
+              <TableCell colSpan={7} className="h-24 text-center">
                 Chưa có dữ liệu
               </TableCell>
             </TableRow>
@@ -70,13 +69,13 @@ export function AdminBannerList({
                 <TableCell>
                   <HoverCard openDelay={100} closeDelay={100}>
                     <HoverCardTrigger asChild>
-                      <div className="relative w-10 h-14 cursor-pointer overflow-hidden rounded-md border border-border shadow-sm group">
+                      <div className="relative h-14 w-10 cursor-pointer overflow-hidden rounded-md border border-border shadow-sm group">
                         <Image
                           src={banner.imageUrl}
                           width={40}
                           height={56}
                           alt={banner.title}
-                          className="object-cover w-full h-full transition-transform group-hover:scale-110"
+                          className="h-full w-full object-cover transition-transform group-hover:scale-110"
                         />
                       </div>
                     </HoverCardTrigger>
@@ -94,8 +93,8 @@ export function AdminBannerList({
                           className="object-cover"
                         />
                       </div>
-                      <div className="p-3 bg-popover">
-                        <h4 className="font-semibold text-sm line-clamp-2 max-w-[300px]">
+                      <div className="bg-popover p-3">
+                        <h4 className="max-w-[300px] line-clamp-2 text-sm font-semibold">
                           {banner.title}
                         </h4>
                       </div>
@@ -104,11 +103,11 @@ export function AdminBannerList({
                 </TableCell>
 
                 <TableCell className="max-w-[250px]">
-                  <div className="font-medium truncate" title={banner.title}>
+                  <div className="truncate font-medium" title={banner.title}>
                     {banner.title}
                   </div>
                   <div
-                    className="text-xs text-muted-foreground truncate"
+                    className="truncate text-xs text-muted-foreground"
                     title={banner.description!}
                   >
                     {banner.description || "--"}
@@ -118,7 +117,7 @@ export function AdminBannerList({
                       href={banner.linkUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-primary flex items-center gap-1 hover:underline mt-1"
+                      className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
                     >
                       <ExternalLink className="h-3 w-3" /> Link
                     </a>
@@ -131,15 +130,11 @@ export function AdminBannerList({
 
                 <TableCell className="text-sm text-muted-foreground">
                   <div>
-                    <span className="font-medium text-foreground">
-                      Bắt đầu:
-                    </span>{" "}
+                    <span className="font-medium text-foreground">Bắt đầu:</span>{" "}
                     {formatDate(banner.startDate!)}
                   </div>
                   <div>
-                    <span className="font-medium text-foreground">
-                      Kết thúc:
-                    </span>{" "}
+                    <span className="font-medium text-foreground">Kết thúc:</span>{" "}
                     {formatDate(banner.endDate!)}
                   </div>
                 </TableCell>
@@ -148,7 +143,7 @@ export function AdminBannerList({
 
                 <TableCell>
                   {banner.isActive ? (
-                    <Badge className="bg-success hover:bg-success/90 text-success-foreground">
+                    <Badge className="bg-success text-success-foreground hover:bg-success/90">
                       Hiển thị
                     </Badge>
                   ) : (
@@ -156,7 +151,7 @@ export function AdminBannerList({
                   )}
                 </TableCell>
 
-                <TableCell className="text-right space-x-2">
+                <TableCell className="space-x-2 text-right">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -182,8 +177,8 @@ export function AdminBannerList({
                           Bạn có chắc chắn muốn xóa?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Hành động này không thể hoàn tác. Banner{" "}
-                          <b>{banner.title}</b> sẽ bị xóa vĩnh viễn.
+                          Hành động này không thể hoàn tác. Banner <b>{banner.title}</b>
+                          sẽ bị xóa vĩnh viễn.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

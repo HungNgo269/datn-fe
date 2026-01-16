@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import BookCarousel from "../../books-carousel/components/bookCarousel";
@@ -28,8 +28,7 @@ export default function RecommendedSimilarByLastBook({
       .then((data) => {
         if (active) setBooks(data ?? []);
       })
-      .catch((error) => {
-        console.error("Failed to load similar books:", error);
+      .catch(() => {
         if (active) setBooks([]);
       })
       .finally(() => {
@@ -46,23 +45,23 @@ export default function RecommendedSimilarByLastBook({
   }
 
   return (
-    <div className="flex flex-col justify-center items-center gap-2">
-      <div className="flex flex-row items-center justify-between w-full gap-2">
-        <span className="text-lg sm:text-xl md:text-2xl font-semibold mb-1 block">
+    <div className="flex flex-col items-center justify-center gap-2">
+      <div className="flex w-full flex-row items-center justify-between gap-2">
+        <span className="mb-1 block text-lg font-semibold sm:text-xl md:text-2xl">
           Bởi vì bạn đọc {bookTitle}
         </span>
       </div>
 
-      <div className="block md:hidden w-full">
+      <div className="block w-full md:hidden">
         <Swipper books={books} showHeader={false} showViewMore={false} />
       </div>
-      <div className="hidden md:block w-full">
+      <div className="hidden w-full md:block">
         <BookCarousel
           variant="sm"
           key="recommend-book-carousel"
           books={books}
           isLoading={isLoading}
-        ></BookCarousel>
+        />
       </div>
     </div>
   );

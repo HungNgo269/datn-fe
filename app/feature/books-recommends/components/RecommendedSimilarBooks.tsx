@@ -1,4 +1,4 @@
-import { Separator } from "@/components/ui/separator";
+﻿import { Separator } from "@/components/ui/separator";
 import { getRecommendedSimilarBooks } from "../actions/recommendBooks.action";
 import RecommendedSimilarBookContent from "./recommendSimilarBookContent";
 
@@ -11,30 +11,29 @@ interface RecommendBookProps {
 export default async function RecommendedSimilarBooks({
   bookId,
   limit,
-  title = "Những người đọc tác phẩm này cũng thích",
+  title = "Những người đọc tác phẩm này cũng thích",
 }: RecommendBookProps) {
   try {
     const books = await getRecommendedSimilarBooks(bookId, limit);
     if (!books?.length) {
-      return <></>;
+      return null;
     }
 
     return (
       <div>
-        <div className="flex flex-row gap-3 md:flex-col mt-19">
-          <span className="font-bold text-lg text-start  line-clamp-2">
+        <div className="mt-19 flex flex-row gap-3 md:flex-col">
+          <span className="line-clamp-2 text-start text-lg font-bold">
             {title}
           </span>
         </div>
         <Separator />
 
-        <div className="space-y-3 mt-2">
+        <div className="mt-2 space-y-3">
           <RecommendedSimilarBookContent books={books} />
         </div>
       </div>
     );
-  } catch (error) {
-    console.error("Failed to load recommendations:", error);
+  } catch {
     return (
       <div className="p-6 text-center text-destructive">
         Không thể tải danh sách đề xuất.

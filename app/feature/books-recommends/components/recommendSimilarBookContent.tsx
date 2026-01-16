@@ -1,13 +1,7 @@
 import Link from "next/link";
 import { BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
-
-function buildAuthorHref(name: string, slug?: string | null): string {
-  if (slug) {
-    return `/authors/${slug}`;
-  }
-  return `/authors`;
-}
+import { buildAuthorHref } from "../../books/utils/authorLinks";
 
 interface RecommendedSimilarBookContentProps {
   books: BookCardProps[];
@@ -24,7 +18,7 @@ export default function RecommendedSimilarBookContent({
           className="flex flex-row items-center gap-2 h-[80px]"
         >
           <Link
-            prefetch={true}
+            prefetch={false}
             href={`/books/${book.slug}`}
             className="relative min-w-[60px] max-w-[60px] h-full overflow-hidden rounded-[4px] group "
           >
@@ -32,7 +26,7 @@ export default function RecommendedSimilarBookContent({
           </Link>
           <div className="flex flex-col justify-center h-full xl:max-w-[250px] lg:max-w-[150px] md:max-w-[150px] max-w-full">
             <Link
-              prefetch={true}
+              prefetch={false}
               href={`/books/${book.slug}`}
               className="text-sm font-semibold cursor-pointer hover:underline hover:text-primary line-clamp-2"
             >
@@ -47,7 +41,7 @@ export default function RecommendedSimilarBookContent({
                   return (
                     <span key={author.id}>
                       <Link
-                        prefetch={true}
+                        prefetch={false}
                         href={authorHref}
                         className="hover:underline"
                       >

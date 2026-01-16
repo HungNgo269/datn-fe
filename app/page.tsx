@@ -32,10 +32,12 @@ import RecommendedSimilarByLastBookWrapper from "./feature/books-recommends/comp
 // import SwipperNewBook from "@/app/ui/user/swipper/swipperNewBook";
 // import SwipperBestSeller from "@/app/ui/user/swipper/swipperBestSeller";
 
+type SearchParams = Record<string, string | string[] | undefined>;
+
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Promise<SearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
   const trendingPeriod = normalizeTimeFrame(

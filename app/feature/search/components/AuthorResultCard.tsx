@@ -32,7 +32,7 @@ export function AuthorResultCard({ author, query }: AuthorResultCardProps) {
           <HighlightedText text={author.name} query={query} />
         </p>
         <Link
-          prefetch={true}
+          prefetch={false}
           href={`/books?search=${encodeURIComponent(author.name)}`}
           className="text-xs text-primary hover:underline mt-1"
         ></Link>

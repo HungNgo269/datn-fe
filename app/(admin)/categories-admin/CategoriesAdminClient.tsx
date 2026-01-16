@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ function CategoriesAdminClientContent() {
     if (prevSearchRef.current === debouncedSearch) return;
     prevSearchRef.current = debouncedSearch;
 
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams?.toString());
     if (debouncedSearch) {
       params.set("q", debouncedSearch);
     } else {
@@ -107,19 +107,22 @@ function CategoriesAdminClientContent() {
     },
   });
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     setSelectedCategory(null);
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (category: Category) => {
+  const handleEdit = useCallback((category: Category) => {
     setSelectedCategory(category);
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
+  const handleDelete = useCallback(
+    (id: number) => {
+      deleteMutation.mutate(id);
+    },
+    [deleteMutation]
+  );
 
   if (isLoading) {
     return (
@@ -137,8 +140,8 @@ function CategoriesAdminClientContent() {
     );
   }
 
-  const categories = data?.data;
-  const meta = data?.meta;
+  const categories = data?.data ?? [];
+  const meta = data?.meta ?? null;
 
   return (
     <div className="p-6 space-y-6">
@@ -170,7 +173,7 @@ function CategoriesAdminClientContent() {
       </div>
 
       <AdminCategoryList
-        categories={categories!}
+        categories={categories}
         onEdit={handleEdit}
         onDelete={handleDelete}
         isFetching={showFetching}

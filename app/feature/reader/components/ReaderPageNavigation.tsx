@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -20,7 +20,7 @@ export default function ReaderPageNavigation({
   canGoNext = true,
 }: ReaderPageNavigationProps) {
   const buttonBase =
-    "p-3 rounded-full backdrop-blur-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg";
+    "rounded-full p-3 shadow-lg backdrop-blur-sm transition-all disabled:cursor-not-allowed disabled:opacity-30";
   const prevTitle =
     currentPage > 1
       ? `Trang ${Math.max(currentPage - 1, 1)}`
@@ -29,16 +29,17 @@ export default function ReaderPageNavigation({
     totalPages > 0 && currentPage < totalPages
       ? `Trang ${currentPage + 1}`
       : "Chương sau hoặc quay lại sách";
+
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-      <div className="flex flex-row w-full justify-between pointer-events-auto px-10">
+    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+      <div className="pointer-events-auto flex w-full flex-row justify-between px-10">
         <button
           onClick={onPrev}
           disabled={!canGoPrev}
           className={`${buttonBase} reader-floating-action hover:cursor-pointer`}
           title={prevTitle}
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <button
           onClick={onNext}
@@ -46,7 +47,7 @@ export default function ReaderPageNavigation({
           className={`${buttonBase} reader-floating-action hover:cursor-pointer`}
           title={nextTitle}
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="h-6 w-6" />
         </button>
       </div>
     </div>

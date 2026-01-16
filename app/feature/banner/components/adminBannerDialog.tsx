@@ -1,22 +1,23 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useMemo } from "react";
-import { Controller, useForm, SubmitHandler } from "react-hook-form";
+import { useCallback, useEffect, useMemo } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, ImagePlus, X } from "lucide-react";
-
+import { ImagePlus, Loader2, X } from "lucide-react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -24,9 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-
+import { Textarea } from "@/components/ui/textarea";
 import { ImagePreview } from "../../books-upload/components/ImagePreview";
 import { UploadBookButton } from "../../books-upload/components/uploadBookButton";
 import { Banner, BannerPosition } from "../types/banner.types";
@@ -48,9 +47,10 @@ export function BannerDialog({
   const { submitBanner } = useBannerSubmit();
 
   const queryClient = useQueryClient();
-  const isEditMode = !!bannerToEdit;
+  const isEditMode = Boolean(bannerToEdit);
 
-  const form = useForm<BannerFormValues>({
+  type BannerFormInput = z.input<typeof BannerSchema>;
+  const form = useForm<BannerFormInput>({
     resolver: zodResolver(BannerSchema),
     defaultValues: {
       title: "",
@@ -60,7 +60,7 @@ export function BannerDialog({
       startDate: "",
       endDate: "",
       order: undefined,
-      imageUrl: undefined,
+      imageUrl: "",
       isActive: true,
     },
   });
@@ -69,6 +69,7 @@ export function BannerDialog({
     control,
     formState: { errors },
   } = form;
+
   const imageValue = form.watch("imageUrl");
   const filePreviewUrl = useMemo(() => {
     if (imageValue instanceof File) {
@@ -102,7 +103,7 @@ export function BannerDialog({
           endDate: formatISODateInput(bannerToEdit.endDate),
           order: bannerToEdit.order ?? undefined,
           isActive: bannerToEdit.isActive,
-          imageUrl: bannerToEdit.imageUrl,
+          imageUrl: bannerToEdit.imageUrl ?? "",
         });
       } else {
         form.reset({
@@ -114,19 +115,22 @@ export function BannerDialog({
           endDate: "",
           order: undefined,
           isActive: true,
-          imageUrl: undefined,
+          imageUrl: "",
         });
       }
     }
   }, [open, bannerToEdit, form]);
 
-  const handleImageChange = (file: File) => {
-    form.setValue("imageUrl", file, { shouldValidate: true });
-  };
+  const handleImageChange = useCallback(
+    (file: File) => {
+      form.setValue("imageUrl", file, { shouldValidate: true });
+    },
+    [form]
+  );
 
-  const removeImage = () => {
-    form.setValue("imageUrl", undefined, { shouldValidate: true });
-  };
+  const removeImage = useCallback(() => {
+    form.setValue("imageUrl", "", { shouldValidate: true });
+  }, [form]);
 
   const mutation = useMutation({
     mutationFn: async (values: BannerFormValues) => {
@@ -144,9 +148,7 @@ export function BannerDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["banners"] });
       toast.success(
-        isEditMode
-          ? "Cập nhật banner thành công!"
-          : "Tạo banner mới thành công!"
+        isEditMode ? "Cập nhật banner thành công!" : "Tạo banner mới thành công!"
       );
       onOpenChange(false);
     },
@@ -155,23 +157,27 @@ export function BannerDialog({
     },
   });
 
-  const onSubmit: SubmitHandler<BannerFormValues> = (formData) => {
-    mutation.mutate(formData);
-  };
+  const onSubmit: SubmitHandler<BannerFormInput> = useCallback(
+    (formData) => {
+      const parsedData: BannerFormValues = BannerSchema.parse(formData);
+      mutation.mutate(parsedData);
+    },
+    [mutation]
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] overflow-y-auto max-h-[90vh]">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Cập Nhật Banner" : "Thêm Banner Mới"}
+            {isEditMode ? "Cập nhật Banner" : "Thêm Banner mới"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_300px]">
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="title">
                     Tiêu đề <span className="text-destructive">*</span>
@@ -183,7 +189,7 @@ export function BannerDialog({
                     className={errors.title ? "border-destructive" : ""}
                   />
                   {form.formState.errors.title && (
-                    <p className="text-sm text-destructive font-medium">
+                    <p className="text-sm font-medium text-destructive">
                       {form.formState.errors.title.message}
                     </p>
                   )}
@@ -216,7 +222,7 @@ export function BannerDialog({
                     )}
                   />
                   {form.formState.errors.position && (
-                    <p className="text-sm text-destructive font-medium">
+                    <p className="text-sm font-medium text-destructive">
                       {form.formState.errors.position.message}
                     </p>
                   )}
@@ -253,7 +259,7 @@ export function BannerDialog({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="startDate">Ngày bắt đầu</Label>
                   <Input
@@ -263,7 +269,7 @@ export function BannerDialog({
                     className={errors.startDate ? "border-destructive" : ""}
                   />
                   {form.formState.errors.startDate && (
-                    <p className="text-sm text-destructive font-medium">
+                    <p className="text-sm font-medium text-destructive">
                       {form.formState.errors.startDate.message}
                     </p>
                   )}
@@ -277,7 +283,7 @@ export function BannerDialog({
                     className={errors.endDate ? "border-destructive" : ""}
                   />
                   {form.formState.errors.endDate && (
-                    <p className="text-sm text-destructive font-medium">
+                    <p className="text-sm font-medium text-destructive">
                       {form.formState.errors.endDate.message}
                     </p>
                   )}
@@ -300,32 +306,32 @@ export function BannerDialog({
               </div>
             </div>
 
-            <div className="space-y-6 md:border-l md:pl-6 border-border flex flex-col">
+            <div className="flex flex-col space-y-6 border-border md:border-l md:pl-6">
               <div className="space-y-3">
                 <Label className="block">
                   Hình ảnh Banner<span className="text-destructive">*</span>
                 </Label>
 
-                <div className="relative group w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 overflow-hidden flex flex-col items-center justify-center hover:bg-muted/50 transition-colors">
+                <div className="relative flex aspect-video w-full flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 transition-colors hover:bg-muted/50">
                   {resolvedPreview ? (
                     <>
                       <ImagePreview
                         src={resolvedPreview}
-                        alt="Banner Image"
+                        alt="Banner image"
                         onRemove={removeImage}
                       />
                       <button
                         type="button"
                         onClick={removeImage}
-                        className="absolute top-2 right-2 p-1 bg-destructive/90 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute right-2 top-2 rounded-full bg-destructive/90 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
                       >
                         <X size={16} />
                       </button>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center p-4 text-center space-y-2 text-muted-foreground">
-                      <div className="p-3 bg-background rounded-full shadow-sm">
-                        <ImagePlus className="w-6 h-6" />
+                    <div className="flex flex-col items-center justify-center space-y-2 p-4 text-center text-muted-foreground">
+                      <div className="rounded-full bg-background p-3 shadow-sm">
+                        <ImagePlus className="h-6 w-6" />
                       </div>
                       <span className="text-sm font-medium">Chưa có ảnh</span>
                     </div>
@@ -340,7 +346,7 @@ export function BannerDialog({
                   />
                 </div>
                 {form.formState.errors.imageUrl && (
-                  <p className="text-sm text-destructive font-medium text-center">
+                  <p className="text-center text-sm font-medium text-destructive">
                     {typeof form.formState.errors.imageUrl.message === "string"
                       ? form.formState.errors.imageUrl.message
                       : "Vui lòng chọn ảnh"}
@@ -348,7 +354,7 @@ export function BannerDialog({
                 )}
               </div>
 
-              <div className="pt-4 border-t border-border">
+              <div className="border-t border-border pt-4">
                 <div className="flex items-center space-x-2">
                   <Controller
                     control={control}
@@ -361,10 +367,7 @@ export function BannerDialog({
                       />
                     )}
                   />
-                  <Label
-                    htmlFor="isActive"
-                    className="cursor-pointer font-normal"
-                  >
+                  <Label htmlFor="isActive" className="cursor-pointer font-normal">
                     Kích hoạt hiển thị ngay
                   </Label>
                 </div>
@@ -372,7 +375,7 @@ export function BannerDialog({
             </div>
           </div>
 
-          <DialogFooter className="pt-2 border-t mt-4">
+          <DialogFooter className="mt-4 border-t pt-2">
             <Button
               type="button"
               variant="outline"
@@ -389,7 +392,7 @@ export function BannerDialog({
           </DialogFooter>
 
           {mutation.isError && (
-            <p className="text-sm text-destructive text-right">
+            <p className="text-right text-sm text-destructive">
               {mutation.error instanceof Error
                 ? mutation.error.message
                 : "Không thể lưu banner. Thử lại sau."}

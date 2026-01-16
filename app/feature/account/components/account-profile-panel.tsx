@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
-import { ReactNode, useEffect } from "react";
-import { UserRound, Mail, ShieldCheck, Clock } from "lucide-react";
-import { useAuthStore } from "@/app/store/useAuthStore";
+import { ReactNode, useEffect, useMemo } from "react";
+import { Clock, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 const formatDate = (value?: string) => {
   if (!value) return null;
@@ -25,17 +25,17 @@ export function AccountProfilePanel() {
 
   if (!user) return null;
 
-  const createdDate = formatDate(user.createdAt);
-  const lastLogin = formatDate(user.lastLoginAt);
+  const createdDate = useMemo(() => formatDate(user.createdAt), [user.createdAt]);
+  const lastLogin = useMemo(() => formatDate(user.lastLoginAt), [user.lastLoginAt]);
 
   return (
-    <section className="rounded-2xl  p-6 space-y-6">
+    <section className="space-y-6 rounded-2xl p-6">
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-semibold text-foreground">
           Quản lý thông tin
         </h2>
         <p className="text-sm text-muted-foreground">
-          Quản lý thông tin cá nhân của bạn và trạng thái tài khoản của bạn{" "}
+          Quản lý thông tin cá nhân của bạn và trạng thái tài khoản của bạn.
         </p>
       </div>
 
@@ -86,7 +86,7 @@ function ProfileItem({
         <span>{label}</span>
       </div>
       <p className="mt-2 text-base font-medium text-foreground">
-        {value || "—"}
+        {value || "--"}
       </p>
     </div>
   );

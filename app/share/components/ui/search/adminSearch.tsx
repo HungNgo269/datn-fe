@@ -1,25 +1,41 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useCallback, useEffect, useRef } from "react";
 import { SearchIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useDebouncedCallback } from "use-debounce";
 
 function AdminSearchContent({ placeholder }: { placeholder: string }) {
   const searchParams = useSearchParams();
   const { replace } = useRouter();
   const pathname = usePathname();
-  //useDebouncedCallBack = useCallback nhưng chỉ sau 1 khoảng delay mới gọi
-  const handleSearch = useDebouncedCallback((term: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", "1");
-    if (term) {
-      params.set("q", term);
-    } else {
-      params.delete("q");
-    }
-    replace(`${pathname}?${params.toString()}`);
-  }, 300);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const handleSearch = useCallback(
+    (term: string) => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      debounceRef.current = setTimeout(() => {
+        const params = new URLSearchParams(searchParams?.toString());
+        params.set("page", "1");
+        if (term) {
+          params.set("q", term);
+        } else {
+          params.delete("q");
+        }
+        replace(`${pathname}?${params.toString()}`);
+      }, 300);
+    },
+    [pathname, replace, searchParams]
+  );
 
   return (
     <div className="relative flex flex-1 flex-shrink-0">

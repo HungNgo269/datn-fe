@@ -1,5 +1,5 @@
-import BookCard from "../../books-carousel/components/bookCard";
-import { BookCardProps } from "../types/books.type"; // Import type đúng của bạn
+﻿import BookCard from "../../books-carousel/components/bookCard";
+import { BookCardProps } from "../types/books.type";
 
 interface BookListProps {
   books: BookCardProps[];

@@ -1,6 +1,7 @@
-import { getBooksAction } from "../../books/action/books.action";
+﻿import { getBooksAction } from "../../books/action/books.action";
 import { getCategories } from "../actions/categories.action";
 import {
+  Book,
   BookSortBy,
   GetBooksParams,
   SortOrder,
@@ -8,28 +9,30 @@ import {
 import BookCategoryClient from "./categoryBookContainer";
 
 export default async function CategoryBookWrapper() {
-  const { data: categories } = await getCategories(1, 10);
-  const defaultCategoryId = categories?.[0]?.id;
-  let booksIni;
-  if (defaultCategoryId) {
+  const { data: categoriesData } = await getCategories(1, 10);
+  const categories = categoriesData ?? [];
+  const defaultCategory = categories[0];
+  let booksIni: Book[] = [];
+
+  if (defaultCategory?.id) {
     try {
       const params: GetBooksParams = {
         sortBy: BookSortBy.VIEW_COUNT,
-        category: categories?.[0]?.slug,
+        category: defaultCategory.slug,
         limit: 10,
         page: 1,
         sortOrder: SortOrder.DESC,
       };
       const res = await getBooksAction(params);
-      booksIni = res.data;
-    } catch (e) {
-      console.error("Error fetching initial books", e);
+      booksIni = res.data ?? [];
+    } catch {
+      booksIni = [];
     }
   }
 
   return (
-    <div className="flex flex-row justify-between lg:w-full w-full md:w-[700px]">
-      <BookCategoryClient categories={categories} booksIni={booksIni!} />
+    <div className="flex w-full flex-row justify-between md:w-[700px] lg:w-full">
+      <BookCategoryClient categories={categories} booksIni={booksIni} />
     </div>
   );
 }

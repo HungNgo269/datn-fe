@@ -1,11 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import ViewMoreButton from "@/app/share/components/ui/button/viewMoreButton";
-import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useReaderDataStore } from "@/app/store/useReaderDataStore";
 import HistoryCard from "./ContinueReadingCard";
@@ -13,6 +11,7 @@ import { ContinueReadingEntry } from "@/app/types/book.types";
 
 const CAROUSEL_ITEM_CLASS = "flex-[0_0_50%] min-w-0";
 const GRID_ITEM_CLASS = "w-full";
+
 export default function ContinueReadingCarousel() {
   const userId = useAuthStore((state) => state.user?.id ?? null);
   const history = useReaderDataStore((state) => state.readingHistory);
@@ -40,8 +39,7 @@ export default function ContinueReadingCarousel() {
     });
 
     return Array.from(latestPerBook.values()).sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
   }, [history, userId]);
 
@@ -60,13 +58,15 @@ export default function ContinueReadingCarousel() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex justify-between items-center">
-        <span className="text-lg sm:text-xl md:text-2xl font-semibold  block">
+      <div className="flex items-center justify-between">
+        <span className="block text-lg font-semibold sm:text-xl md:text-2xl">
           Tiếp tục đọc
         </span>
         <ViewMoreButton context="book" url="/account/bookmark" />
       </div>
-      <span className="text-sm mb-2">Trở lại cuộc hành trình dang dở</span>
+      <span className="mb-2 text-sm">
+        Trở lại cuộc hành trình đang đọc
+      </span>
       <div className="block md:hidden">
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -21,10 +21,9 @@ import {
 import { useBookSubmit } from "@/app/feature/books/hooks/useBookSubmit";
 
 export default function EditBookPage() {
-  const params = useParams();
+  const { slug } = useParams<{ slug: string | string[] }>();
   const router = useRouter();
-  const bookSlug = params.slug as string;
-  console.log("parames", params);
+  const bookSlug = Array.isArray(slug) ? slug[0] : slug;
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<BookFormState | null>(null);
@@ -91,43 +90,46 @@ export default function EditBookPage() {
     fetchBook();
   }, [bookSlug, router]);
 
-  const handleStep1Next = (data: Step1FormData) => {
+  const handleStep1Next = useCallback((data: Step1FormData) => {
     setFormData((prev) => {
       if (!prev) return null;
       return { ...prev, ...data };
     });
     setCurrentStep(2);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, []);
 
-  const handleStep2Back = (data: Step2FormData) => {
+  const handleStep2Back = useCallback((data: Step2FormData) => {
     setFormData((prev) => {
       if (!prev) return prev;
       return { ...prev, ...data };
     });
     setCurrentStep(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, []);
 
-  const handleStep2Submit = async (step2Data: Step2FormData) => {
-    if (!formData) return;
+  const handleStep2Submit = useCallback(
+    async (step2Data: Step2FormData) => {
+      if (!formData) return;
 
-    const finalData: BookFormState = {
-      ...formData,
-      ...step2Data,
-    };
+      const finalData: BookFormState = {
+        ...formData,
+        ...step2Data,
+      };
 
-    const result = await submitBook(finalData, "edit");
+      const result = await submitBook(finalData, "edit");
 
-    if (result?.success) {
-      toast.success("Cập nhật sách thành công!");
-      router.push("/books-admin");
-    } else {
-      toast.error(result?.error || "Có lỗi xảy ra khi cập nhật.");
-    }
-  };
+      if (result?.success) {
+        toast.success("Cập nhật sách thành công!");
+        router.push("/books-admin");
+      } else {
+        toast.error(result?.error || "Có lỗi xảy ra khi cập nhật.");
+      }
+    },
+    [formData, router, submitBook]
+  );
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (
       confirm(
         "Bạn có chắc muốn hủy chỉnh sửa? Các thay đổi chưa lưu sẽ bị mất."
@@ -135,7 +137,7 @@ export default function EditBookPage() {
     ) {
       router.back();
     }
-  };
+  }, [router]);
 
   if (isLoading) {
     return (

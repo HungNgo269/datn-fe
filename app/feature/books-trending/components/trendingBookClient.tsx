@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
@@ -38,8 +38,7 @@ export default function TrendingBookClient({
       try {
         const data = await getTrendingBooks(nextPeriod, limit);
         setBooks(data ?? []);
-      } catch (error) {
-        console.error("Failed to load trending books:", error);
+      } catch {
         setBooks([]);
         setHasError(true);
       } finally {
@@ -60,7 +59,7 @@ export default function TrendingBookClient({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-3 md:flex-row md:justify-between">
-        <span className="font-bold text-lg text-start whitespace-nowrap">
+        <span className="whitespace-nowrap text-start text-lg font-bold">
           {title}
         </span>
         <TrendingBookFilter
@@ -71,16 +70,12 @@ export default function TrendingBookClient({
       </div>
       <Separator />
       {loading ? (
-        <TrendingBookSkeleton></TrendingBookSkeleton>
-      ) : hasError ? (
-        <></>
-      ) : (
-        books.length && (
-          <div className="space-y-3 mt-2">
-            <TrendingBookContent books={books} />
-          </div>
-        )
-      )}
+        <TrendingBookSkeleton />
+      ) : hasError ? null : books.length ? (
+        <div className="mt-2 space-y-3">
+          <TrendingBookContent books={books} />
+        </div>
+      ) : null}
     </div>
   );
 }

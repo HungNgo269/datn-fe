@@ -1,4 +1,4 @@
-import AuthorCard from "./authorCard";
+﻿import AuthorCard from "./authorCard";
 import { AuthorInfo } from "../types/authors.types";
 
 interface AuthorGridProps {

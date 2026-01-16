@@ -36,6 +36,11 @@ export default function ReaderFrame({
     if (fg) win.document.body.style.color = fg;
   }, [iframeRef, themeId]);
 
+  const handleIframeLoad = useCallback(() => {
+    onLoad();
+    applyTheme();
+  }, [applyTheme, onLoad]);
+
   useEffect(() => {
     if (!isReady) return;
     applyTheme();
@@ -63,10 +68,7 @@ export default function ReaderFrame({
       <iframe
         ref={iframeRef}
         srcDoc={content}
-        onLoad={() => {
-          onLoad();
-          applyTheme();
-        }}
+        onLoad={handleIframeLoad}
         className="w-full h-full border-none block transition-opacity duration-200"
         sandbox="allow-scripts allow-same-origin"
         title="Reader"

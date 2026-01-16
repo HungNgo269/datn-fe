@@ -1,4 +1,4 @@
-import { Separator } from "@/components/ui/separator";
+﻿import { Separator } from "@/components/ui/separator";
 import { getPopularBooksAction } from "../actions/popularBooks.action";
 import PopularBookContent from "./popularBookContent";
 
@@ -17,7 +17,7 @@ export default async function PopularBook({
     if (!books?.length) {
       return (
         <div className="flex flex-col gap-2">
-          <span className="font-bold text-lg">{title}</span>
+          <span className="text-lg font-bold">{title}</span>
           <Separator />
           <div className="text-sm text-muted-foreground">
             Chưa có dữ liệu sách phổ biến.
@@ -28,19 +28,18 @@ export default async function PopularBook({
 
     return (
       <div className="flex flex-col gap-2">
-        <div className="flex flex-row gap-3 md:flex-col mt-10">
-          <span className="font-bold text-lg text-start whitespace-nowrap">
+        <div className="mt-10 flex flex-row gap-3 md:flex-col">
+          <span className="whitespace-nowrap text-start text-lg font-bold">
             {title}
           </span>
         </div>
         <Separator />
-        <div className="space-y-3 mt-2">
+        <div className="mt-2 space-y-3">
           <PopularBookContent books={books} />
         </div>
       </div>
     );
-  } catch (error) {
-    console.error("Failed to load popular books:", error);
+  } catch {
     return (
       <div className="p-6 text-center text-destructive">
         Không thể tải danh sách sách phổ biến.
@@ -48,4 +47,3 @@ export default async function PopularBook({
     );
   }
 }
-

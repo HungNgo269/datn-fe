@@ -15,10 +15,9 @@ export default function HistoryCard({
   const chapterHref = entry.chapterSlug
     ? `/books/${entry.bookSlug}/chapter/${entry.chapterSlug}`
     : bookHref;
-  console.log("rentry", entry);
   return (
     <div className={`flex flex-col ${CARD_SIZING.wrapper}`}>
-      <Link prefetch={true} href={bookHref} aria-label={entry.bookTitle}>
+      <Link prefetch={false} href={bookHref} aria-label={entry.bookTitle}>
         <div className={`group ${CARD_SIZING.image}`}>
           <ImageCard
             bookImage={entry.bookCoverImage || ""}
@@ -27,14 +26,14 @@ export default function HistoryCard({
         </div>
       </Link>
       <div className="flex flex-col mt-3 h-fit justify-between">
-        <Link prefetch={true} href={bookHref} aria-label={entry.bookTitle}>
+        <Link prefetch={false} href={bookHref} aria-label={entry.bookTitle}>
           <span className="line-clamp-1 font-semibold cursor-pointer w-fit hover:underline hover:text-primary text-sm">
             {entry.bookTitle}
           </span>
         </Link>
         {entry.chapterTitle && (
           <Link
-            prefetch={true}
+            prefetch={false}
             href={chapterHref}
             className="text-xs text-muted-foreground line-clamp-2 hover:text-primary transition-colors"
           >

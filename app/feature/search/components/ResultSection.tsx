@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 
 interface ResultSectionProps {
   title: string;
@@ -22,15 +22,15 @@ export function ResultSection({
   return (
     <section id={id} className="space-y-4">
       <div className="flex items-center justify-between border-b pb-2">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          {title} &nbsp;
-          <span className="text-badge-foreground text-sm">Tất cả {count} </span>
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
+          {title}
+          <span className="text-badge-foreground text-sm">Tất cả {count}</span>
         </h2>
       </div>
       {count > 0 ? (
         children
       ) : (
-        <p className="text-sm text-muted-foreground italic">{emptyMessage}</p>
+        <p className="text-sm italic text-muted-foreground">{emptyMessage}</p>
       )}
     </section>
   );

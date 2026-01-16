@@ -1,12 +1,7 @@
-"use client";
+﻿"use client";
 
-import {
-  Bookmark,
-  BookmarkCheck,
-  StickyNote,
-  List,
-  Settings,
-} from "lucide-react";
+import { Bookmark, BookmarkCheck, List, Settings, StickyNote } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ReaderActionButtonsProps {
   isBookmarked: boolean;
@@ -32,72 +27,70 @@ export default function ReaderActionButtons({
   onToggleSettings,
 }: ReaderActionButtonsProps) {
   const baseActionButton =
-    "p-3 rounded-full shadow-lg backdrop-blur-sm transition-all";
+    "rounded-full p-3 shadow-lg backdrop-blur-sm transition-all";
+
   return (
-    <div className="absolute bottom-6 right-6 flex flex-col gap-3 z-20">
-      {/* Bookmark Button */}
+    <div className="absolute bottom-6 right-6 z-20 flex flex-col gap-3">
       <button
         onClick={onBookmark}
-        className={`${baseActionButton} ${
+        className={cn(
+          baseActionButton,
           isBookmarked
             ? "bg-primary text-primary-foreground"
             : "reader-floating-action"
-        }`}
+        )}
         title={isBookmarked ? "Bỏ đánh dấu trang" : "Đánh dấu trang"}
       >
         {isBookmarked ? (
-          <BookmarkCheck className="w-5 h-5" />
+          <BookmarkCheck className="h-5 w-5" />
         ) : (
-          <Bookmark className="w-5 h-5" />
+          <Bookmark className="h-5 w-5" />
         )}
       </button>
 
-      {/* Note Button */}
       <button
         onClick={onNote}
         disabled={!canAddNote}
-        className={`${baseActionButton} ${
-          canAddNote
-            ? "reader-floating-action"
-            : "reader-floating-action-disabled"
-        }`}
+        className={cn(
+          baseActionButton,
+          canAddNote ? "reader-floating-action" : "reader-floating-action-disabled"
+        )}
         title={
           canAddNote
             ? "Thêm ghi chú cho đoạn đã chọn"
             : "Chọn đoạn văn để thêm ghi chú"
         }
       >
-        <StickyNote className="w-5 h-5" />
+        <StickyNote className="h-5 w-5" />
       </button>
 
-      {/* Chapters List Button */}
       {hasChapters && (
         <button
           onClick={onToggleChaptersList}
-          className={`${baseActionButton} ${
+          className={cn(
+            baseActionButton,
             showChaptersList
               ? "bg-primary text-primary-foreground"
               : "reader-floating-action"
-          }`}
+          )}
           title="Danh sách chương"
         >
-          <List className="w-5 h-5" />
+          <List className="h-5 w-5" />
         </button>
       )}
 
-      {/* Settings Button */}
       <button
         onClick={onToggleSettings}
-        className={`${baseActionButton} ${
+        className={cn(
+          baseActionButton,
           showSettings
             ? "bg-primary text-primary-foreground"
             : "reader-floating-action"
-        }`}
+        )}
         title="Cài đặt"
       >
-        <Settings className="w-5 h-5" />
+        <Settings className="h-5 w-5" />
       </button>
     </div>
   );
 }
-

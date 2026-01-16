@@ -1,21 +1,23 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, ImagePlus, X } from "lucide-react"; // Thêm icon
-
+import { ImagePlus, Loader2, X } from "lucide-react";
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   AuthorFields,
@@ -24,17 +26,14 @@ import {
 } from "@/app/feature/author/schema/authorSchema";
 import { generateSlug } from "../../books/helper";
 import { UploadBookButton } from "../../books-upload/components/uploadBookButton";
-import dynamic from "next/dynamic";
-import "react-quill-new/dist/quill.snow.css";
 import { ImagePreview } from "../../books-upload/components/ImagePreview";
-import { Checkbox } from "@/components/ui/checkbox";
 import { AuthorInfo } from "../types/authors.types";
 import { useAuthorSubmit } from "../hooks/useAuthorSubmit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
   loading: () => (
-    <div className="h-[200px] w-full bg-muted/20 animate-pulse rounded-md flex items-center justify-center text-muted-foreground text-sm">
+    <div className="flex h-[200px] w-full animate-pulse items-center justify-center rounded-md bg-muted/20 text-sm text-muted-foreground">
       Đang tải trình soạn thảo...
     </div>
   ),
@@ -62,9 +61,8 @@ export function AuthorDialog({
   authorToEdit,
 }: AuthorDialogProps) {
   const { submitAuthor } = useAuthorSubmit();
-
   const queryClient = useQueryClient();
-  const isEditMode = !!authorToEdit;
+  const isEditMode = Boolean(authorToEdit);
 
   const form = useForm<AuthorFields>({
     resolver: zodResolver(AuthorSchema),
@@ -76,6 +74,7 @@ export function AuthorDialog({
       isActive: true,
     },
   });
+
   const avatarValue = form.watch("avatar");
   const filePreviewUrl = useMemo(() => {
     if (avatarValue instanceof File) {
@@ -119,13 +118,17 @@ export function AuthorDialog({
     }
   }, [open, authorToEdit, form]);
 
-  const handleAvatarChange = (file: File) => {
-    form.setValue("avatar", file, { shouldValidate: true });
-  };
+  const handleAvatarChange = useCallback(
+    (file: File) => {
+      form.setValue("avatar", file, { shouldValidate: true });
+    },
+    [form]
+  );
 
-  const removeAvatar = () => {
+  const removeAvatar = useCallback(() => {
     form.setValue("avatar", undefined);
-  };
+  }, [form]);
+
   const mutation = useMutation({
     mutationFn: async (values: AuthorSubmitData) => {
       const result = await submitAuthor(values, isEditMode ? "edit" : "create");
@@ -146,28 +149,32 @@ export function AuthorDialog({
       toast.error(error instanceof Error ? error.message : "Có lỗi xảy ra");
     },
   });
-  const onSubmit = (formData: AuthorFields) => {
-    const submitData: AuthorSubmitData = {
-      ...formData,
-      id: authorToEdit?.id,
-    };
 
-    mutation.mutate(submitData);
-  };
+  const onSubmit = useCallback(
+    (formData: AuthorFields) => {
+      const submitData: AuthorSubmitData = {
+        ...formData,
+        id: authorToEdit?.id,
+      };
+
+      mutation.mutate(submitData);
+    },
+    [authorToEdit?.id, mutation]
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] overflow-y-auto max-h-[90vh]">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Cập Nhật Tác Giả" : "Thêm Tác Giả Mới"}
+            {isEditMode ? "Cập nhật tác giả" : "Thêm tác giả mới"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_300px]">
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="name">
                     Tên tác giả <span className="text-destructive">*</span>
@@ -184,7 +191,7 @@ export function AuthorDialog({
                     placeholder="Nguyễn Nhật Ánh"
                   />
                   {form.formState.errors.name && (
-                    <p className="text-sm text-destructive font-medium">
+                    <p className="text-sm font-medium text-destructive">
                       {form.formState.errors.name.message}
                     </p>
                   )}
@@ -202,7 +209,7 @@ export function AuthorDialog({
                     placeholder="nguyen-nhat-anh"
                   />
                   {form.formState.errors.slug && (
-                    <p className="text-sm text-destructive font-medium">
+                    <p className="text-sm font-medium text-destructive">
                       {form.formState.errors.slug.message}
                     </p>
                   )}
@@ -221,46 +228,46 @@ export function AuthorDialog({
                         value={field.value}
                         onChange={field.onChange}
                         modules={quillModules}
-                        className="bg-background rounded-md [&_.ql-editor]:min-h-[250px]"
+                        className="rounded-md bg-background [&_.ql-editor]:min-h-[250px]"
                         placeholder="Nhập tiểu sử tác giả..."
                       />
                     </div>
                   )}
                 />
                 {form.formState.errors.bio && (
-                  <p className="text-sm text-destructive font-medium">
+                  <p className="text-sm font-medium text-destructive">
                     {form.formState.errors.bio.message}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="space-y-6 md:border-l md:pl-6 border-border flex flex-col">
+            <div className="flex flex-col space-y-6 border-border md:border-l md:pl-6">
               <div className="space-y-3">
                 <Label className="block">
-                  Ảnh đại diện<span className="text-destructive">*</span>
+                  Ảnh đại diện <span className="text-destructive">*</span>
                 </Label>
 
-                <div className="relative group w-full aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 overflow-hidden flex flex-col items-center justify-center hover:bg-muted/50 transition-colors">
+                <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 transition-colors hover:bg-muted/50">
                   {resolvedPreview ? (
                     <>
                       <ImagePreview
                         src={resolvedPreview}
-                        alt="Author Avatar"
+                        alt="Author avatar"
                         onRemove={removeAvatar}
                       />
                       <button
                         type="button"
                         onClick={removeAvatar}
-                        className="absolute top-2 right-2 p-1 bg-destructive/90 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute right-2 top-2 rounded-full bg-destructive/90 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
                       >
                         <X size={16} />
                       </button>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center p-4 text-center space-y-2 text-muted-foreground">
-                      <div className="p-3 bg-background rounded-full shadow-sm">
-                        <ImagePlus className="w-6 h-6" />
+                    <div className="flex flex-col items-center justify-center space-y-2 p-4 text-center text-muted-foreground">
+                      <div className="rounded-full bg-background p-3 shadow-sm">
+                        <ImagePlus className="h-6 w-6" />
                       </div>
                       <span className="text-sm font-medium">Chưa có ảnh</span>
                     </div>
@@ -277,7 +284,7 @@ export function AuthorDialog({
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-border">
+              <div className="border-t border-border pt-4">
                 <div className="flex items-center space-x-2">
                   <Controller
                     control={form.control}
@@ -290,10 +297,7 @@ export function AuthorDialog({
                       />
                     )}
                   />
-                  <Label
-                    htmlFor="isActive"
-                    className="cursor-pointer font-normal"
-                  >
+                  <Label htmlFor="isActive" className="cursor-pointer font-normal">
                     Hiển thị công khai tác giả này
                   </Label>
                 </div>
@@ -301,7 +305,7 @@ export function AuthorDialog({
             </div>
           </div>
 
-          <DialogFooter className="pt-2 border-t mt-4">
+          <DialogFooter className="mt-4 border-t pt-2">
             <Button
               type="button"
               variant="outline"

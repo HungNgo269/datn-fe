@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { Suspense, useTransition } from "react";
+import { Suspense, useCallback, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BookSortBy } from "../../books/types/books.type";
@@ -10,9 +10,9 @@ interface Props {
 }
 
 const SORT_OPTIONS = [
-  { id: 1, name: "Mới nhất", slug: BookSortBy.CREATED_AT },
-  { id: 2, name: "Phổ biến", slug: BookSortBy.VIEW_COUNT },
-  { id: 3, name: "Vừa cập nhật", slug: BookSortBy.UPDATED_AT },
+  { id: 1, name: "Mới nhất", slug: BookSortBy.CREATED_AT },
+  { id: 2, name: "Phổ biến", slug: BookSortBy.VIEW_COUNT },
+  { id: 3, name: "Vừa cập nhật", slug: BookSortBy.UPDATED_AT },
 ];
 
 function SortSelectionContent({ currentSort }: Props) {
@@ -20,15 +20,18 @@ function SortSelectionContent({ currentSort }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const handleSort = (newSort: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("sortBy", newSort);
-    params.set("page", "1");
+  const handleSort = useCallback(
+    (newSort: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("sortBy", newSort);
+      params.set("page", "1");
 
-    startTransition(() => {
-      router.push(`/books?${params.toString()}`);
-    });
-  };
+      startTransition(() => {
+        router.push(`/books?${params.toString()}`);
+      });
+    },
+    [router, searchParams]
+  );
 
   return (
     <div className="flex flex-wrap gap-2">

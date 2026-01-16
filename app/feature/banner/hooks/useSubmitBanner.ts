@@ -1,7 +1,7 @@
+﻿import { useState } from "react";
 import { useCloudUpload } from "@/app/share/hook/useCloudUpload";
 import { createBanner, updateBanner } from "../api/banner.api";
 import { BannerFormValues } from "../schema/banner.schema";
-import { useState } from "react";
 
 export function useBannerSubmit() {
   const { uploadFile } = useCloudUpload();
@@ -17,7 +17,6 @@ export function useBannerSubmit() {
     try {
       setIsSubmitting(true);
       let finalImageUrl = "";
-      console.log("Check data submit:", data);
 
       if (data.imageUrl instanceof File) {
         setStatusMessage("Đang upload ảnh bìa banner ...");
@@ -45,16 +44,13 @@ export function useBannerSubmit() {
         imageUrl: finalImageUrl,
       };
 
-      console.log("Payload gửi đi:", payloadWithoutId);
       let result;
 
       if (mode === "edit" && id) {
         result = await updateBanner(id, payloadWithoutId);
-        console.log("Update Success:", result);
       } else {
         const createPayload = { ...payloadWithoutId, id };
         result = await createBanner(createPayload);
-        console.log("Create Success:", result);
       }
       setStatusMessage("Thành công!");
       return { success: true, data: result };

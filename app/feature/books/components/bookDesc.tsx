@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
@@ -19,7 +19,10 @@ export default function BookDesc({
 
   if (!content) return null;
 
-  const sanitizedContent = sanitizeRichHtml(content);
+  const sanitizedContent = useMemo(() => sanitizeRichHtml(content), [content]);
+  const handleToggle = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   return (
     <div className={`flex flex-col items-start ${className}`}>
@@ -31,7 +34,7 @@ export default function BookDesc({
       >
         {sanitizedContent ? (
           <div
-            className="prose prose-sm max-w-none text-foreground leading-relaxed w-full break-words text-justify"
+            className="prose prose-sm w-full max-w-none break-words text-justify text-foreground leading-relaxed"
             dangerouslySetInnerHTML={{ __html: sanitizedContent }}
           />
         ) : (
@@ -46,8 +49,8 @@ export default function BookDesc({
       </div>
 
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="mt-2 cursor-pointer flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:underline focus:outline-none"
+        onClick={handleToggle}
+        className="mt-2 flex cursor-pointer items-center gap-1 text-sm font-medium text-primary transition-colors hover:underline focus:outline-none"
       >
         {isExpanded ? (
           <>

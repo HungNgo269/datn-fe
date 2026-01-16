@@ -18,11 +18,13 @@ export default function ViewMoreButton({
   const label = LABELS[context] ?? LABELS.book;
 
   return (
-    <Link prefetch={true} href={url} className="ml-auto">
-      <button className="flex items-center text-foreground hover:text-primary transition-colors cursor-pointer text-sm font-medium">
-        <span className="mr-1 w-fit">{label}</span>
-        <ChevronRight className="w-4 h-4" />
-      </button>
+    <Link
+      prefetch={true}
+      href={url}
+      className="ml-auto flex items-center text-foreground hover:text-primary transition-colors cursor-pointer text-sm font-medium"
+    >
+      <span className="mr-1 w-fit">{label}</span>
+      <ChevronRight className="w-4 h-4" />
     </Link>
   );
 }

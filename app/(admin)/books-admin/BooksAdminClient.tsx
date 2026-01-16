@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +37,7 @@ function BooksPageContent() {
     if (prevSearchRef.current === debouncedSearch) return;
     prevSearchRef.current = debouncedSearch;
 
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams?.toString());
     if (debouncedSearch) {
       params.set("q", debouncedSearch);
     } else {
@@ -98,13 +98,19 @@ function BooksPageContent() {
     },
   });
 
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
+  const handleDelete = useCallback(
+    (id: number) => {
+      deleteMutation.mutate(id);
+    },
+    [deleteMutation]
+  );
 
-  const handleEdit = (book: Book) => {
-    router.push(`/books-admin/edit/${book.slug}`);
-  };
+  const handleEdit = useCallback(
+    (book: Book) => {
+      router.push(`/books-admin/edit/${book.slug}`);
+    },
+    [router]
+  );
 
   if (isLoading) {
     return (
@@ -129,8 +135,8 @@ function BooksPageContent() {
     );
   }
 
-  const books = data?.data;
-  const meta = data?.meta;
+  const books = data?.data ?? [];
+  const meta = data?.meta ?? null;
 
   return (
     <div className=" mx-auto p-6 space-y-8 max-w-full">
@@ -164,7 +170,7 @@ function BooksPageContent() {
       </div>
 
       <AdminBookList
-        books={books!}
+        books={books}
         onEdit={handleEdit}
         onDelete={handleDelete}
         isDeleting={deleteMutation.isPending}

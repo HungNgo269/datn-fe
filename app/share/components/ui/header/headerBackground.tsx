@@ -6,13 +6,25 @@ export default function HeaderBackground() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    let rafId = 0;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        const nextValue = window.scrollY > 10;
+        setIsScrolled((prev) => (prev !== nextValue ? nextValue : prev));
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
   }, []);
 
   return (

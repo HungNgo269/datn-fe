@@ -1,5 +1,4 @@
 import { BookOpen, Facebook, Twitter } from "lucide-react";
-import Link from "next/link";
 
 export default function FooterComponent() {
   return (
@@ -15,25 +14,24 @@ export default function FooterComponent() {
               Your gateway to unlimited reading adventures.
             </p>
             <div className="flex items-center gap-3 sm:gap-4">
-              <Link
-                prefetch={true}
+              <a
                 href="https://facebook.com"
                 aria-label="Facebook"
                 target="_blank"
                 className="text-muted-foreground hover:text-primary transition-colors p-1"
-                rel=""
+                rel="noreferrer noopener"
               >
                 <Facebook className="h-5 w-5" />
-              </Link>
-              <Link
-                prefetch={true}
+              </a>
+              <a
                 href="https://twitter.com"
                 aria-label="Twitter"
                 target="_blank"
                 className="text-muted-foreground hover:text-primary transition-colors p-1"
+                rel="noreferrer noopener"
               >
                 <Twitter className="h-5 w-5" />
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -41,40 +39,24 @@ export default function FooterComponent() {
             <h4 className="font-semibold mb-3 sm:mb-4 text-base">Library</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Browse Books
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   New Releases
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Bestsellers
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Free Books
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -83,40 +65,24 @@ export default function FooterComponent() {
             <h4 className="font-semibold mb-3 sm:mb-4 text-base">Community</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Book Clubs
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Reviews
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Author Events
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Reading Challenges
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -125,40 +91,24 @@ export default function FooterComponent() {
             <h4 className="font-semibold mb-3 sm:mb-4 text-base">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Help Center
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Contact Us
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Privacy Policy
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
+                <a href="#" className="hover:text-foreground transition-colors">
                   Terms of Service
-                </Link>
+                </a>
               </li>
             </ul>
           </div>

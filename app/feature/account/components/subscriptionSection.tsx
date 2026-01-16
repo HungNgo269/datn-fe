@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, BadgeX, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -22,7 +22,7 @@ const formatDate = (value?: string) => {
   if (!value) return "Không rõ";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Không rõ";
-  return format(date, "MMM dd, yyyy");
+  return format(date, "dd/MM/yyyy");
 };
 
 const formatPlanLabel = (plan?: string | null) => {
@@ -64,7 +64,9 @@ export function SubscriptionSection() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof Error ? error.message : "Không thể hủy gói đăng ký."
+        error instanceof Error
+          ? error.message
+          : "Không thể hủy gói đăng ký."
       );
     },
   });
@@ -75,13 +77,13 @@ export function SubscriptionSection() {
   const isCancelPending = Boolean(subscription?.cancelAtPeriodEnd);
 
   return (
-    <section className="rounded-2xl p-6 space-y-4">
+    <section className="space-y-4 rounded-2xl p-6">
       <header>
-        <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-2">
-          <CreditCard className="w-4 h-4" />
+        <p className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          <CreditCard className="h-4 w-4" />
           Gói đăng ký
         </p>
-        <h2 className="text-2xl font-semibold text-foreground mt-1">
+        <h2 className="mt-1 text-2xl font-semibold text-foreground">
           Quản lý gói của bạn
         </h2>
       </header>
@@ -100,7 +102,7 @@ export function SubscriptionSection() {
         </p>
       ) : (
         <div className="space-y-3">
-          <div className="rounded-xl border border-border/60 p-4 space-y-2">
+          <div className="space-y-2 rounded-xl border border-border/60 p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {hasActiveSubscription ? (
                 <BadgeCheck className="h-4 w-4 text-emerald-500" />
@@ -115,8 +117,7 @@ export function SubscriptionSection() {
             </p>
 
             <p className="text-sm text-muted-foreground">
-              Chu kỳ hiện tại kết thúc vào{" "}
-              {formatDate(subscription.currentPeriodEnd)}
+              Chu kỳ hiện tại kết thúc vào {formatDate(subscription.currentPeriodEnd)}
             </p>
 
             {isCancelPending && (

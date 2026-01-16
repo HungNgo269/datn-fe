@@ -20,6 +20,7 @@ import { getBooksAction } from "../feature/books/action/books.action";
 import { searchAuthorsAction } from "../feature/author/actions/authors.actions";
 import { getURL } from "@/lib/helper";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
+import { HighlightedText } from "../feature/search/components/HighlightedText";
 
 const SEARCH_PAGE_TITLE = "Search books & authors | NextBook";
 
@@ -108,7 +109,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="md:w-[700px] lg:w-[800px] xl:w-[850px] flex flex-col gap-5">
             <div className="mx-auto w-full lg:w-[1190px] p-2">
               <div className="flex justify-between">
-                <div className="w-full lg:w-[850px] flex flex-col gap-8">
+                <div className="w-full lg:w-[850px] flex flex-col gap-8 text-black">
+                  <span className="font-bold">
+                    Kết quả tìm kiếm cho:&nbsp;
+                    <span className="text-primary">{query}</span>
+                  </span>
                   {query ? (
                     <>
                       <Tabs defaultValue={activeType}>
@@ -219,7 +224,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                               <div className="pt-2">
                                 <Pagination
                                   meta={bookResults.meta}
-                                  hashUrl="books"
+                                  // hashUrl="books"
                                 />
                               </div>
                             )}

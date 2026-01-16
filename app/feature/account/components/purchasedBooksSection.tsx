@@ -1,26 +1,26 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag } from "lucide-react";
+import { format } from "date-fns";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { ApiError } from "@/lib/handleApiRequest";
 import { toNumericPrice } from "@/lib/helper";
 import { getUserPurchasedBooks } from "@/app/feature/payments/api/payments.api";
 import type { BookPurchase } from "@/app/feature/payments/types/payment.type";
-import { format } from "date-fns";
 
 const formatPurchaseDate = (value?: string) => {
   if (!value) return "Không rõ ngày";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Không rõ ngày";
-  return format(date, "MMM dd, yyyy");
+  return format(date, "dd/MM/yyyy");
 };
 
 const formatPrice = (value?: number | string | null) => {
   const numeric = toNumericPrice(value ?? 0);
   if (!numeric) return "Miễn phí";
-  return `${numeric.toLocaleString("en-US")} VND`;
+  return `${numeric.toLocaleString("vi-VN")} VND`;
 };
 
 const getBookPrice = (purchase: BookPurchase) => {
@@ -47,13 +47,13 @@ export function PurchasedBooksSection() {
   const purchases = data ?? [];
 
   return (
-    <section className="rounded-2xl p-6 space-y-4">
+    <section className="space-y-4 rounded-2xl p-6">
       <header>
-        <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-2">
-          <ShoppingBag className="w-4 h-4" />
+        <p className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          <ShoppingBag className="h-4 w-4" />
           Sách đã mua
         </p>
-        <h2 className="text-2xl font-semibold text-foreground mt-1">
+        <h2 className="mt-1 text-2xl font-semibold text-foreground">
           Sách bạn sở hữu
         </h2>
       </header>
@@ -63,7 +63,9 @@ export function PurchasedBooksSection() {
           Đang tải danh sách mua...
         </p>
       ) : isError ? (
-        <p className="text-sm text-destructive">Không thể tải danh sách mua.</p>
+        <p className="text-sm text-destructive">
+          Không thể tải danh sách mua.
+        </p>
       ) : purchases.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Bạn chưa mua cuốn sách nào.
@@ -77,7 +79,7 @@ export function PurchasedBooksSection() {
             >
               <div className="flex gap-4">
                 <Link
-                  prefetch={true}
+                  prefetch={false}
                   href={`/books/${purchase.book.slug}`}
                   className="block h-24 w-16 shrink-0 overflow-hidden rounded-md border border-border/60"
                   aria-label={purchase.book.title}
@@ -90,11 +92,11 @@ export function PurchasedBooksSection() {
 
                 <div className="min-w-0 flex-1">
                   <Link
-                    prefetch={true}
+                    prefetch={false}
                     href={`/books/${purchase.book.slug}`}
                     className="block"
                   >
-                    <h3 className="text-base font-semibold text-foreground line-clamp-2 hover:underline">
+                    <h3 className="line-clamp-2 text-base font-semibold text-foreground hover:underline">
                       {purchase.book.title}
                     </h3>
                   </Link>

@@ -1,16 +1,5 @@
 "use client";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import { Button } from "@/components/ui/button";
-
-import { ChevronDown, BookMarked } from "lucide-react";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
 import { HeaderButton } from "./headerButton";
 import { RegisterButton } from "./headerRegisterButton";
 import { LoginButton } from "./headerLoginButton";

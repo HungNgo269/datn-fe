@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense } from "react";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { LoginFields, LoginSchema } from "@/app/schema/loginSchema";
 import { useAuthStore } from "@/app/store/useAuthStore";
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Login } from "../api/login.api";
@@ -58,7 +57,6 @@ function LoginFormContent() {
         return;
       }
       router.push(safeRedirect ?? "/");
-      return;
     },
   });
 
@@ -69,13 +67,12 @@ function LoginFormContent() {
   const isPending = loginMutation.isPending;
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-background">
+    <div className="flex flex-1 items-center justify-center bg-background">
       <div className="w-full max-w-md p-6">
         <header className="space-y-1 text-center">
-          <h2 className="text-2xl font-bold">Đăng Nhập Vào NextBook</h2>
+          <h2 className="text-2xl font-bold">Đăng nhập vào NextBook</h2>
           <p className="text-muted-foreground">
-            Nhập thông tin tài khoản của bạn để truy cập admin@example.com
-            user@example.com 123456
+            Nhập thông tin tài khoản của bạn để truy cập hệ thống.
           </p>
         </header>
 
@@ -85,14 +82,14 @@ function LoginFormContent() {
               <Input
                 id="email"
                 type="email"
-                placeholder="Địa chỉ Email"
+                placeholder="Địa chỉ email"
                 autoFocus
                 disabled={isPending}
                 {...register("email")}
                 className={errors.email ? "border-destructive" : ""}
               />
               {errors.email && (
-                <p className="text-sm text-destructive font-medium">
+                <p className="text-sm font-medium text-destructive">
                   {errors.email.message}
                 </p>
               )}
@@ -108,7 +105,7 @@ function LoginFormContent() {
                 className={errors.password ? "border-destructive" : ""}
               />
               {errors.password && (
-                <p className="text-sm text-destructive font-medium">
+                <p className="text-sm font-medium text-destructive">
                   {errors.password.message}
                 </p>
               )}
@@ -118,7 +115,7 @@ function LoginFormContent() {
               <Button
                 variant="link"
                 type="button"
-                className="text-sm p-0 h-auto hover:cursor-pointer text-muted-foreground"
+                className="h-auto p-0 text-sm text-muted-foreground hover:cursor-pointer"
                 onClick={() => router.push("/forgotPassword")}
               >
                 Quên mật khẩu?
@@ -126,7 +123,7 @@ function LoginFormContent() {
             </div>
 
             {loginMutation.isError && (
-              <div className="flex items-center space-x-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center space-x-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3">
                 <AlertCircle className="h-5 w-5 text-destructive" />
                 <p className="text-sm text-destructive">
                   Tên đăng nhập hoặc mật khẩu không chính xác
@@ -134,15 +131,10 @@ function LoginFormContent() {
               </div>
             )}
 
-            <Button
-              className="w-full"
-              size="lg"
-              disabled={isPending}
-              type="submit"
-            >
+            <Button className="w-full" size="lg" disabled={isPending} type="submit">
               {isPending ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                   Đang đăng nhập...
                 </div>
               ) : (
@@ -159,16 +151,16 @@ function LoginFormContent() {
             </Button>
           </div>
 
-          <div className="pt-4"></div>
+          <div className="pt-4" />
           <hr className="border-0.5 border-border" />
 
-          <div className="text-center mt-4">
-            <p className="text-muted-foreground text-sm">
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
               Chưa có tài khoản?{" "}
               <Link
-                prefetch={true}
+                prefetch={false}
                 href="/register"
-                className="text-primary hover:underline font-medium"
+                className="font-medium text-primary hover:underline"
               >
                 Tạo ngay bây giờ
               </Link>

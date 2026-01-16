@@ -1,28 +1,20 @@
-"use client";
+﻿"use client";
 
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-
-import ReaderFrame from "./ReaderFrame";
-
-import ReaderSettings, { THEMES } from "./readerSetting";
-import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
-import ReaderTopBar from "./ReaderTopBar";
-import ReaderPageNavigation from "./ReaderPageNavigation";
+import { toast } from "sonner";
 import ReaderChaptersList from "./ReaderChaptersList";
+import ReaderFrame from "./ReaderFrame";
 import ReaderNoteDialog from "./ReaderNoteDialog";
-import { useReaderHtml } from "../hook/useReaderHTML";
-import { useReaderPagination } from "../hook/useReaderPagination";
+import ReaderPageNavigation from "./ReaderPageNavigation";
+import ReaderSettings, { THEMES } from "./readerSetting";
+import ReaderTopBar from "./ReaderTopBar";
+import { useAuthStore } from "@/app/store/useAuthStore";
 import { useReaderDataStore } from "@/app/store/useReaderDataStore";
 import type { NoteColor } from "@/app/types/book.types";
-import { useAuthStore } from "@/app/store/useAuthStore";
-import { toast } from "sonner";
+import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
+import { useReaderHtml } from "../hook/useReaderHTML";
+import { useReaderPagination } from "../hook/useReaderPagination";
 
 const NOTE_HIGHLIGHT_COLORS: Record<NoteColor, string> = {
   yellow: "rgba(253, 224, 71, 0.6)",
@@ -83,14 +75,7 @@ export default function IframeBookReader({
   const setFontId = useReaderDataStore((state) => state.setFontId);
   const setThemeId = useReaderDataStore((state) => state.setThemeId);
   const setReadMode = useReaderDataStore((state) => state.setReadMode);
-  const containerBg = useMemo(() => {
-    if (typeof window === "undefined") return "transparent";
-    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
-    const bgColor = getComputedStyle(document.documentElement)
-      .getPropertyValue(theme.bgVar)
-      .trim();
-    return bgColor || "transparent";
-  }, [themeId]);
+  const [containerBg, setContainerBg] = useState<string>("");
   const fontsSnapshotRef = useRef({ fontId, fontSize, readMode });
   const hasCalculatedLayoutRef = useRef(false);
   const processedHtml = useReaderHtml({
@@ -143,7 +128,11 @@ export default function IframeBookReader({
       existing.forEach((node) => {
         const parent = node.parentNode;
         if (!parent) return;
-        parent.replaceChild(doc.createTextNode(node.textContent ?? ""), node);
+        const fragment = doc.createDocumentFragment();
+        while (node.firstChild) {
+          fragment.appendChild(node.firstChild);
+        }
+        parent.replaceChild(fragment, node);
         parent.normalize();
       });
 
@@ -151,6 +140,8 @@ export default function IframeBookReader({
         const text = note.selectedText?.trim();
         if (!text) return;
 
+        const textNodes: { node: Text; start: number; end: number }[] = [];
+        let fullText = "";
         const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
           acceptNode(node) {
             if (!node.nodeValue || !node.nodeValue.trim()) {
@@ -171,28 +162,115 @@ export default function IframeBookReader({
 
         while (walker.nextNode()) {
           const node = walker.currentNode as Text;
-          const idx = node.nodeValue?.indexOf(text) ?? -1;
-          if (idx === -1) continue;
+          const start = fullText.length;
+          fullText += node.nodeValue ?? "";
+          textNodes.push({ node, start, end: fullText.length });
+        }
 
-          const range = doc.createRange();
-          range.setStart(node, idx);
-          range.setEnd(node, idx + text.length);
+        const matchIndex = fullText.indexOf(text);
+        if (matchIndex === -1) return;
+        const matchEnd = matchIndex + text.length;
 
-          const mark = doc.createElement("mark");
-          mark.setAttribute("data-note-highlight", "true");
-          const color = note.color ?? "yellow";
-          mark.setAttribute("data-color", color);
-          mark.style.backgroundColor = NOTE_HIGHLIGHT_COLORS[color];
-          mark.style.color = "inherit";
-          mark.style.padding = "0 2px";
-          mark.style.borderRadius = "2px";
+        const startNode = textNodes.find((entry) => entry.end > matchIndex);
+        const endNode = textNodes.find((entry) => entry.end >= matchEnd);
+        if (!startNode || !endNode) return;
 
-          range.surroundContents(mark);
-          break;
+        const range = doc.createRange();
+        range.setStart(startNode.node, matchIndex - startNode.start);
+        range.setEnd(endNode.node, matchEnd - endNode.start);
+
+        const mark = doc.createElement("mark");
+        mark.setAttribute("data-note-highlight", "true");
+        const color = note.color ?? "yellow";
+        mark.setAttribute("data-color", color);
+        mark.style.cssText = [
+          `background-color: ${NOTE_HIGHLIGHT_COLORS[color]} !important`,
+          "color: inherit",
+          "padding: 0 2px",
+          "border-radius: 2px",
+        ].join("; ");
+
+        try {
+          mark.appendChild(range.extractContents());
+          range.insertNode(mark);
+        } catch {
+          // Ignore highlight errors for complex ranges.
         }
       };
 
       notes.forEach(highlightNote);
+    },
+    []
+  );
+
+  const highlightSelection = useCallback(
+    (doc: Document, color: NoteColor) => {
+      const selection = doc.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const range = selection.getRangeAt(0);
+      if (range.collapsed) return;
+
+      const textNodes: Text[] = [];
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          const parent = (node as Text).parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          if (parent.closest("mark[data-note-highlight]")) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          const tag = parent.tagName;
+          if (tag === "SCRIPT" || tag === "STYLE") {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return range.intersectsNode(node)
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT;
+        },
+      });
+
+      try {
+        while (walker.nextNode()) {
+          textNodes.push(walker.currentNode as Text);
+        }
+
+        textNodes.forEach((node) => {
+          let startOffset = 0;
+          let endOffset = node.nodeValue?.length ?? 0;
+
+          if (node === range.startContainer) {
+            startOffset = range.startOffset;
+          }
+          if (node === range.endContainer) {
+            endOffset = range.endOffset;
+          }
+
+          if (startOffset >= endOffset) return;
+
+          const endSplit = node.splitText(endOffset);
+          const midSplit = node.splitText(startOffset);
+
+          const mark = doc.createElement("mark");
+          mark.setAttribute("data-note-highlight", "true");
+          mark.setAttribute("data-color", color);
+          mark.style.cssText = [
+            `background-color: ${NOTE_HIGHLIGHT_COLORS[color]} !important`,
+            "color: inherit",
+            "padding: 0 2px",
+            "border-radius: 2px",
+          ].join("; ");
+          mark.textContent = midSplit.nodeValue ?? "";
+          midSplit.parentNode?.replaceChild(mark, midSplit);
+          if (endSplit) {
+            endSplit.parentNode?.normalize();
+          }
+        });
+        selection.removeAllRanges();
+      } catch {
+        // Fall back to text matching on next render.
+      }
     },
     []
   );
@@ -202,6 +280,14 @@ export default function IframeBookReader({
     applyNoteHighlights(iframeRef.current.contentDocument, bookNotes);
   }, [applyNoteHighlights, bookNotes, ready]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
+    const bgColor = getComputedStyle(document.documentElement)
+      .getPropertyValue(theme.bgVar)
+      .trim();
+    setContainerBg(bgColor || "transparent");
+  }, [themeId]);
 
   const currentChapter = useMemo(() => {
     return chapters.find((chapter) => chapter.slug === chapterSlug);
@@ -298,6 +384,7 @@ export default function IframeBookReader({
       doc.removeEventListener("keyup", handleSelection);
     };
   }, [ready]);
+
   useEffect(() => {
     if (!ready || !isPositionRestored) return;
 
@@ -343,9 +430,9 @@ export default function IframeBookReader({
     readMode,
   ]);
 
-  const handleIframeLoad = () => setReady(true);
+  const handleIframeLoad = useCallback(() => setReady(true), []);
 
-  const handleBookmark = () => {
+  const handleBookmark = useCallback(() => {
     if (!bookSlug) {
       return;
     }
@@ -359,33 +446,83 @@ export default function IframeBookReader({
       chapterTitle: currentChapter?.title ?? null,
       page: currentPage,
     });
-  };
+  }, [
+    bookCoverImage,
+    bookId,
+    bookSlug,
+    bookTitle,
+    chapterSlug,
+    currentChapter?.title,
+    currentPage,
+    title,
+    toggleBookmark,
+    userId,
+  ]);
 
-  const saveNote = (noteText: string, color: NoteColor) => {
-    if (!bookSlug || !selectedText || !noteText.trim()) {
-      return;
-    }
-    addNoteToStore({
-      userId,
+  const saveNote = useCallback(
+    (noteText: string, color: NoteColor) => {
+      if (!bookSlug || !selectedText || !noteText.trim()) {
+        return;
+      }
+      addNoteToStore({
+        userId,
+        bookSlug,
+        bookTitle: bookTitle ?? title,
+        chapterSlug: chapterSlug || null,
+        chapterTitle: currentChapter?.title ?? null,
+        page: currentPage,
+        selectedText,
+        note: noteText.trim(),
+        color,
+        bookId: null,
+      });
+      const doc = iframeRef.current?.contentDocument;
+      if (doc) {
+        highlightSelection(doc, color);
+      }
+      setSelectedText("");
+      setShowNoteDialog(false);
+      iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+    },
+    [
+      addNoteToStore,
       bookSlug,
-      bookTitle: bookTitle ?? title,
-      chapterSlug: chapterSlug || null,
-      chapterTitle: currentChapter?.title ?? null,
-      page: currentPage,
+      bookTitle,
+      chapterSlug,
+      currentChapter?.title,
+      currentPage,
+      highlightSelection,
       selectedText,
-      note: noteText.trim(),
-      color,
-      bookId: null,
-    });
-    setSelectedText("");
-    setShowNoteDialog(false);
-    iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
-  };
+      title,
+      userId,
+    ]
+  );
 
-  const handleNoteClick = () => {
+  const handleNoteClick = useCallback(() => {
     if (selectedText) setShowNoteDialog(true);
     else toast.error("Vui lòng bôi đen văn bản để tạo ghi chú");
-  };
+  }, [selectedText]);
+
+  const handleBackToBook = useCallback(() => {
+    if (bookSlug) {
+      router.push(`/books/${bookSlug}`);
+    }
+  }, [bookSlug, router]);
+
+  const handleChapterClick = useCallback(
+    (slug: string) => {
+      if (bookSlug) {
+        router.push(`/books/${bookSlug}/chapter/${slug}`);
+      }
+    },
+    [bookSlug, router]
+  );
+
+  const handleNoteDialogClose = useCallback(() => {
+    setShowNoteDialog(false);
+    setSelectedText("");
+    iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+  }, []);
 
   const isSettingsOpen = openPanel === "settings";
   const isChaptersOpen = openPanel === "chapters";
@@ -432,13 +569,13 @@ export default function IframeBookReader({
   ]);
 
   return (
-    <div className="flex flex-col h-full w-full relative overflow-hidden bg-muted transition-colors duration-300">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-muted transition-colors duration-300">
       <ReaderTopBar
         title={title}
         currentPage={currentPage}
         totalPages={totalPages}
         themeBg={containerBg}
-        onBackToBook={() => bookSlug && router.push(`/books/${bookSlug}`)}
+        onBackToBook={handleBackToBook}
         onNextChapter={goToNextChapter}
         nextChapterSlug={resolvedNextChapterSlug}
         onToggleSettings={() => togglePanel("settings")}
@@ -450,7 +587,7 @@ export default function IframeBookReader({
         isChaptersOpen={isChaptersOpen}
       />
 
-      <div className="flex-1 relative w-full h-full overflow-hidden">
+      <div className="relative h-full w-full flex-1 overflow-hidden">
         <ReaderFrame
           iframeRef={iframeRef}
           content={processedHtml}
@@ -472,8 +609,8 @@ export default function IframeBookReader({
         )}
 
         {showBlockingOverlay && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
-            <div className="w-8 h-8 border-4 border-muted border-t-green-500 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-green-500" />
           </div>
         )}
       </div>
@@ -497,9 +634,7 @@ export default function IframeBookReader({
           currentChapterSlug={chapterSlug}
           currentPage={currentPage}
           onClose={closePanels}
-          onChapterClick={(slug) =>
-            bookSlug && router.push(`/books/${bookSlug}/chapter/${slug}`)
-          }
+          onChapterClick={handleChapterClick}
           bookmarks={bookBookmarks}
           notes={bookNotes}
           onBookmarkSelect={(bookmark) => {
@@ -516,11 +651,7 @@ export default function IframeBookReader({
       <ReaderNoteDialog
         isOpen={showNoteDialog}
         selectedText={selectedText}
-        onClose={() => {
-          setShowNoteDialog(false);
-          setSelectedText("");
-          iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
-        }}
+        onClose={handleNoteDialogClose}
         onSave={saveNote}
       />
     </div>

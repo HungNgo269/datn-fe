@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -41,7 +41,7 @@ function AuthorsAdminClientContent() {
     if (prevSearchRef.current === debouncedSearch) return;
     prevSearchRef.current = debouncedSearch;
 
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams?.toString());
     if (debouncedSearch) {
       params.set("q", debouncedSearch);
     } else {
@@ -102,17 +102,22 @@ function AuthorsAdminClientContent() {
     },
   });
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     setSelectedAuthor(null);
     setIsDialogOpen(true);
-  };
-  const handleEdit = (author: AuthorInfo) => {
+  }, []);
+
+  const handleEdit = useCallback((author: AuthorInfo) => {
     setSelectedAuthor(author);
     setIsDialogOpen(true);
-  };
-  const handleDelete = (id: number) => {
+  }, []);
+
+  const handleDelete = useCallback(
+    (id: number) => {
     deleteMutation.mutate(id);
-  };
+    },
+    [deleteMutation]
+  );
 
   if (isError)
     return (
@@ -121,8 +126,8 @@ function AuthorsAdminClientContent() {
       </div>
     );
 
-  const authors = data?.data;
-  const meta = data?.meta;
+  const authors = data?.data ?? [];
+  const meta = data?.meta ?? null;
 
   return (
     <div className="p-6 space-y-6">

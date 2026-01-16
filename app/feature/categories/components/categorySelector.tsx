@@ -1,4 +1,5 @@
-"use client";
+﻿"use client";
+
 import { Category } from "../types/listCategories";
 
 interface CategorySelectorProps {
@@ -13,7 +14,7 @@ export default function CategorySelector({
   onCategoryChange,
 }: CategorySelectorProps) {
   return (
-    <div className="flex flex-row flex-wrap items-center gap-2 md:gap-0 md:overflow-hidden font-medium">
+    <div className="flex flex-row flex-wrap items-center gap-2 font-medium md:gap-0 md:overflow-hidden">
       {categories.map((category, index) => {
         const isActive = selectedCategory === category.id;
         return (
@@ -21,10 +22,10 @@ export default function CategorySelector({
             <button
               type="button"
               onClick={() => onCategoryChange(category.id)}
-              className={`text-nowrap transition-colors hover:text-primary hover:cursor-pointer
+              className={`text-nowrap cursor-pointer transition-colors hover:text-primary
                 ${
                   isActive
-                    ? "text-primary font-medium"
+                    ? "font-medium text-primary"
                     : "text-foreground lg:text-base"
                 }`}
             >
@@ -32,7 +33,7 @@ export default function CategorySelector({
             </button>
 
             {index < categories.length - 1 && (
-              <span className="mx-2 text-muted-foreground text-xs hidden md:inline-block">
+              <span className="mx-2 hidden text-xs text-muted-foreground md:inline-block">
                 •
               </span>
             )}

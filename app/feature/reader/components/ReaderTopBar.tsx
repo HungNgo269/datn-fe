@@ -1,17 +1,16 @@
-"use client";
+﻿"use client";
 
-import { useState, ButtonHTMLAttributes } from "react";
+import { ButtonHTMLAttributes, useCallback, useState } from "react";
 import {
   ArrowLeft,
+  Bookmark,
   ChevronRight,
-  Settings,
   List,
   Maximize,
   Minimize,
+  Settings,
   StickyNote,
-  Bookmark,
 } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 
 interface ReaderTopBarProps {
@@ -44,7 +43,7 @@ function ReaderTopBarIconButton({
   return (
     <button
       className={cn(
-        "p-2 rounded transition-colors hover:cursor-pointer text-foreground hover:bg-muted",
+        "rounded p-2 text-foreground transition-colors hover:cursor-pointer hover:bg-muted",
         isActive && "text-primary",
         className
       )}
@@ -72,7 +71,7 @@ export default function ReaderTopBar({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const barBg = themeBg ? toRgba(themeBg, 0.8) : undefined;
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().then(() => {
         setIsFullscreen(true);
@@ -82,90 +81,90 @@ export default function ReaderTopBar({
         setIsFullscreen(false);
       });
     }
-  };
+  }, []);
 
   return (
     <div
       className={cn(
-        "h-14 border-b border-border flex items-center justify-between px-4 shrink-0 shadow-sm z-30 relative",
+        "relative z-30 flex h-14 shrink-0 items-center justify-between border-b border-border px-4 shadow-sm",
         !barBg && "bg-card"
       )}
       style={barBg ? { backgroundColor: barBg } : undefined}
     >
-      <div className="flex items-center gap-1 z-10">
-        <ReaderTopBarIconButton onClick={onBackToBook} title="Quay lại sách">
-          <ArrowLeft className="w-5 h-5" />
+      <div className="z-10 flex items-center gap-1">
+        <ReaderTopBarIconButton onClick={onBackToBook} title="Quay lại sách">
+          <ArrowLeft className="h-5 w-5" />
         </ReaderTopBarIconButton>
       </div>
 
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full max-w-[50%] pointer-events-none">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 w-full max-w-[50%] -translate-x-1/2 -translate-y-1/2 text-center">
         <div className="hidden md:block">
-          <h1 className="font-semibold text-foreground text-sm md:text-base line-clamp-1 mx-auto">
+          <h1 className="mx-auto line-clamp-1 text-sm font-semibold text-foreground md:text-base">
             {title}
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Trang {currentPage} / {totalPages || "--"}
           </p>
         </div>
 
-        <div className="md:hidden text-xs text-muted-foreground font-medium">
+        <div className="text-xs font-medium text-muted-foreground md:hidden">
           {currentPage}/{totalPages || "-"}
         </div>
       </div>
 
       <div
-        className={cn("flex items-center gap-1 z-10", !barBg && "bg-card")}
+        className={cn("z-10 flex items-center gap-1", !barBg && "bg-card")}
         style={barBg ? { backgroundColor: barBg } : undefined}
       >
         <ReaderTopBarIconButton
           onClick={onToggleChapters}
-          title="Danh sách chương"
+          title="Danh sách chương"
           isActive={isChaptersOpen}
         >
-          <List className="w-5 h-5" />
+          <List className="h-5 w-5" />
         </ReaderTopBarIconButton>
 
         <ReaderTopBarIconButton
           onClick={onToggleBookmark}
-          title="Đánh dấu trang"
+          title="Đánh dấu trang"
           isActive={isBookmarked}
         >
           <Bookmark
-            className={cn("w-5 h-5", isBookmarked ? "fill-current" : undefined)}
+            className={cn("h-5 w-5", isBookmarked ? "fill-current" : undefined)}
           />
         </ReaderTopBarIconButton>
 
-        <ReaderTopBarIconButton onClick={onToggleNotes} title="Ghi chú">
-          <StickyNote className="w-5 h-5" />
+        <ReaderTopBarIconButton onClick={onToggleNotes} title="Ghi chú">
+          <StickyNote className="h-5 w-5" />
         </ReaderTopBarIconButton>
 
         <ReaderTopBarIconButton
           onClick={onToggleSettings}
-          title="Cài đặt"
+          title="Cài đặt"
           isActive={isSettingsOpen}
         >
-          <Settings className="w-5 h-5" />
+          <Settings className="h-5 w-5" />
         </ReaderTopBarIconButton>
 
         <ReaderTopBarIconButton
           onClick={toggleFullscreen}
           className="hidden sm:block"
-          title="Toàn màn hình (F11)"
+          title="Toàn màn hình (F11)"
         >
           {isFullscreen ? (
-            <Minimize className="w-5 h-5" />
+            <Minimize className="h-5 w-5" />
           ) : (
-            <Maximize className="w-5 h-5" />
+            <Maximize className="h-5 w-5" />
           )}
         </ReaderTopBarIconButton>
 
-        <div className="w-px h-6 bg-border mx-1" />
+        <div className="mx-1 h-6 w-px bg-border" />
 
         <ReaderTopBarIconButton
           onClick={onNextChapter}
-          title={nextChapterSlug ? "Chương tiếp theo" : "Quay lại sách"}
+          title={nextChapterSlug ? "Chương tiếp theo" : "Quay lại sách"}
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="h-5 w-5" />
         </ReaderTopBarIconButton>
       </div>
     </div>

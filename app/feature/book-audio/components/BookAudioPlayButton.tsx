@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 
+import { useCallback } from "react";
 import { Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookAudioStore } from "@/app/store/useBookAudioStore";
@@ -8,12 +9,14 @@ import { cn } from "@/lib/utils";
 interface BookAudioPlayButtonProps {
   bookSlug: string;
   bookTitle: string;
+  coverImage: string;
   className?: string;
 }
 
 export function BookAudioPlayButton({
   bookSlug,
   bookTitle,
+  coverImage,
   className,
 }: BookAudioPlayButtonProps) {
   const currentTrackId = useBookAudioStore(
@@ -27,7 +30,7 @@ export function BookAudioPlayButton({
   const isCurrentTrack = currentTrackId === bookSlug;
   const active = isCurrentTrack && isPlaying;
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (isCurrentTrack && isPlaying) {
       stopTrack();
       return;
@@ -42,8 +45,9 @@ export function BookAudioPlayButton({
       id: bookSlug,
       title: bookTitle,
       episode: "Demo chapter preview",
+      coverImage,
     });
-  };
+  }, [bookSlug, bookTitle, coverImage, isCurrentTrack, isPlaying, resumeTrack, startDemoTrack, stopTrack]);
 
   return (
     <Button
@@ -51,8 +55,8 @@ export function BookAudioPlayButton({
       variant="default"
       onClick={handleClick}
       className={cn(
-        "flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90 shadow-sm",
-        active && "ring-2 ring-offset-2 ring-primary/60",
+        "flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all hover:bg-primary/90",
+        active && "ring-2 ring-primary/60 ring-offset-2",
         className
       )}
       aria-label={active ? "Dừng audio minh họa" : "Phát audio minh họa"}
@@ -61,7 +65,7 @@ export function BookAudioPlayButton({
       {active ? (
         <Square className="h-5 w-5 fill-current" />
       ) : (
-        <Play className="h-5 w-5 fill-current translate-x-0.5" />
+        <Play className="h-5 w-5 translate-x-0.5 fill-current" />
       )}
     </Button>
   );

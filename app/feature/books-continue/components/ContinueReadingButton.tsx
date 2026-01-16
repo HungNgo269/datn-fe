@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import Link from "next/link";
@@ -72,11 +72,11 @@ export function ContinueReadingButton({
       <Button
         type="button"
         className={cn(
-          "w-full sm:w-[180px] h-12 text-base font-bold bg-muted border-border border text-foreground hover:bg-muted/80 rounded-sm shadow-none",
+          "h-12 w-full rounded-sm border border-border bg-muted text-base font-bold text-foreground shadow-none hover:bg-muted/80 sm:w-[180px]",
           buttonClassName
         )}
       >
-        <BookOpen className="w-5 h-5 mr-2" />
+        <BookOpen className="mr-2 h-5 w-5" />
         {buttonLabel}
       </Button>
     </Link>

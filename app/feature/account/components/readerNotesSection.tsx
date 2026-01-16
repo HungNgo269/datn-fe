@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -37,6 +37,7 @@ export function ReaderNotesSection() {
       ),
     [userNotes]
   );
+
   const itemsPerPage = 5;
   const totalPages = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
   const [page, setPage] = useState(1);
@@ -47,13 +48,13 @@ export function ReaderNotesSection() {
   );
 
   return (
-    <section className="rounded-2xl  p-6  space-y-4 min-h-[300px]">
+    <section className="min-h-[300px] space-y-4 rounded-2xl p-6">
       <header>
-        <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-2">
-          <StickyNote className="w-4 h-4" />
+        <p className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          <StickyNote className="h-4 w-4" />
           Ghi chú của tôi
         </p>
-        <h2 className="text-2xl font-semibold text-foreground mt-1">
+        <h2 className="mt-1 text-2xl font-semibold text-foreground">
           Các đoạn văn bạn đã lưu lại
         </h2>
       </header>
@@ -80,7 +81,7 @@ export function ReaderNotesSection() {
             disabled={safePage === 1}
             className="rounded-md border border-border px-2.5 py-1 text-foreground disabled:opacity-50"
           >
-            Prev
+            Trước
           </button>
           <span>
             {safePage} / {totalPages}
@@ -93,7 +94,7 @@ export function ReaderNotesSection() {
             disabled={safePage === totalPages}
             className="rounded-md border border-border px-2.5 py-1 text-foreground disabled:opacity-50"
           >
-            Next
+            Sau
           </button>
         </div>
       )}
@@ -111,9 +112,10 @@ function NoteListItem({
   const href = note.chapterSlug
     ? `/books/${note.bookSlug}/chapter/${note.chapterSlug}`
     : `/books/${note.bookSlug}`;
+  const createdLabel = formatDateSafe(note.createdAt);
 
   return (
-    <li className="rounded-xl border border-border/70 bg-muted/30 p-4 text-sm space-y-2">
+    <li className="space-y-2 rounded-xl border border-border/70 bg-muted/30 p-4 text-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="font-semibold text-foreground">{note.bookTitle}</p>
@@ -124,30 +126,29 @@ function NoteListItem({
         <button
           type="button"
           onClick={() => onRemove(note.id)}
-          className="text-muted-foreground hover:text-destructive transition-colors"
-          aria-label="Xoá ghi chú"
+          className="text-muted-foreground transition-colors hover:text-destructive"
+          aria-label="Xóa ghi chú"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
         </button>
       </div>
       {note.selectedText && (
-        <p className="italic text-muted-foreground leading-relaxed">
+        <p className="leading-relaxed text-muted-foreground italic">
           "{note.selectedText}"
         </p>
       )}
-      <p className="text-foreground leading-relaxed">{note.note}</p>
+      <p className="leading-relaxed text-foreground">{note.note}</p>
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>Trang {note.page}</span>
-        {formatDateSafe(note.createdAt) && (
-          <span>{formatDateSafe(note.createdAt)}</span>
-        )}
+        {createdLabel && <span>{createdLabel}</span>}
       </div>
 
       <div className="flex justify-end">
         <Link
+          prefetch={false}
           href={href}
-          className="text-primary text-xs font-semibold hover:underline"
+          className="text-xs font-semibold text-primary hover:underline"
         >
           Đọc lại đoạn này
         </Link>

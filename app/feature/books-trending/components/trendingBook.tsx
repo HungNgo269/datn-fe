@@ -1,4 +1,4 @@
-import { Separator } from "@/components/ui/separator";
+﻿import { Separator } from "@/components/ui/separator";
 import {
   DEFAULT_TIMEFRAME,
   TimeFrame,
@@ -31,14 +31,14 @@ export default async function TrendingBook({
 
     if (!books?.length) {
       return (
-        <div className="flex flex-col gap-2 mt-5">
+        <div className="mt-5 flex flex-col gap-2">
           <div className="flex flex-col gap-3 md:flex-row md:justify-between">
-            <span className="font-bold text-lg text-start whitespace-nowrap">
+            <span className="whitespace-nowrap text-start text-lg font-bold">
               {title}
             </span>
           </div>
           <Separator />
-          <div className="text-sm text-muted-foreground mt-2">
+          <div className="mt-2 text-sm text-muted-foreground">
             Chưa có dữ liệu xu hướng.
           </div>
         </div>
@@ -48,22 +48,18 @@ export default async function TrendingBook({
     return (
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-3 md:flex-row md:justify-between">
-          <span className="font-bold text-lg text-start whitespace-nowrap">
+          <span className="whitespace-nowrap text-start text-lg font-bold">
             {title}
           </span>
-          <TrendingBookFilter
-            value={normalizedPeriod}
-            paramKey={searchParamKey}
-          />
+          <TrendingBookFilter value={normalizedPeriod} paramKey={searchParamKey} />
         </div>
         <Separator />
-        <div className="space-y-3 mt-2">
+        <div className="mt-2 space-y-3">
           <TrendingBookContent books={books} />
         </div>
       </div>
     );
-  } catch (error) {
-    console.error("Failed to load trending books:", error);
+  } catch {
     return (
       <div className="p-6 text-center text-destructive">
         Không thể tải danh sách xu hướng.

@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Cookies from "js-cookie";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatCurrency, toNumericPrice } from "@/lib/helper";
@@ -121,22 +121,25 @@ function BookPaymentActionsContent({
   const priceValue = toNumericPrice(price);
   const priceLabel = priceValue > 0 ? formatCurrency(priceValue) : "Thanh toán";
 
-  const handleAuthRedirect = () => {
+  const handleAuthRedirect = useCallback(() => {
     router.push(`/login?next=${encodeURIComponent(currentPath)}`);
-  };
+  }, [currentPath, router]);
 
-  const handleCheckoutRedirect = (checkoutUrl?: string | null) => {
-    if (checkoutUrl) {
-      try {
-        localStorage.setItem(RETURN_STORAGE_KEY, returnPath);
-      } catch {}
-      window.location.assign(checkoutUrl);
-    } else {
-      toast.error("Không thể tạo đường dẫn thanh toán.");
-    }
-  };
+  const handleCheckoutRedirect = useCallback(
+    (checkoutUrl?: string | null) => {
+      if (checkoutUrl) {
+        try {
+          localStorage.setItem(RETURN_STORAGE_KEY, returnPath);
+        } catch {}
+        window.location.assign(checkoutUrl);
+      } else {
+        toast.error("Không thể tạo đường dẫn thanh toán.");
+      }
+    },
+    [returnPath]
+  );
 
-  const handlePurchase = async () => {
+  const handlePurchase = useCallback(async () => {
     if (!isUserAuthenticated) {
       handleAuthRedirect();
       return;
@@ -160,9 +163,9 @@ function BookPaymentActionsContent({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [bookId, handleAuthRedirect, handleCheckoutRedirect, isPurchased, isUserAuthenticated]);
 
-  const handleSubscription = async () => {
+  const handleSubscription = useCallback(async () => {
     if (!isUserAuthenticated) {
       handleAuthRedirect();
       return;
@@ -186,24 +189,20 @@ function BookPaymentActionsContent({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleAuthRedirect, handleCheckoutRedirect, hasActiveSubscription, isUserAuthenticated]);
 
-  // Ẩn button nếu không phải purchase hoặc membership
   if (!isPurchase && !isMembership) {
     return null;
   }
 
-  // Nếu là PURCHASE: ẩn button khi đã mua sách
   if (isPurchase && isPurchased) {
     return null;
   }
 
-  // Nếu là MEMBERSHIP: ẩn button khi đã có premium
   if (isMembership && hasActiveSubscription) {
     return null;
   }
 
-  // Render button tương ứng
   if (isPurchase) {
     return (
       <Button
@@ -211,7 +210,7 @@ function BookPaymentActionsContent({
         onClick={handlePurchase}
         disabled={isLoading}
         className={cn(
-          "h-12 w-full sm:w-auto px-4 rounded-sm border border-border flex items-center justify-center gap-2 font-semibold transition-all bg-primary text-primary-foreground text-base",
+          "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border bg-primary px-4 text-base font-semibold text-primary-foreground transition-all sm:w-auto",
           className
         )}
       >
@@ -227,7 +226,7 @@ function BookPaymentActionsContent({
         onClick={handleSubscription}
         disabled={isLoading}
         className={cn(
-          "h-12 w-full sm:w-auto px-4 rounded-sm border border-border flex items-center justify-center gap-2 font-semibold transition-all bg-primary text-primary-foreground text-base",
+          "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border bg-primary px-4 text-base font-semibold text-primary-foreground transition-all sm:w-auto",
           className
         )}
       >

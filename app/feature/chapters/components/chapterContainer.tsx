@@ -12,9 +12,11 @@ interface ChapterContainerProps {
 }
 
 export function ChapterContainer(props: ChapterContainerProps) {
+  const { bookId, ...listProps } = props;
+
   return (
-    <ChapterTabs bookId={props.bookId}>
-      <ChapterList {...props} />
+    <ChapterTabs bookId={bookId}>
+      <ChapterList {...listProps} />
     </ChapterTabs>
   );
 }

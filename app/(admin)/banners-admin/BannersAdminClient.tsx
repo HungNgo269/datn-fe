@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -41,19 +41,22 @@ function BannersAdminClientContent() {
     },
   });
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     setSelectedBanner(null);
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (banner: Banner) => {
+  const handleEdit = useCallback((banner: Banner) => {
     setSelectedBanner(banner);
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
+  const handleDelete = useCallback(
+    (id: number) => {
+      deleteMutation.mutate(id);
+    },
+    [deleteMutation]
+  );
 
   if (isLoading) {
     return (
@@ -71,8 +74,8 @@ function BannersAdminClientContent() {
     );
   }
 
-  const banners = data?.data;
-  const meta = data?.meta;
+  const banners = data?.data ?? [];
+  const meta = data?.meta ?? null;
 
   return (
     <div className="p-6 space-y-6">
@@ -89,7 +92,7 @@ function BannersAdminClientContent() {
       </div>
 
       <AdminBannerList
-        banners={banners!}
+        banners={banners}
         onEdit={handleEdit}
         onDelete={handleDelete}
         isDeleting={deleteMutation.isPending}

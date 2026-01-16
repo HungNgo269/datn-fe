@@ -3,10 +3,18 @@ import { useReaderDataStore } from "@/app/store/useReaderDataStore";
 import RecommendedPersonalByLastBook from "./RecommendedSimilarByLastBook";
 
 export default function RecommendedSimilarByLastBookWrapper() {
-  const history = useReaderDataStore((state) => state.readingHistory);
-  const bookId = history[0]?.bookId ?? null;
-  const bookTitle = history[0]?.bookTitle ?? null;
+  const latestEntry = useReaderDataStore(
+    (state) => state.readingHistory[0] ?? null
+  );
+
+  if (!latestEntry || !latestEntry.bookId) {
+    return null;
+  }
+
   return (
-    <RecommendedPersonalByLastBook bookId={bookId ?? 0} bookTitle={bookTitle} />
+    <RecommendedPersonalByLastBook
+      bookId={latestEntry.bookId}
+      bookTitle={latestEntry.bookTitle}
+    />
   );
 }

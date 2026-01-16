@@ -12,7 +12,7 @@ interface Props {
   showHeader?: boolean;
   showViewMore?: boolean;
   viewMoreUrl?: string;
-  viewMoreContext?: string;
+  viewMoreContext?: "book" | "chapter";
 }
 
 export default function Swipper({

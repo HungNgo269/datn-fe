@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo } from "react";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 import type { Book } from "@/app/feature/books/types/books.type";
 import { HighlightedText } from "./HighlightedText";
@@ -12,13 +13,16 @@ interface BookResultCardProps {
 export function BookResultCard({ book, query }: BookResultCardProps) {
   const authorNames =
     book.authors?.map((item) => item.author.name).join(", ") || "Đang cập nhật";
-  const sanitizedDescription = sanitizeRichHtml(book.description);
+  const sanitizedDescription = useMemo(
+    () => sanitizeRichHtml(book.description),
+    [book.description]
+  );
 
   return (
     <Link
       href={`/books/${book.slug}`}
       className="flex gap-4  p-4 "
-      prefetch={true}
+      prefetch={false}
     >
       <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted shadow-sm">
         <Image

@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { NoteColor } from "@/app/types/book.types";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 interface ReaderNoteDialogProps {
   isOpen: boolean;
@@ -37,13 +37,17 @@ export default function ReaderNoteDialog({
   if (!isOpen) return null;
 
   const handleSave = () => {
-    toast.error("Hãy thêm ghi chú của bạn trước");
-
-    if (textareaRef.current) {
-      onSave(textareaRef.current.value, color);
-      textareaRef.current.value = "";
-      toast.success("Thêm ghi chú thành công");
+    const noteText = textareaRef.current?.value ?? "";
+    if (!noteText.trim()) {
+      toast.error("Hãy thêm ghi chú của bạn trước");
+      return;
     }
+
+    onSave(noteText, color);
+    if (textareaRef.current) {
+      textareaRef.current.value = "";
+    }
+    toast.success("Thêm ghi chú thành công");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -57,19 +61,19 @@ export default function ReaderNoteDialog({
 
   return (
     <div
-      className="absolute inset-0 overlay-backdrop flex items-center justify-center z-50"
+      className="overlay-backdrop absolute inset-0 z-50 flex items-center justify-center"
       onClick={onClose}
     >
       <div
-        className="bg-white border border-border rounded-lg p-6 w-96 max-w-[90vw] "
+        className="w-96 max-w-[90vw] rounded-lg border border-border bg-white p-6"
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 className="font-semibold mb-4">Thêm ghi chú</h3>
+        <h3 className="mb-4 font-semibold">Thêm ghi chú</h3>
         <div className="mb-4">
-          <p className="text-sm text-muted-foreground mb-2">
+          <p className="mb-2 text-sm text-muted-foreground">
             Đoạn văn đã chọn:
           </p>
-          <p className="text-sm bg-muted p-2 rounded italic">
+          <p className="rounded bg-muted p-2 text-sm italic">
             {selectedText.substring(0, 100)}
             {selectedText.length > 100 ? "..." : ""}
           </p>
@@ -77,7 +81,7 @@ export default function ReaderNoteDialog({
         <textarea
           ref={textareaRef}
           placeholder="Nhập ghi chú của bạn..."
-          className="w-full p-2 border border-border rounded-md bg-background text-foreground mb-4 min-h-[100px] resize-none"
+          className="mb-4 min-h-[100px] w-full resize-none rounded-md border border-border bg-background p-2 text-foreground"
           onKeyDown={handleKeyDown}
         />
         <div className="mb-4">
@@ -95,16 +99,16 @@ export default function ReaderNoteDialog({
             ))}
           </div>
         </div>
-        <div className="flex gap-2 justify-end">
+        <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors"
+            className="rounded-md border border-border px-4 py-2 transition-colors hover:bg-muted"
           >
             Hủy
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Lưu
           </button>

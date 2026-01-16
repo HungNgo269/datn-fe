@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -141,9 +141,12 @@ function FavoriteButtonContent({
   const isProcessing =
     mutation.isPending || isStatusLoading || isStatusFetching;
 
-  const formattedTotal = new Intl.NumberFormat("vi-VN").format(totalFavorites);
+  const formattedTotal = useMemo(
+    () => new Intl.NumberFormat("vi-VN").format(totalFavorites),
+    [totalFavorites]
+  );
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (!bookId) return;
 
     if (!effectiveUserId) {
@@ -160,7 +163,7 @@ function FavoriteButtonContent({
     }
 
     mutation.mutate(isFavorited);
-  };
+  }, [bookId, effectiveUserId, isFavorited, mutation, pathname, router, searchParams]);
 
   return (
     <Button

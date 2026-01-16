@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { ChapterCardProps } from "../types/chapter.type";
 import { ChapterItem } from "./chapterItem";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils"; // Giả sử bạn có hàm cn từ shadcn, nếu không có thể dùng string template
 
 interface ChapterListProps {
   chapters: ChapterCardProps[];
@@ -24,29 +24,39 @@ export function ChapterList({
   const [chapterOrder, setChapterOrder] = useState<"DESC" | "ASC">("DESC");
   const pathName = usePathname();
 
-  const handleOrderDisplay = (order: "DESC" | "ASC") => {
+  const handleOrderDisplay = useCallback((order: "DESC" | "ASC") => {
     setChapterOrder(order);
-  };
+  }, []);
 
-  const sortedChapters =
-    chapterOrder === "ASC" ? [...chapters].reverse() : chapters;
+  const handleToggleShowAll = useCallback(() => {
+    setShowAll((prev) => !prev);
+  }, []);
 
-  const visibleChapters = showAll
-    ? sortedChapters
-    : sortedChapters.slice(0, initialVisibleChapters);
+  const sortedChapters = useMemo(() => {
+    return chapterOrder === "ASC" ? [...chapters].reverse() : chapters;
+  }, [chapterOrder, chapters]);
 
+  const visibleChapters = useMemo(
+    () =>
+      showAll
+        ? sortedChapters
+        : sortedChapters.slice(0, initialVisibleChapters),
+    [initialVisibleChapters, showAll, sortedChapters]
+  );
+
+  const displayedTotal = totalChapters ?? chapters.length;
   const hasMoreChapters = chapters.length > initialVisibleChapters;
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="flex flex-row justify-between items-center w-full text-md py-2 text-muted-foreground/70 font-semibold">
-        <p>Có tất cả {totalChapters} chương</p>
-        <div className="flex flex-row justify-center items-center gap-2 text-sm">
+    <div className="flex w-full flex-col">
+      <div className="flex w-full flex-row items-center justify-between py-2 text-md font-semibold text-muted-foreground/70">
+        <p>Có tất cả {displayedTotal} chương</p>
+        <div className="flex flex-row items-center justify-center gap-2 text-sm">
           <span
             className={cn(
               "cursor-pointer transition-colors",
               chapterOrder === "ASC"
-                ? " font-semibold text-primary"
+                ? "font-semibold text-primary"
                 : "text-muted-foreground hover:text-primary"
             )}
             onClick={() => handleOrderDisplay("ASC")}
@@ -63,7 +73,7 @@ export function ChapterList({
             className={cn(
               "cursor-pointer transition-colors",
               chapterOrder === "DESC"
-                ? " font-semibold text-primary"
+                ? "font-semibold text-primary"
                 : "text-muted-foreground hover:text-primary"
             )}
             onClick={() => handleOrderDisplay("DESC")}
@@ -73,7 +83,7 @@ export function ChapterList({
         </div>
       </div>
 
-      <div className="relative border rounded-sm shadow-sm">
+      <div className="relative rounded-sm border shadow-sm">
         <div className="space-y-2">
           {visibleChapters.map((chapter) => (
             <ChapterItem
@@ -85,23 +95,21 @@ export function ChapterList({
         </div>
 
         {!showAll && hasMoreChapters && (
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
         )}
       </div>
 
       {hasMoreChapters && (
         <div className="mt-4 pt-2 text-center">
           <button
-            onClick={() => setShowAll(!showAll)}
-            className="mt-2 cursor-pointer text-primary hover:text-primary text-sm font-medium hover:underline transition-all"
+            onClick={handleToggleShowAll}
+            className="mt-2 cursor-pointer text-sm font-medium text-primary transition-all hover:text-primary hover:underline"
           >
             {showAll
               ? "Thu gọn"
               : `${showMoreText} ${
                   totalChapters
-                    ? `(${
-                        totalChapters - initialVisibleChapters
-                      } chương còn lại)`
+                    ? `(${totalChapters - initialVisibleChapters} chương còn lại)`
                     : `(${chapters.length - initialVisibleChapters} chương nữa)`
                 }`}
           </button>

@@ -166,25 +166,31 @@ export default function BookAudioStickyPlayer() {
     return null;
   }
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     if (isPlaying) {
       pauseTrack();
     } else {
       resumeTrack();
     }
-  };
+  }, [isPlaying, pauseTrack, resumeTrack]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     cleanupAudio();
     stopTrack();
-  };
+  }, [cleanupAudio, stopTrack]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background p-4 ">
       <div className="mx-auto flex max-w-4xl items-center gap-4">
         {/* Album Cover */}
         <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-neutral-800 shadow-lg">
-          <Image src={currentTrack.coverImage} alt="currentTrack.title"></Image>
+          <Image
+            src={currentTrack.coverImage}
+            alt={currentTrack.title}
+            width={64}
+            height={64}
+            className="h-16 w-16 object-cover"
+          />
         </div>
 
         {/* Track Info & Progress */}

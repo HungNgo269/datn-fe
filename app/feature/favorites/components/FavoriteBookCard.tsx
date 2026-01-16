@@ -1,9 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { FavoriteResponseDto } from "../types/favorite.type";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight } from "lucide-react";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
@@ -13,12 +13,20 @@ interface FavoriteBookCardProps {
 
 export function FavoriteBookCard({ favorite }: FavoriteBookCardProps) {
   const book = favorite.book;
+  const formattedDate = useMemo(
+    () => new Date(favorite.createdAt).toLocaleDateString("vi-VN"),
+    [favorite.createdAt]
+  );
+  const sanitizedDescription = useMemo(
+    () => (book?.description ? sanitizeRichHtml(book.description) : ""),
+    [book?.description]
+  );
 
   if (!book) return null;
 
   return (
     <Link
-      prefetch={true}
+      prefetch={false}
       href={`/books/${book.slug}`}
       className="group rounded-lg transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
     >
@@ -35,19 +43,18 @@ export function FavoriteBookCard({ favorite }: FavoriteBookCardProps) {
             <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
           </div>
 
-          {book.description && (
+          {sanitizedDescription ? (
             <div
               className="text-xs text-muted-foreground line-clamp-2"
               dangerouslySetInnerHTML={{
-                __html: sanitizeRichHtml(book.description),
+                __html: sanitizedDescription,
               }}
             />
-          )}
+          ) : null}
 
           <div className="mt-auto flex items-center gap-2">
             <span className="text-xs text-muted-foreground">
-              Thêm ngày{" "}
-              {new Date(favorite.createdAt).toLocaleDateString("vi-VN")}
+              Thêm ngày {formattedDate}
             </span>
           </div>
         </div>

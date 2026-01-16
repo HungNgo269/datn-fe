@@ -1,4 +1,4 @@
-import BannerHomeSliderClient from "./bannerHomeSliderClient";
+﻿import BannerHomeSliderClient from "./bannerHomeSliderClient";
 import { getHomeBannersAction } from "../actions/banner.action";
 
 export default async function BannerHomeSlider() {
@@ -20,11 +20,10 @@ export default async function BannerHomeSlider() {
         total={bannerResponse.meta?.total}
       />
     );
-  } catch (error) {
-    console.error("Failed to load banners:", error);
+  } catch {
     return (
-      <div className="p-10 text-destructive text-center">
-        Không thể tải dữ liệu banner
+      <div className="p-10 text-center text-destructive">
+        Không thể tải dữ liệu banner.
       </div>
     );
   }

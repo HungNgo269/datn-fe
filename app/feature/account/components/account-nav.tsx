@@ -56,7 +56,7 @@ const NAV_LINKS = [
 
 export function AccountSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
-  const user = useAuthStore().user;
+  const user = useAuthStore((state) => state.user);
   return (
     <div className={cn("flex flex-col h-full", className)}>
       <div className="p-6 border-b border-border/50">

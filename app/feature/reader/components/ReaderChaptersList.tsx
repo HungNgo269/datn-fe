@@ -1,12 +1,13 @@
-"use client";
+﻿"use client";
 
-import { List, X, Bookmark, StickyNote, Trash2 } from "lucide-react";
+import { useMemo } from "react";
 import { format } from "date-fns";
+import { Bookmark, List, StickyNote, Trash2, X } from "lucide-react";
 import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
 import type {
+  NoteColor,
   ReaderBookmark,
   ReaderNote,
-  NoteColor,
 } from "@/app/types/book.types";
 import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
 
@@ -53,29 +54,34 @@ export default function ReaderChaptersList({
     onOutside: onClose,
   });
 
-  if (chapters.length === 0) return null;
+  const sortedBookmarks = useMemo(() => {
+    return [...bookmarks].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [bookmarks]);
 
-  const sortedBookmarks = [...bookmarks].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-  const sortedNotes = [...notes].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [notes]);
+
+  if (chapters.length === 0) return null;
 
   return (
     <div
       ref={panelRef}
-      className="absolute top-14 right-4 bottom-6 w-80 bg-popover border border-border rounded-lg shadow-xl z-40 flex flex-col"
+      className="absolute top-14 bottom-6 right-4 z-40 flex w-80 flex-col rounded-lg border border-border bg-popover shadow-xl"
     >
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-          <List className="w-4 h-4" /> Danh sách chương
+      <div className="flex items-center justify-between border-b border-border p-4">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <List className="h-4 w-4" /> Danh sách chương
         </h3>
         <button
           onClick={onClose}
-          className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-full p-1 transition-colors"
+          className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-2">
@@ -86,17 +92,17 @@ export default function ReaderChaptersList({
               onChapterClick(chapter.slug);
               onClose();
             }}
-            className={`w-full text-left px-3 py-2 rounded-md transition-colors mb-1 cursor-pointer ${
+            className={`mb-1 w-full cursor-pointer rounded-md px-3 py-2 text-left transition-colors ${
               chapter.slug === currentChapterSlug
-                ? "bg-primary text-primary-foreground font-medium"
-                : "hover:bg-muted text-foreground"
+                ? "bg-primary font-medium text-primary-foreground"
+                : "text-foreground hover:bg-muted"
             }`}
           >
             <div className="text-sm">
               Chương {chapter.order}: {chapter.title}
             </div>
             {chapter.slug === currentChapterSlug && (
-              <div className="text-xs mt-1 opacity-80">
+              <div className="mt-1 text-xs opacity-80">
                 Đang đọc - Trang {currentPage}
               </div>
             )}
@@ -104,10 +110,10 @@ export default function ReaderChaptersList({
         ))}
       </div>
 
-      <div className="border-t border-border p-4 space-y-4 max-h-64 overflow-y-auto">
+      <div className="max-h-64 space-y-4 overflow-y-auto border-t border-border p-4">
         <section>
-          <div className="text-[11px] uppercase text-muted-foreground flex items-center gap-2">
-            <Bookmark className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-[11px] uppercase text-muted-foreground">
+            <Bookmark className="h-4 w-4" />
             Đánh dấu của bạn
           </div>
           <div className="mt-2 space-y-2">
@@ -119,17 +125,20 @@ export default function ReaderChaptersList({
                 >
                   <div className="flex items-center gap-2">
                     <button
-                      className="flex-1 text-left font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
-                      onClick={() => { onBookmarkSelect?.(bookmark); onClose(); }}
+                      className="flex-1 cursor-pointer text-left font-medium text-foreground transition-colors hover:text-primary"
+                      onClick={() => {
+                        onBookmarkSelect?.(bookmark);
+                        onClose();
+                      }}
                     >
                       {bookmark.chapterTitle || "Chương chưa xác định"}
                     </button>
                     <button
-                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      className="text-muted-foreground transition-colors hover:text-destructive"
                       onClick={() => onRemoveBookmark?.(bookmark.id)}
-                      aria-label="Xoá đánh dấu"
+                      aria-label="Xóa đánh dấu"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-muted-foreground/80">
@@ -151,8 +160,8 @@ export default function ReaderChaptersList({
         </section>
 
         <section>
-          <div className="text-[11px] uppercase text-muted-foreground flex items-center gap-2">
-            <StickyNote className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-[11px] uppercase text-muted-foreground">
+            <StickyNote className="h-4 w-4" />
             Ghi chú
           </div>
           <div className="mt-2 space-y-2">
@@ -160,29 +169,32 @@ export default function ReaderChaptersList({
               sortedNotes.map((note) => (
                 <div
                   key={note.id}
-                  className={`rounded-md border border-border/70 p-2 text-xs space-y-1 ${getNoteColorClass(
+                  className={`space-y-1 rounded-md border border-border/70 p-2 text-xs ${getNoteColorClass(
                     note.color
                   )}`}
                 >
                   <div className="flex items-center gap-2">
                     <button
-                      className="flex-1 text-left font-medium text-foreground hover:text-primary transition-colors cursor-pointer"
-                      onClick={() => { onNoteSelect?.(note); onClose(); }}
+                      className="flex-1 cursor-pointer text-left font-medium text-foreground transition-colors hover:text-primary"
+                      onClick={() => {
+                        onNoteSelect?.(note);
+                        onClose();
+                      }}
                     >
                       {note.chapterTitle || "Chương chưa xác định"}
                     </button>
                     <button
-                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      className="text-muted-foreground transition-colors hover:text-destructive"
                       onClick={() => onRemoveNote?.(note.id)}
-                      aria-label="Xoá ghi chú"
+                      aria-label="Xóa ghi chú"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <p className="italic text-muted-foreground line-clamp-2">
+                  <p className="line-clamp-2 italic text-muted-foreground">
                     “{note.selectedText}”
                   </p>
-                  <p className="text-foreground line-clamp-3">{note.note}</p>
+                  <p className="line-clamp-3 text-foreground">{note.note}</p>
                   <div className="flex items-center justify-between text-muted-foreground/80">
                     <span>Trang {note.page}</span>
                     {note.createdAt && (

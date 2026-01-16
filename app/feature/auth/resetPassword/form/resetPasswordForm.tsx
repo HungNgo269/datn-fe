@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -6,15 +6,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import { AlertCircle, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   ResetPasswordFields,
   ResetPasswordSchema,
 } from "@/app/schema/resetPasswordSchema";
 import { ResetPassword } from "../api/resetPassword.api";
-import Link from "next/link";
 
 function ResetPasswordFormContent() {
   const router = useRouter();
@@ -62,11 +62,11 @@ function ResetPasswordFormContent() {
 
   if (!token) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-background">
-        <div className="w-full max-w-md p-6 text-center space-y-4">
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <div className="w-full max-w-md space-y-4 p-6 text-center">
           <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
           <h2 className="text-2xl font-bold">Liên kết không hợp lệ</h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Vui lòng yêu cầu đặt lại mật khẩu mới.
           </p>
           <Button asChild variant="secondary">
@@ -78,12 +78,12 @@ function ResetPasswordFormContent() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-background">
+    <div className="flex flex-1 items-center justify-center bg-background">
       <div className="w-full max-w-md p-6">
         <header className="space-y-2 text-center">
           <ShieldCheck className="mx-auto h-10 w-10 text-primary" />
           <h2 className="text-2xl font-bold">Đặt lại mật khẩu</h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Đặt mật khẩu mới cho tài khoản của bạn.
           </p>
         </header>
@@ -100,7 +100,7 @@ function ResetPasswordFormContent() {
                 className={errors.password ? "border-destructive" : ""}
               />
               {errors.password && (
-                <p className="text-sm text-destructive font-medium">
+                <p className="text-sm font-medium text-destructive">
                   {errors.password.message}
                 </p>
               )}
@@ -116,14 +116,14 @@ function ResetPasswordFormContent() {
                 className={errors.confirmPassword ? "border-destructive" : ""}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive font-medium">
+                <p className="text-sm font-medium text-destructive">
                   {errors.confirmPassword.message}
                 </p>
               )}
             </div>
 
             {resetPasswordMutation.isError && (
-              <div className="flex items-center space-x-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center space-x-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3">
                 <AlertCircle className="h-5 w-5 text-destructive" />
                 <p className="text-sm text-destructive">
                   Không thể đặt lại mật khẩu. Vui lòng thử lại hoặc yêu cầu liên
@@ -140,7 +140,7 @@ function ResetPasswordFormContent() {
             >
               {isPending ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                   Đang cập nhật...
                 </div>
               ) : (
@@ -149,12 +149,12 @@ function ResetPasswordFormContent() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-4">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             Nhớ mật khẩu?{" "}
             <Link
               href="/login"
-              prefetch={true}
-              className="text-primary font-medium hover:underline"
+              prefetch={false}
+              className="font-medium text-primary hover:underline"
             >
               Quay lại đăng nhập
             </Link>

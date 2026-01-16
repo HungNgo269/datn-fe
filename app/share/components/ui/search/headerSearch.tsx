@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useEffect, useMemo, useRef } from "react";
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 
@@ -17,9 +17,9 @@ function HeaderSearchContent({ compact = false }: HeaderSearchProps) {
   const paramQuery = useMemo(() => searchParams?.get("q") ?? "", [searchParams]);
   const queryRef = useRef(paramQuery);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  if (queryRef.current !== paramQuery) {
+  useEffect(() => {
     queryRef.current = paramQuery;
-  }
+  }, [paramQuery]);
 
   useEffect(() => {
     return () => {
@@ -29,30 +29,39 @@ function HeaderSearchContent({ compact = false }: HeaderSearchProps) {
     };
   }, []);
 
-  const navigateToResults = (value: string) => {
-    const trimmed = value.trim();
-    const target = trimmed
-      ? `/search?q=${encodeURIComponent(trimmed)}`
-      : "/search";
-    router.push(target);
-  };
+  const navigateToResults = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      const target = trimmed
+        ? `/search?q=${encodeURIComponent(trimmed)}`
+        : "/search";
+      router.push(target);
+    },
+    [router]
+  );
 
-  const scheduleNavigation = (value: string) => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    debounceRef.current = setTimeout(() => {
-      navigateToResults(value);
-    }, 500);
-  };
+  const scheduleNavigation = useCallback(
+    (value: string) => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      debounceRef.current = setTimeout(() => {
+        navigateToResults(value);
+      }, 500);
+    },
+    [navigateToResults]
+  );
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    navigateToResults(queryRef.current);
-  };
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      navigateToResults(queryRef.current);
+    },
+    [navigateToResults]
+  );
 
   return (
     <form

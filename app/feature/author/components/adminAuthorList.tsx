@@ -1,5 +1,4 @@
-import { Loader2, Pencil, Trash2 } from "lucide-react";
-
+﻿import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -39,15 +38,12 @@ export function AdminAuthorList({
   isFetching,
 }: AuthorsTableProps) {
   return (
-    <div className="flex flex-col w-full gap-5">
-      {/* <div className="mt-3 flex items-center justify-between gap-2 md:mt-6 max-w-[300px] truncate">
-        <Search placeholder="Tìm kiếm tác giả..." />
-      </div> */}
-      <div className="border rounded-md">
+    <div className="flex w-full flex-col gap-5">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tên thể loại</TableHead>
+              <TableHead>Tên tác giả</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Mô tả</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
@@ -64,23 +60,23 @@ export function AdminAuthorList({
               </TableRow>
             ) : authors.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center h-24">
+                <TableCell colSpan={4} className="h-24 text-center">
                   Chưa có dữ liệu
                 </TableCell>
               </TableRow>
             ) : (
               authors.map((author) => (
                 <TableRow key={author.id}>
-                  <TableCell className="font-medium max-w-[150px]  truncate">
+                  <TableCell className="max-w-[150px] truncate font-medium">
                     {author.name}
                   </TableCell>
-                  <TableCell className="text-muted-foreground max-w-[150px]  truncate">
+                  <TableCell className="max-w-[150px] truncate text-muted-foreground">
                     {author.slug}
                   </TableCell>
                   <TableCell className="max-w-[350px]">
                     {author.bio ? (
                       <div
-                        className="truncate"
+                        className="truncate line-clamp-1"
                         dangerouslySetInnerHTML={{
                           __html: sanitizeRichHtml(author.bio),
                         }}
@@ -89,7 +85,7 @@ export function AdminAuthorList({
                       "--"
                     )}
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
+                  <TableCell className="space-x-2 text-right">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -116,7 +112,8 @@ export function AdminAuthorList({
                           </AlertDialogTitle>
                           <AlertDialogDescription>
                             Hành động này không thể hoàn tác. Danh mục{" "}
-                            {author.name} sẽ bị xóa vĩnh viễn.
+                            {author.name}
+                            sẽ bị xóa vĩnh viễn.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

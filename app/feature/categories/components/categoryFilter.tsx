@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { Suspense, useTransition } from "react";
+import { Suspense, useCallback, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
@@ -26,23 +26,24 @@ function CategoryFilterContent({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const handleCategoryChange = (newCategory: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+  const handleCategoryChange = useCallback(
+    (newCategory: string) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    // Nếu chọn "all" hoặc giá trị rỗng thì xóa param
-    if (newCategory === "all") {
-      params.delete("category");
-    } else {
-      params.set("category", newCategory);
-    }
+      if (newCategory === "all") {
+        params.delete("category");
+      } else {
+        params.set("category", newCategory);
+      }
 
-    // Reset về trang 1 khi đổi filter
-    params.set("page", "1");
+      params.set("page", "1");
 
-    startTransition(() => {
-      router.push(`/books?${params.toString()}`); // Chú ý path /books hay /book tùy route của bạn
-    });
-  };
+      startTransition(() => {
+        router.push(`/books?${params.toString()}`);
+      });
+    },
+    [router, searchParams]
+  );
 
   return (
     <div className="flex items-center gap-3">
@@ -51,13 +52,13 @@ function CategoryFilterContent({
         onValueChange={handleCategoryChange}
         disabled={isPending}
       >
-        <SelectTrigger className=" w-[200px] min-w-fit">
-          <SelectValue placeholder="All Categories" />
+        <SelectTrigger className="min-w-fit w-[200px]">
+          <SelectValue placeholder="Tất cả thể loại" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectLabel>Thể loại</SelectLabel>
-            <SelectItem value="all">Tất cả sách</SelectItem>
+            <SelectLabel>Thể loại</SelectLabel>
+            <SelectItem value="all">Tất cả sách</SelectItem>
             {categories.map((cate) => (
               <SelectItem key={cate.id} value={cate.slug}>
                 {cate.name}
