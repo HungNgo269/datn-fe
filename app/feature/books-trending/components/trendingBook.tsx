@@ -31,7 +31,7 @@ export default async function TrendingBook({
 
     if (!books?.length) {
       return (
-        <div className="mt-5 flex flex-col gap-2">
+        <div className="flex flex-col gap-2 ">
           <div className="flex flex-col gap-3 md:flex-row md:justify-between">
             <span className="whitespace-nowrap text-start text-lg font-bold">
               {title}
@@ -51,7 +51,10 @@ export default async function TrendingBook({
           <span className="whitespace-nowrap text-start text-lg font-bold">
             {title}
           </span>
-          <TrendingBookFilter value={normalizedPeriod} paramKey={searchParamKey} />
+          <TrendingBookFilter
+            value={normalizedPeriod}
+            paramKey={searchParamKey}
+          />
         </div>
         <Separator />
         <div className="mt-2 space-y-3">

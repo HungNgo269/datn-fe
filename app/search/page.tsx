@@ -22,11 +22,10 @@ import { getURL } from "@/lib/helper";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { HighlightedText } from "../feature/search/components/HighlightedText";
 
-const SEARCH_PAGE_TITLE = "Search books & authors | NextBook";
+const SEARCH_PAGE_TITLE = "Tìm kiếm sách và tác giả | NextBook";
 
 const SEARCH_PAGE_DESCRIPTION =
-  "Search books or authors in the NextBook library and quickly find stories that match your taste.";
-
+  "Tìm kiếm sách hoặc tác giả trong thư viện NextBook và nhanh chóng khám phá những câu chuyện hợp gu của bạn.";
 const SEARCH_PAGE_URL = getURL("search");
 
 export const metadata: Metadata = {

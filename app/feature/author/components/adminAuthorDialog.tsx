@@ -5,7 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ImagePlus, Loader2, X } from "lucide-react";
+import { ImagePlus, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
@@ -84,9 +84,11 @@ export function AuthorDialog({
   }, [avatarValue]);
   const resolvedPreview =
     filePreviewUrl ??
-    (typeof avatarValue === "string"
-      ? avatarValue
-      : authorToEdit?.avatar ?? null);
+    (avatarValue === null
+      ? null
+      : typeof avatarValue === "string"
+        ? avatarValue
+        : authorToEdit?.avatar ?? null);
 
   useEffect(() => {
     return () => {
@@ -126,7 +128,7 @@ export function AuthorDialog({
   );
 
   const removeAvatar = useCallback(() => {
-    form.setValue("avatar", undefined);
+    form.setValue("avatar", null, { shouldValidate: true });
   }, [form]);
 
   const mutation = useMutation({
@@ -164,9 +166,9 @@ export function AuthorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-none">
+        <DialogHeader className="space-y-1 pb-2">
+          <DialogTitle className="text-xl font-semibold text-slate-900">
             {isEditMode ? "Cập nhật tác giả" : "Thêm tác giả mới"}
           </DialogTitle>
         </DialogHeader>
@@ -176,7 +178,7 @@ export function AuthorDialog({
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="name">
+                  <Label htmlFor="name" className="text-sm font-medium text-slate-700">
                     Tên tác giả <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -198,7 +200,7 @@ export function AuthorDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="slug">
+                  <Label htmlFor="slug" className="text-sm font-medium text-slate-700">
                     Đường dẫn (Slug) <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -228,7 +230,7 @@ export function AuthorDialog({
                         value={field.value}
                         onChange={field.onChange}
                         modules={quillModules}
-                        className="rounded-md bg-background [&_.ql-editor]:min-h-[250px]"
+                        className="rounded-md border border-slate-200 bg-white [&_.ql-editor]:min-h-[250px]"
                         placeholder="Nhập tiểu sử tác giả..."
                       />
                     </div>
@@ -244,29 +246,20 @@ export function AuthorDialog({
 
             <div className="flex flex-col space-y-6 border-border md:border-l md:pl-6">
               <div className="space-y-3">
-                <Label className="block">
+                <Label className="block text-sm font-medium text-slate-700">
                   Ảnh đại diện <span className="text-destructive">*</span>
                 </Label>
 
-                <div className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 transition-colors hover:bg-muted/50">
+                <div className="group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-200 bg-slate-50 transition-colors hover:bg-slate-100">
                   {resolvedPreview ? (
-                    <>
-                      <ImagePreview
-                        src={resolvedPreview}
-                        alt="Author avatar"
-                        onRemove={removeAvatar}
-                      />
-                      <button
-                        type="button"
-                        onClick={removeAvatar}
-                        className="absolute right-2 top-2 rounded-full bg-destructive/90 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                      >
-                        <X size={16} />
-                      </button>
-                    </>
+                    <ImagePreview
+                      src={resolvedPreview}
+                      alt="Author avatar"
+                      onRemove={removeAvatar}
+                    />
                   ) : (
                     <div className="flex flex-col items-center justify-center space-y-2 p-4 text-center text-muted-foreground">
-                      <div className="rounded-full bg-background p-3 shadow-sm">
+                      <div className="rounded-full border border-slate-200 bg-white p-3">
                         <ImagePlus className="h-6 w-6" />
                       </div>
                       <span className="text-sm font-medium">Chưa có ảnh</span>
@@ -284,7 +277,7 @@ export function AuthorDialog({
                 </div>
               </div>
 
-              <div className="border-t border-border pt-4">
+              <div className="border-t border-slate-200 pt-4">
                 <div className="flex items-center space-x-2">
                   <Controller
                     control={form.control}
@@ -297,7 +290,10 @@ export function AuthorDialog({
                       />
                     )}
                   />
-                  <Label htmlFor="isActive" className="cursor-pointer font-normal">
+                  <Label
+                    htmlFor="isActive"
+                    className="cursor-pointer text-sm font-normal text-slate-600"
+                  >
                     Hiển thị công khai tác giả này
                   </Label>
                 </div>
@@ -305,7 +301,7 @@ export function AuthorDialog({
             </div>
           </div>
 
-          <DialogFooter className="mt-4 border-t pt-2">
+          <DialogFooter className="mt-6 border-t border-slate-200 pt-4">
             <Button
               type="button"
               variant="outline"

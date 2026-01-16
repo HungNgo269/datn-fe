@@ -113,16 +113,16 @@ export function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-[560px] rounded-2xl border border-slate-200 bg-white p-6 shadow-none">
+        <DialogHeader className="space-y-1 pb-2">
+          <DialogTitle className="text-xl font-semibold text-slate-900">
             {isEditMode ? "Cập nhật danh mục" : "Thêm danh mục mới"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="name">
+            <Label htmlFor="name" className="text-sm font-medium text-slate-700">
               Tên danh mục <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -146,7 +146,9 @@ export function CategoryDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="slug">Slug</Label>
+            <Label htmlFor="slug" className="text-sm font-medium text-slate-700">
+              Slug
+            </Label>
             <Input
               id="slug"
               {...register("slug")}
@@ -193,7 +195,7 @@ export function CategoryDialog({
 
             <div className="space-y-2">
               <Label>Trạng thái</Label>
-              <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                 <Controller
                   control={control}
                   name="isActive"
@@ -205,7 +207,10 @@ export function CategoryDialog({
                     />
                   )}
                 />
-                <Label htmlFor="isActive" className="cursor-pointer text-sm">
+                <Label
+                  htmlFor="isActive"
+                  className="cursor-pointer text-sm text-slate-600"
+                >
                   Hiển thị danh mục này
                 </Label>
               </div>
@@ -220,7 +225,7 @@ export function CategoryDialog({
             </p>
           )}
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">
             <Button
               type="button"
               variant="outline"

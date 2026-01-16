@@ -30,7 +30,7 @@ export default function PaymentSuccessPage() {
       localStorage.setItem(PAYMENT_SUCCESS_KEY, "1");
     } catch {}
 
-    toast.success("Thanh toan thanh cong.");
+    toast.success("Thanh toán thành công");
     router.replace(returnPath);
   }, [router]);
 

@@ -1,6 +1,13 @@
-﻿import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { ExternalLink, MoreVertical } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -43,29 +50,32 @@ export function AdminBannerList({
   isDeleting,
 }: BannersTableProps) {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-[0_1px_1px_rgba(0,0,0,0.04)] overflow-hidden">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-slate-50/80">
           <TableRow>
-            <TableHead className="w-[100px]">Hình ảnh</TableHead>
-            <TableHead>Tiêu đề & Mô tả</TableHead>
-            <TableHead>Vị trí</TableHead>
-            <TableHead>Thời gian hiển thị</TableHead>
-            <TableHead className="text-center">Thứ tự</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead className="text-right">Hành động</TableHead>
+            <TableHead className="w-[100px] text-slate-700">Ảnh </TableHead>
+            <TableHead className="text-slate-700">Tiêu đề & Mô tả</TableHead>
+            <TableHead className="text-slate-700">Vị trí hiển thị</TableHead>
+            <TableHead className="text-slate-700">Khoảng thời gian</TableHead>
+            <TableHead className="text-center text-slate-700">Thứ tự</TableHead>
+            <TableHead className="text-slate-700">Trạng thái</TableHead>
+            <TableHead className="text-right text-slate-700"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {banners.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="h-24 text-center">
-                Chưa có dữ liệu
+                No banners found.
               </TableCell>
             </TableRow>
           ) : (
             banners.map((banner) => (
-              <TableRow key={banner.id}>
+              <TableRow
+                key={banner.id}
+                className="hover:bg-slate-50/80 transition-colors"
+              >
                 <TableCell>
                   <HoverCard openDelay={100} closeDelay={100}>
                     <HoverCardTrigger asChild>
@@ -103,11 +113,14 @@ export function AdminBannerList({
                 </TableCell>
 
                 <TableCell className="max-w-[250px]">
-                  <div className="truncate font-medium" title={banner.title}>
+                  <div
+                    className="truncate font-semibold text-slate-900"
+                    title={banner.title}
+                  >
                     {banner.title}
                   </div>
                   <div
-                    className="truncate text-xs text-muted-foreground"
+                    className="truncate text-xs text-slate-500"
                     title={banner.description!}
                   >
                     {banner.description || "--"}
@@ -128,70 +141,80 @@ export function AdminBannerList({
                   <Badge variant="outline">{banner.position}</Badge>
                 </TableCell>
 
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-slate-600">
                   <div>
-                    <span className="font-medium text-foreground">Bắt đầu:</span>{" "}
+                    <span className="font-medium text-slate-900">Start:</span>{" "}
                     {formatDate(banner.startDate!)}
                   </div>
                   <div>
-                    <span className="font-medium text-foreground">Kết thúc:</span>{" "}
+                    <span className="font-medium text-slate-900">End:</span>{" "}
                     {formatDate(banner.endDate!)}
                   </div>
                 </TableCell>
 
-                <TableCell className="text-center">{banner.order}</TableCell>
+                <TableCell className="text-center text-slate-600">
+                  {banner.order}
+                </TableCell>
 
                 <TableCell>
                   {banner.isActive ? (
                     <Badge className="bg-success text-success-foreground hover:bg-success/90">
-                      Hiển thị
+                      Đang Hoạt động
                     </Badge>
                   ) : (
-                    <Badge>Đã ẩn</Badge>
+                    <Badge>Ẩn</Badge>
                   )}
                 </TableCell>
 
-                <TableCell className="space-x-2 text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(banner)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-destructive hover:text-destructive"
-                        disabled={isDeleting}
+                        className="h-8 w-8 hover:bg-transparent"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <MoreVertical className="h-4 w-4" />
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Bạn có chắc chắn muốn xóa?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Hành động này không thể hoàn tác. Banner <b>{banner.title}</b>
-                          sẽ bị xóa vĩnh viễn.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => onDelete(banner.id)}
-                          className="bg-destructive hover:bg-destructive/90"
-                        >
-                          Xóa
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem
+                        onSelect={() => onEdit(banner)}
+                        className="cursor-pointer"
+                      >
+                        Chỉnh sửa
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem
+                            className="cursor-pointer text-rose-600 focus:text-rose-600"
+                            disabled={isDeleting}
+                          >
+                            Xóa
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xóa banner này</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Hành động này không thể hoàn tác Banner{" "}
+                              {banner.title} sẽ bị xóa vĩnh viễn
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => onDelete(banner.id)}
+                              className="bg-destructive hover:bg-destructive/90"
+                            >
+                              Xóa
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))

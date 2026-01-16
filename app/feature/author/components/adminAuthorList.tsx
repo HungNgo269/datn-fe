@@ -1,5 +1,12 @@
-﻿import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { Loader2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -39,14 +46,14 @@ export function AdminAuthorList({
 }: AuthorsTableProps) {
   return (
     <div className="flex w-full flex-col gap-5">
-      <div className="rounded-md border">
+      <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-slate-50/80">
             <TableRow>
-              <TableHead>Tên tác giả</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Mô tả</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
+              <TableHead className="text-slate-700">Tác giả</TableHead>
+              <TableHead className="text-slate-700">Slug</TableHead>
+              <TableHead className="text-slate-700">Giới thiệu</TableHead>
+              <TableHead className="text-right text-slate-700"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -54,26 +61,29 @@ export function AdminAuthorList({
               <TableRow>
                 <TableCell colSpan={4} className="h-24">
                   <div className="flex items-center justify-center">
-                    <Loader2 className="animate-spin text-primary" />
+                    <Loader2 className="animate-spin text-slate-500" />
                   </div>
                 </TableCell>
               </TableRow>
             ) : authors.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  Chưa có dữ liệu
+                  Không tìm thấy tác giả
                 </TableCell>
               </TableRow>
             ) : (
               authors.map((author) => (
-                <TableRow key={author.id}>
-                  <TableCell className="max-w-[150px] truncate font-medium">
+                <TableRow
+                  key={author.id}
+                  className="hover:bg-slate-50/80 transition-colors"
+                >
+                  <TableCell className="max-w-[150px] truncate font-semibold text-slate-900">
                     {author.name}
                   </TableCell>
-                  <TableCell className="max-w-[150px] truncate text-muted-foreground">
+                  <TableCell className="max-w-[150px] truncate text-slate-500">
                     {author.slug}
                   </TableCell>
-                  <TableCell className="max-w-[350px]">
+                  <TableCell className="max-w-[350px] text-slate-600">
                     {author.bio ? (
                       <div
                         className="truncate line-clamp-1"
@@ -82,51 +92,60 @@ export function AdminAuthorList({
                         }}
                       />
                     ) : (
-                      "--"
+                      "đang cập nhật"
                     )}
                   </TableCell>
-                  <TableCell className="space-x-2 text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(author)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive hover:text-destructive"
-                          disabled={isDeleting}
+                          className="h-8 w-8 hover:bg-transparent"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Bạn có chắc chắn muốn xóa?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Hành động này không thể hoàn tác. Danh mục{" "}
-                            {author.name}
-                            sẽ bị xóa vĩnh viễn.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Hủy</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDelete(author.id)}
-                            className="bg-destructive hover:bg-destructive/90"
-                          >
-                            Xóa
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuItem
+                          onSelect={() => onEdit(author)}
+                          className="cursor-pointer"
+                        >
+                          Chỉnh sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="cursor-pointer text-rose-600 focus:text-rose-600"
+                              disabled={isDeleting}
+                            >
+                              Xóa
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Xóa tác giả này?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Hành động này không thể hoàn tác {author.name}{" "}
+                                sẽ bị xóa vĩnh viễn
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => onDelete(author.id)}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                Xóa
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))

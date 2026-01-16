@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   let key = rawFilename;
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!backendUrl) {
     return new Response("Backend URL is not configured", { status: 500 });
   }
@@ -47,8 +47,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const payload =
-      (await presignedResponse.json()) as BackendResponse<{ url: string }>;
+    const payload = (await presignedResponse.json()) as BackendResponse<{
+      url: string;
+    }>;
     const response = payload?.data;
 
     if (!payload?.success || !response?.url) {

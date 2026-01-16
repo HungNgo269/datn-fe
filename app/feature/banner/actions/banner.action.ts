@@ -12,9 +12,7 @@ interface GetBannerOptions {
   revalidate?: number;
 }
 
-export async function getHomeBannersAction(
-  options: GetBannerOptions = {}
-) {
+export async function getHomeBannersAction(options: GetBannerOptions = {}) {
   const {
     page = 1,
     limit = 4,
@@ -28,10 +26,26 @@ export async function getHomeBannersAction(
     position,
   });
 
-  return handleActionPaginatedRequest<Banner>(
-    `/banners?${params.toString()}`,
-    {
-      revalidate,
-    }
-  );
+  return handleActionPaginatedRequest<Banner>(`/banners?${params.toString()}`, {
+    revalidate,
+  });
+}
+export async function getRightSideBannerByIndex(
+  index: number = 1,
+  options: GetBannerOptions = {}
+) {
+  const {
+    position = BannerPosition.SIDEBAR_RIGHT,
+    revalidate = HOME_BANNER_REVALIDATE_SECONDS,
+  } = options;
+
+  const params = new URLSearchParams({
+    page: index.toString(),
+    limit: "1",
+    position,
+  });
+
+  return handleActionPaginatedRequest<Banner>(`/banners?${params.toString()}`, {
+    revalidate,
+  });
 }

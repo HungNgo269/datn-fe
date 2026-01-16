@@ -57,12 +57,15 @@ const logoutDueToInvalidToken = () => {
   try {
     useAuthStore.getState().clearUser();
   } catch (storeError) {
-    console.error("Failed to clear auth store during forced logout", storeError);
+    console.error(
+      "Failed to clear auth store during forced logout",
+      storeError
+    );
   }
 };
 
 export const axiosClient = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}`,
+  baseURL: `${process.env.NEXT_PUBLIC_API_URL}`,
   headers: { "Content-Type": "application/json" },
   // withCredentials: true,
 });

@@ -27,7 +27,7 @@ async function baseFetch<T>(
   try {
     const { params, revalidate, ...fetchOptions } = options;
 
-    const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND_URL}${endpoint}`);
+    const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {

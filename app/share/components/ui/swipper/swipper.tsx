@@ -35,9 +35,7 @@ export default function Swipper({
 
   const resolvedTitle =
     title ??
-    (context === "Best Seller"
-      ? "Best Seller"
-      : "Nh Ż_ng Ž` §u sA­ch m Ż>i nh §ťt");
+    (context === "Best Seller" ? "Best Seller" : "Những đầu sách mới nhất");
 
   return (
     <div className="flex flex-col gap-4">
@@ -53,7 +51,7 @@ export default function Swipper({
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-1 px-0.5">
             {books?.map((book) => (
-              <div key={book.id} className="flex-[0_0_50%] min-w-0 ">
+              <div key={book.id} className="flex-[0_0_33%] min-w-0">
                 <BookCard book={book} variant="sm" />
               </div>
             ))}

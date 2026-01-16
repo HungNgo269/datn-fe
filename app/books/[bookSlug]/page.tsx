@@ -59,7 +59,7 @@ export default async function BookPage({ params }: PageProps) {
     <>
       <Header />
       {book && (
-        <div className="min-h-screen relative flex flex-col bg-background">
+        <div className="min-h-screen relative flex flex-col bg-background px-5">
           <div className="container relative z-10 mx-auto  pt-8 md:pt-16 max-w-[1200px] flex-grow">
             <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start mb-16">
               <div className="w-[160px] md:w-[220px] lg:w-[240px] flex-shrink-0 mx-auto md:mx-0 shadow-2xl rounded-lg overflow-hidden border border-border">
@@ -181,7 +181,7 @@ export default async function BookPage({ params }: PageProps) {
 
               <aside className="hidden lg:block self-start space-y-2 sticky top-0">
                 <Suspense fallback={<RecommendBookSkeleton />}>
-                  <RecommendedSimilarBooks bookId={book.id} limit={10} />
+                  <RecommendedSimilarBooks bookId={book.id} limit={5} />
                 </Suspense>
               </aside>
 

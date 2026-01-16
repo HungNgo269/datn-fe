@@ -11,7 +11,7 @@ export default function PaymentSuccessToast() {
       const flag = localStorage.getItem(PAYMENT_SUCCESS_KEY);
       if (flag) {
         localStorage.removeItem(PAYMENT_SUCCESS_KEY);
-        toast.success("Thanh toan thanh cong.");
+        toast.success("Thanh toán thành công");
       }
     } catch {}
   }, []);

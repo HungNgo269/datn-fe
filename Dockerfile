@@ -3,7 +3,7 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install pnpm dependencies
+# Install pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
 
@@ -11,18 +11,19 @@ RUN corepack enable && pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables for build
-ARG NEXT_PUBLIC_BACKEND_URL
-ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+# --- QUAN TRỌNG: Khai báo tất cả biến NEXT_PUBLIC tại đây ---
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# Disable telemetry during build
+ARG NEXT_PUBLIC_FRONTEND_URL
+ENV NEXT_PUBLIC_FRONTEND_URL=$NEXT_PUBLIC_FRONTEND_URL
+
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Build the application
+# Thực hiện build
 RUN corepack enable && pnpm build
 
 # Stage 3: Runner
@@ -32,22 +33,19 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files
+# Copy các file cần thiết từ bản standalone
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Set correct permissions
 RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
 EXPOSE 3001
-
 ENV PORT 3001
 ENV HOSTNAME "0.0.0.0"
 

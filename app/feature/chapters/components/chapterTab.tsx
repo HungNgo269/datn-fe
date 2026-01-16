@@ -20,12 +20,12 @@ export function ChapterTabs({ bookId, children }: ChapterTabsProps) {
         >
           Chương truyện
         </TabsTrigger>
-        <TabsTrigger
+        {/* <TabsTrigger
           value="comments"
           className="rounded-none border-b-2 border-transparent px-1 pb-2 text-sm font-medium text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
         >
           Bình luận
-        </TabsTrigger>
+        </TabsTrigger> */}
         <TabsTrigger
           value="ratings"
           className="rounded-none border-b-2 border-transparent px-1 pb-2 text-sm font-medium text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
@@ -37,9 +37,9 @@ export function ChapterTabs({ bookId, children }: ChapterTabsProps) {
       <TabsContent value="chapters" className="mt-2">
         {children}
       </TabsContent>
-      <TabsContent value="comments" className="mt-2">
+      {/* <TabsContent value="comments" className="mt-2">
         <ChapterComments />
-      </TabsContent>
+      </TabsContent> */}
 
       {/* TabsContent mặc định chỉ render children khi active.
           Nên useQuery bên trong ChapterRating sẽ chỉ chạy khi user click vào tab này.

@@ -1,10 +1,17 @@
 "use client";
 
-import { Edit, Loader2, Trash2 } from "lucide-react";
+import { Loader2, MoreVertical } from "lucide-react";
 
 import { formatDate } from "@/lib/formatDate";
 import { Book } from "../../books/types/books.type";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -49,18 +56,26 @@ export function AdminBookList({
   isFetching,
 }: BookListProps) {
   return (
-    <div className="border rounded-md">
+    <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-[0_1px_1px_rgba(0,0,0,0.04)] overflow-hidden">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-slate-50/80">
           <TableRow>
-            <TableHead className="w-[100px]">Ảnh bìa</TableHead>
-            <TableHead>Tên tác phẩm</TableHead>
-            <TableHead>Tác giả</TableHead>
-            <TableHead className="text-center">Số chương</TableHead>
-            <TableHead className="text-center">Ngày đăng tải</TableHead>
-            <TableHead className="text-center">Trạng thái</TableHead>
-            <TableHead className="text-center">Giá</TableHead>
-            <TableHead className="text-center">Hành động</TableHead>
+            <TableHead className="w-[100px] text-slate-700">Ảnh bìa</TableHead>
+            <TableHead className="text-slate-700">Tên sách</TableHead>
+            <TableHead className="text-slate-700">Tác giả</TableHead>
+            <TableHead className="text-center text-slate-700">
+              Số chương
+            </TableHead>
+            <TableHead className="text-center text-slate-700">
+              Ngày tạo
+            </TableHead>
+            <TableHead className="text-center text-slate-700">
+              Trạng thái
+            </TableHead>
+            <TableHead className="text-center text-slate-700">
+              Đơn giá
+            </TableHead>
+            <TableHead className="text-center text-slate-700"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,19 +83,22 @@ export function AdminBookList({
             <TableRow>
               <TableCell colSpan={8} className="h-24">
                 <div className="flex items-center justify-center">
-                  <Loader2 className="animate-spin text-primary" />
+                  <Loader2 className="animate-spin text-slate-500" />
                 </div>
               </TableCell>
             </TableRow>
           ) : books.length === 0 ? (
             <TableRow>
               <TableCell colSpan={8} className="text-center h-24">
-                Chưa có dữ liệu
+                No books found.
               </TableCell>
             </TableRow>
           ) : (
             books.map((book) => (
-              <TableRow key={book.id}>
+              <TableRow
+                key={book.id}
+                className="hover:bg-slate-50/80 transition-colors"
+              >
                 <TableCell>
                   <HoverCard openDelay={100} closeDelay={100}>
                     <HoverCardTrigger asChild>
@@ -135,13 +153,13 @@ export function AdminBookList({
                   </HoverCard>
                 </TableCell>
 
-                <TableCell className="font-medium text-foreground  truncate max-w-[300px]">
+                <TableCell className="font-semibold text-slate-900 truncate max-w-[300px]">
                   {book.title}
                 </TableCell>
 
-                <TableCell className="text-muted-foreground">
+                <TableCell className="text-slate-500">
                   <div className="flex flex-row items-center overflow-hidden max-w-full">
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-xs text-slate-500 truncate">
                       {book.authors &&
                         book.authors.map((author, index) => (
                           <span key={author.author.slug}>
@@ -158,66 +176,74 @@ export function AdminBookList({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground text-center">
+                <TableCell className="text-slate-600 text-center">
                   {book.totalChapters}
                 </TableCell>
-                <TableCell className="text-muted-foreground text-sm text-center">
+                <TableCell className="text-slate-600 text-sm text-center">
                   {book.createdAt ? `${formatDate(book.createdAt)}` : "--"}
                 </TableCell>
                 <TableCell className="text-center">
-                  <span
-                    className={`inline-flex items-center text-xs font-medium `}
-                  >
-                    {/* {book.status === "PUBLISHED" ? "Published" : "Draft"} */}
+                  <span className="inline-flex items-center text-xs font-medium">
+                    {book.accessType === "FREE" ? "Miễn phí" : "Trả phí"}
                   </span>
                 </TableCell>
-                <TableCell className="text-muted-foreground text-center">
-                  {book.price ? `${book.price} vnđ` : "--"}
+                <TableCell className="text-slate-600 text-center">
+                  {book.price ? `${book.price} VND` : "--"}
                 </TableCell>
                 <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-info"
-                        onClick={() => onEdit(book)}
-                      >
-                        <Edit size={16} />
-                      </Button>
-                    )}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                  <div className="flex items-center justify-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          disabled={isDeleting}
+                          className="h-8 w-8 text-slate-500 hover:bg-transparent"
                         >
-                          <Trash2 size={16} />
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Bạn có chắc chắn muốn xóa?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Hành động này không thể hoàn tác. Sách {book.title}{" "}
-                            sẽ bị xóa vĩnh viễn.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Hủy</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDelete(book.id)}
-                            className="bg-destructive hover:bg-destructive/90"
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-32">
+                        {onEdit ? (
+                          <DropdownMenuItem
+                            onSelect={() => onEdit(book)}
+                            className="cursor-pointer"
                           >
-                            Xóa
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            Chỉnh sửa
+                          </DropdownMenuItem>
+                        ) : null}
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="cursor-pointer text-rose-600 focus:text-rose-600"
+                              disabled={isDeleting}
+                            >
+                              Xóa
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="rounded-2xl border border-slate-200 bg-white p-6 shadow-none">
+                            <AlertDialogHeader className="space-y-2">
+                              <AlertDialogTitle className="text-lg font-semibold text-slate-900">
+                                Bạn thực sự muốn xóa cuốn sách này
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-sm text-slate-600">
+                                Hành động này không thể hoàn tác {book.title} sẽ
+                                bị xóa vĩnh viễn
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="mt-4 border-t border-slate-200 pt-4">
+                              <AlertDialogCancel>Hủy</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => onDelete(book.id)}
+                                className="bg-rose-600 text-white hover:bg-rose-700"
+                              >
+                                Xóa
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>

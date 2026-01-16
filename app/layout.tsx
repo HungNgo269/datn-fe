@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: "Next Book",
   },
   description: "Every book that you need, light weight and no ad website",
-  metadataBase: new URL(`${process.env.NEXT_PUBLIC_BACKEND_URL}`),
+  metadataBase: new URL(`${process.env.NEXT_PUBLIC_API_URL}`),
 };
 
 export default async function RootLayout({

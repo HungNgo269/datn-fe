@@ -30,6 +30,11 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   {
+    name: "Phân tích",
+    icon: <GalleryHorizontal className="w-5 h-5" />,
+    path: "/analitics-admin",
+  },
+  {
     name: "Sách",
     icon: <BookOpen className="w-5 h-5" />,
     path: "/books-admin",
@@ -45,7 +50,7 @@ const MENU_ITEMS: MenuItem[] = [
     path: "/authors-admin",
   },
   {
-    name: "Banners",
+    name: "Banner",
     icon: <GalleryHorizontal className="w-5 h-5" />,
     path: "/banners-admin",
   },
@@ -172,7 +177,7 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <header className="lg:hidden flex items-center h-16 px-4 bg-card border-b border-border">
           <Button
             variant="ghost"
@@ -185,11 +190,7 @@ export default function AdminLayout({
             {activeItem?.name}
           </h1>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-full mx-auto">
-            <div className=" p-6">{children}</div>
-          </div>
-        </main>
+        <div className="max-w-full">{children}</div>
       </div>
     </div>
   );

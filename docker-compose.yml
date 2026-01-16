@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
     env_file:
       - .env
     environment:
@@ -16,18 +17,6 @@ services:
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    networks:
-      - app-network
-
-  nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - frontend
-    restart: unless-stopped
     networks:
       - app-network
 
