@@ -18,6 +18,9 @@ export const Step1EditSchema = Step1BaseSchema.extend({
 });
 
 export const Step2Schema = z.object({
+    accessType: z.enum(["FREE", "PURCHASE", "MEMBERSHIP"], {
+        message: "Vui lòng chọn loại truy cập",
+    }),
     authorIds: z.array(z.number().positive()).min(1, "Chọn/thêm tác giả"),
     categoryIds: z
         .array(z.number().positive())

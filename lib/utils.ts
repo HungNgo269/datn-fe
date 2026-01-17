@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getValidBannerUrl(url: string | null | undefined): string {
+export function normalizeStorageUrl(url: string | null | undefined): string {
   if (!url) return "";
 
   // Check if URL is malformed (contains double protocol)
@@ -23,4 +23,12 @@ export function getValidBannerUrl(url: string | null | undefined): string {
   }
 
   return url;
+}
+
+export function getValidBannerUrl(url: string | null | undefined): string {
+  return normalizeStorageUrl(url);
+}
+
+export function getValidImageUrl(url: string | null | undefined): string {
+  return normalizeStorageUrl(url);
 }

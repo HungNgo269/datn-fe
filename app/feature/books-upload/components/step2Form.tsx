@@ -3,13 +3,20 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Check, Loader2, Users, Tag, DollarSign, Gift, FileText, X } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Users, Tag, DollarSign, Gift, FileText, X, Lock, Sparkles, Crown, CreditCard } from "lucide-react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import "react-quill-new/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AsyncCreatableSelect,
   Option,
@@ -66,6 +73,7 @@ export function Step2Form({
 }: Step2FormProps) {
   const step2Defaults: Step2FormData = useMemo(
     () => ({
+      accessType: defaultValues?.accessType ?? "FREE",
       authorIds: defaultValues?.authorIds ?? [],
       categoryIds: defaultValues?.categoryIds ?? [],
       description: defaultValues?.description ?? "",
@@ -211,59 +219,112 @@ export function Step2Form({
           )}
         </div>
 
-        {/* Price Field */}
-        <div className="space-y-1 md:col-span-3">
-          <Label htmlFor="price" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-slate-400" />
-            Giá (VND)
+        {/* Access Type Field */}
+        <div className="space-y-1 md:col-span-2">
+          <Label htmlFor="accessType" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Lock className="h-4 w-4 text-slate-400" />
+            Loại truy cập <span className="text-rose-500">*</span>
           </Label>
-          <div className="relative">
-            <Input
-              id="price"
-              type="number"
-              step="1000"
-              min="0"
-              {...form.register("price", { valueAsNumber: true })}
-              placeholder="0"
-              className="h-11 rounded-xl border-slate-200 bg-slate-50/50 pr-12 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              disabled={isSubmitting}
-            />
-            <span className="absolute right-3 top-3 text-sm text-slate-400">
-              đ
-            </span>
-          </div>
-          {form.formState.errors.price && (
+          <Controller
+            control={form.control}
+            name="accessType"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                  <SelectValue placeholder="Chọn loại truy cập" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FREE">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-emerald-500" />
+                      <span>Miễn phí</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="MEMBERSHIP">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-amber-500" />
+                      <span>Hội viên</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="PURCHASE">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-blue-500" />
+                      <span>Trả phí</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.accessType && (
             <p className="text-sm text-rose-500 flex items-center gap-1">
               <X className="h-3 w-3" />
-              {form.formState.errors.price.message}
+              {form.formState.errors.accessType.message}
             </p>
           )}
         </div>
 
-        {/* Free Chapters Field */}
-        <div className="space-y-1 md:col-span-3">
-          <Label htmlFor="freeChapters" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-            <Gift className="h-4 w-4 text-slate-400" />
-            Số chương miễn phí
-          </Label>
-          <Input
-            id="freeChapters"
-            type="number"
-            min="0"
-            {...form.register("freeChapters", {
-              valueAsNumber: true,
-            })}
-            placeholder="0"
-            className="h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            disabled={isSubmitting}
-          />
-          {form.formState.errors.freeChapters && (
-            <p className="text-sm text-rose-500 flex items-center gap-1">
-              <X className="h-3 w-3" />
-              {form.formState.errors.freeChapters.message}
-            </p>
-          )}
-        </div>
+        {/* Price Field - Only show for PURCHASE type */}
+        {form.watch("accessType") === "PURCHASE" && (
+          <div className="space-y-1 md:col-span-2">
+            <Label htmlFor="price" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-slate-400" />
+              Giá (VND) <span className="text-rose-500">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="price"
+                type="number"
+                step="1000"
+                min="0"
+                {...form.register("price", { valueAsNumber: true })}
+                placeholder="0"
+                className="h-11 rounded-xl border-slate-200 bg-slate-50/50 pr-12 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                disabled={isSubmitting}
+              />
+              <span className="absolute right-3 top-3 text-sm text-slate-400">
+                đ
+              </span>
+            </div>
+            {form.formState.errors.price && (
+              <p className="text-sm text-rose-500 flex items-center gap-1">
+                <X className="h-3 w-3" />
+                {form.formState.errors.price.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Free Chapters Field - Only show for non-FREE types */}
+        {form.watch("accessType") !== "FREE" && (
+          <div className="space-y-1 md:col-span-2">
+            <Label htmlFor="freeChapters" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Gift className="h-4 w-4 text-slate-400" />
+              Số chương miễn phí
+            </Label>
+            <Input
+              id="freeChapters"
+              type="number"
+              min="0"
+              {...form.register("freeChapters", {
+                valueAsNumber: true,
+              })}
+              placeholder="0"
+              className="h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              disabled={isSubmitting}
+            />
+            {form.formState.errors.freeChapters && (
+              <p className="text-sm text-rose-500 flex items-center gap-1">
+                <X className="h-3 w-3" />
+                {form.formState.errors.freeChapters.message}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Description Field */}

@@ -24,21 +24,25 @@ export default function BookCategoryClient({
   const [books, setBooks] = useState(booksIni);
 
   const [isPending, startTransition] = useTransition();
-
   const categoriesById = useMemo(() => {
     return new Map(categories.map((category) => [category.id, category]));
   }, [categories]);
 
-  const currentCategory = selectedCategory
-    ? categoriesById.get(selectedCategory)
-    : undefined;
-  const dynamicTitle = currentCategory?.description || "";
-  const selectedCategorySlug =
-    currentCategory?.slug || categories?.[0]?.slug || "";
+  if (!categories || categories.length === 0) {
+    return null;
+  }
+
+  const resolvedCategoryId = selectedCategory ?? categories[0].id;
+  const currentCategory =
+    categoriesById.get(resolvedCategoryId) ?? categories[0];
+  const displayTitle =
+    currentCategory?.description || currentCategory?.name || "Categories";
+  const selectedCategorySlug = currentCategory?.slug || categories[0].slug || "";
+  const activeCategoryId = currentCategory?.id ?? categories[0].id;
 
   const handleCategoryChange = useCallback(
     (categoryId: number) => {
-      if (categoryId === selectedCategory) return;
+      if (categoryId === activeCategoryId) return;
 
       setSelectedCategory(categoryId);
 
@@ -56,50 +60,46 @@ export default function BookCategoryClient({
         setBooks(newBooks.data);
       });
     },
-    [categoriesById, currentCategory?.slug, selectedCategory]
+    [activeCategoryId, categoriesById, currentCategory?.slug]
   );
 
   return (
-    dynamicTitle &&
-    books &&
-    selectedCategory && (
-      <div className="mt-6 w-full space-y-4">
-        <span className="mb-1 block text-lg font-semibold sm:text-xl md:text-2xl">
-          {dynamicTitle}
-        </span>
+    <div className="mt-6 w-full space-y-4">
+      <span className="mb-1 block text-lg font-semibold sm:text-xl md:text-2xl">
+        {displayTitle}
+      </span>
 
-        <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-row items-start justify-between gap-4">
-            <div className="flex-1 overflow-x-auto scrollbar-hide">
-              <CategorySelector
-                categories={categories}
-                selectedCategory={selectedCategory || 0}
-                onCategoryChange={handleCategoryChange}
-              />
-            </div>
-            <ViewMoreButton
-              context="book"
-              url={`/books?category=${encodeURIComponent(
-                selectedCategorySlug
-              )}&page=1`}
+      <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-row items-start justify-between gap-4">
+          <div className="flex-1 overflow-x-auto scrollbar-hide">
+            <CategorySelector
+              categories={categories}
+              selectedCategory={activeCategoryId}
+              onCategoryChange={handleCategoryChange}
             />
           </div>
-          <div className="block w-full md:hidden">
-            <div className="grid grid-cols-3 gap-3">
-              {books.slice(0, 6).map((book) => (
-                <BookCard key={book.id} book={book} variant="sm" />
-              ))}
-            </div>
-          </div>
-          <div className="hidden w-full md:block mt-4">
-            <BookCarousel
-              books={books}
-              variant="lg"
-              isLoading={isPending || books.length === 0}
-            />
+          <ViewMoreButton
+            context="book"
+            url={`/books?category=${encodeURIComponent(
+              selectedCategorySlug
+            )}&page=1`}
+          />
+        </div>
+        <div className="block w-full md:hidden">
+          <div className="grid grid-cols-3 gap-3">
+            {books.slice(0, 6).map((book) => (
+              <BookCard key={book.id} book={book} variant="sm" />
+            ))}
           </div>
         </div>
+        <div className="hidden w-full md:block mt-4">
+          <BookCarousel
+            books={books}
+            variant="lg"
+            isLoading={isPending || books.length === 0}
+          />
+        </div>
       </div>
-    )
+    </div>
   );
 }

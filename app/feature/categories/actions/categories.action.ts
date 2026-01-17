@@ -13,12 +13,12 @@ export async function getCategories(page: number, limit: number) {
 
 export async function getCategoryById(id: number) {
   return handleActionRequest<Category>(`/categories/${id}`, {
-    revalidate: 60,
+    revalidate: 0,
   });
 }
 export async function getCategoryBySlugAction(slug: string) {
   return handleActionRequest<Category>(`/categories/slug/${slug}`, {
-    revalidate: 60,
+    revalidate: 0,
   });
 }
 export async function createCategory(data: Partial<Category>) {

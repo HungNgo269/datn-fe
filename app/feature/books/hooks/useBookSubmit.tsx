@@ -32,6 +32,7 @@ export function useBookSubmit() {
       const bookPayload: CreateBookDto = {
         title: data.title,
         slug: data.slug,
+        accessType: data.accessType ?? "FREE",
         sourceKey: sourceKey,
         coverImage: coverImageKey,
         authorIds: data.authorIds,

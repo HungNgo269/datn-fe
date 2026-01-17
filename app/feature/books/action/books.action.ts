@@ -11,7 +11,7 @@ export async function getBookBySlugAction(slug: string) {
 }
 export async function getBookByIdAction(id: number) {
   return handleActionRequest<Book>(`/books/${id}`, {
-    revalidate: 10,
+    revalidate: 0,
   });
 }
 export async function getBooksAction(params: GetBooksParams) {

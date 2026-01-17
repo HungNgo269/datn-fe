@@ -8,7 +8,7 @@ import {
 } from "@/lib/timeCount";
 import { BookCardProps } from "../../books/types/books.type";
 
-const TRENDING_REVALIDATE_SECONDS = 60;
+const TRENDING_REVALIDATE_SECONDS = 0;
 
 interface GetTrendingBooksOptions {
   period?: TimeFrame | string | string[];

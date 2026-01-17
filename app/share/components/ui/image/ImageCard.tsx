@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { getValidImageUrl } from "@/lib/utils";
 
 interface ImageCardProps {
   bookImage?: string | null; // VD: "uploads/avatars/c1ee9840-589c-4d10-98d6-f75eb2228002.jpg"
@@ -17,12 +18,16 @@ export default function ImageCard({
 }: ImageCardProps) {
   const [error, setError] = useState(false);
 
-  const isUrl = bookImage?.startsWith("http");
-  const src = error || !bookImage
+  const normalizedImage = getValidImageUrl(bookImage);
+  const isAbsoluteUrl =
+    normalizedImage?.startsWith("http://") ||
+    normalizedImage?.startsWith("https://");
+  const isLocalPath = normalizedImage?.startsWith("/");
+  const src = error || !normalizedImage
     ? "/images/sachFallBack.jpg"
-    : isUrl
-      ? bookImage
-      : `/api/view-image?key=${encodeURIComponent(bookImage)}`;
+    : isAbsoluteUrl || isLocalPath
+      ? normalizedImage
+      : `/api/view-image?key=${encodeURIComponent(normalizedImage)}`;
 
   return (
     <Image

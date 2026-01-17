@@ -28,6 +28,7 @@ export default function CreateBookPage() {
     cover: undefined,
     authorIds: [],
     categoryIds: [],
+    accessType: "FREE",
     price: 0,
     freeChapters: 0,
     description: "",

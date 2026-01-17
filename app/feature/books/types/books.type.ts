@@ -71,6 +71,7 @@ export interface BookUploadData {
 export interface CreateBookDto {
   title: string;
   slug: string;
+  accessType: "FREE" | "PURCHASE" | "MEMBERSHIP";
   sourceKey?: string;
   authorIds: number[];
   categoryIds: number[];
@@ -78,8 +79,6 @@ export interface CreateBookDto {
   description?: string;
   price?: number;
   freeChapters?: number;
-  // status: "DRAFT" | "PROCESSING" | "PUBLISHED" | "FAILED";
-  // isActive: boolean;
 }
 
 export enum BookSortBy {

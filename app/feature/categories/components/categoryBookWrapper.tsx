@@ -7,15 +7,15 @@ import {
   SortOrder,
 } from "../../books/types/books.type";
 import BookCategoryClient from "./categoryBookContainer";
+import { Category } from "../types/listCategories";
 
 export default async function CategoryBookWrapper() {
-  let categories = [];
+  let categories: Category[] = [];
   let booksIni: Book[] = [];
 
   try {
     const { data: categoriesData } = await getCategories(1, 10);
     categories = categoriesData ?? [];
-    console.log("CategoryBookWrapper: Fetched categories", categories.length);
   } catch (error) {
     console.error("CategoryBookWrapper: Failed to fetch categories", error);
     categories = [];
@@ -34,14 +34,13 @@ export default async function CategoryBookWrapper() {
       };
       const res = await getBooksAction(params);
       booksIni = res.data ?? [];
-      console.log("CategoryBookWrapper: Fetched books", booksIni.length);
     } catch (error) {
       console.error("CategoryBookWrapper: Failed to fetch books", error);
       booksIni = [];
     }
   }
-
-  // Always render the component, even with empty data
+  console.log("CategoryBookWrapper: Fetched categories", categories);
+  console.log("CategoryBookWrapper: Fetched books", booksIni);
   return (
     <div className="flex w-full flex-row justify-between md:w-[700px] lg:w-full">
       <BookCategoryClient categories={categories} booksIni={booksIni} />

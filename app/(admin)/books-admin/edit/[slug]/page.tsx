@@ -66,6 +66,7 @@ export default function EditBookPage() {
           description: book.description || "",
           price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
           freeChapters: book.freeChapters || 0,
+          accessType: (book.accessType?.toUpperCase() as "FREE" | "PURCHASE" | "MEMBERSHIP") || "FREE",
         };
 
         setFormData(mappedData);

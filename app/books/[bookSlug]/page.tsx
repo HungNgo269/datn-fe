@@ -61,7 +61,7 @@ export default async function BookPage({ params }: PageProps) {
     getUserSubscriptionAction(),
   ]);
   console.log("BookPage: Fetch complete. Purchased:", purchaseStatus?.purchased, "Subscribed:", subscription?.status);
-
+  console.log("BookPage: chapters:", chapters);
   const firstChapter = chapters && chapters.length > 0 ? chapters[0] : null;
   return (
     <>
