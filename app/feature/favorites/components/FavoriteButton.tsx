@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useMemo } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,8 +14,8 @@ import {
   removeBookFromFavorites,
 } from "../api/favorites.api";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FavoriteStatusResponseDto } from "../types/favorite.type";
+import { LoginRequiredDialog } from "@/app/share/components/ui/dialog/LoginRequiredDialog";
 
 interface FavoriteButtonProps {
   bookId: number;
@@ -31,9 +31,7 @@ function FavoriteButtonContent({
   const storeUserId = useAuthStore((state) => state.user?.id);
   const effectiveUserId = userId ?? storeUserId ?? undefined;
   const queryClient = useQueryClient();
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const shouldFetchStatus = Boolean(bookId && effectiveUserId);
   const shouldFetchCount = Boolean(bookId && !effectiveUserId);
@@ -118,7 +116,7 @@ function FavoriteButtonContent({
       }
 
       if (error instanceof Error && error.message === "UNAUTHENTICATED") {
-        toast.error("Vui lòng đăng nhập để thêm sách vào danh sách yêu thích.");
+        setShowLoginDialog(true);
         return;
       }
 
@@ -150,42 +148,43 @@ function FavoriteButtonContent({
     if (!bookId) return;
 
     if (!effectiveUserId) {
-      const search = searchParams?.toString();
-      const nextPath =
-        pathname && pathname.length > 0
-          ? search && search.length > 0
-            ? `${pathname}?${search}`
-            : pathname
-          : "/";
-      const callbackUrl = encodeURIComponent(nextPath);
-      router.push(`/login?callbackUrl=${callbackUrl}`);
+      setShowLoginDialog(true);
       return;
     }
 
     mutation.mutate(isFavorited);
-  }, [bookId, effectiveUserId, isFavorited, mutation, pathname, router, searchParams]);
+  }, [bookId, effectiveUserId, isFavorited, mutation]);
 
   return (
-    <Button
-      type="button"
-      variant={"outline"}
-      onClick={handleClick}
-      disabled={isProcessing}
-      className={cn(
-        "h-12 min-w-[140px] px-4 rounded-sm border border-border flex items-center justify-center gap-2 font-semibold transition-all bg-primary text-primary-foreground",
-        className
-      )}
-    >
-      {isProcessing ? (
-        <Loader2 className="h-5 w-5 animate-spin" />
-      ) : (
-        <Plus className={cn("h-5 w-5", isFavorited && "fill-current")} />
-      )}
+    <>
+      <Button
+        type="button"
+        variant={"outline"}
+        onClick={handleClick}
+        disabled={isProcessing}
+        className={cn(
+          "h-12 min-w-[140px] px-4 rounded-sm border border-border flex items-center justify-center gap-2 font-semibold transition-all bg-primary text-primary-foreground",
+          className
+        )}
+      >
+        {isProcessing ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <Plus className={cn("h-5 w-5", isFavorited && "fill-current")} />
+        )}
 
-      <span className="text-base font-semibold">
-        {formattedTotal} {isFavorited ? "Đã thích" : "Thích"}
-      </span>
-    </Button>
+        <span className="text-base font-semibold">
+          {formattedTotal} {isFavorited ? "Đã thích" : "Thích"}
+        </span>
+      </Button>
+
+      <LoginRequiredDialog 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog}
+        title="Yêu cầu đăng nhập"
+        description="Vui lòng đăng nhập để thêm sách vào danh sách yêu thích của bạn."
+      />
+    </>
   );
 }
 

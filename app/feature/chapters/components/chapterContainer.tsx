@@ -7,8 +7,15 @@ interface ChapterContainerProps {
   bookId: number;
   chapters: ChapterCardProps[];
   totalChapters?: number;
+  freeChapters?: number;
+  accessType?: string;
   showMoreText?: string;
   initialVisibleChapters?: number;
+  isPurchased?: boolean;
+  isSubscribed?: boolean;
+  bookTitle: string;
+  bookCoverImage: string;
+  bookSlug: string;
 }
 
 export function ChapterContainer(props: ChapterContainerProps) {

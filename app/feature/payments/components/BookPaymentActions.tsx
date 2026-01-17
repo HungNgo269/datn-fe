@@ -17,6 +17,7 @@ import {
   getUserSubscription,
 } from "../api/payments.api";
 import type { SubscriptionStatus } from "../types/payment.type";
+import { LoginRequiredDialog } from "@/app/share/components/ui/dialog/LoginRequiredDialog";
 
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   "ACTIVE",
@@ -47,6 +48,12 @@ function BookPaymentActionsContent({
   const accessToken = Cookies.get("accessToken");
   const hasAuthToken = Boolean(accessToken);
   const isUserAuthenticated = isAuthenticated || hasAuthToken;
+
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [dialogConfig, setDialogConfig] = useState<{title: string, description: string}>({
+    title: "Yêu cầu đăng nhập",
+    description: "Bạn cần đăng nhập để thực hiện tính năng này."
+  });
 
   const normalizedAccessType = accessType
     ? accessType.toString().toUpperCase()
@@ -121,10 +128,6 @@ function BookPaymentActionsContent({
   const priceValue = toNumericPrice(price);
   const priceLabel = priceValue > 0 ? formatCurrency(priceValue) : "Thanh toán";
 
-  const handleAuthRedirect = useCallback(() => {
-    router.push(`/login?next=${encodeURIComponent(currentPath)}`);
-  }, [currentPath, router]);
-
   const handleCheckoutRedirect = useCallback(
     (checkoutUrl?: string | null) => {
       if (checkoutUrl) {
@@ -141,7 +144,11 @@ function BookPaymentActionsContent({
 
   const handlePurchase = useCallback(async () => {
     if (!isUserAuthenticated) {
-      handleAuthRedirect();
+      setDialogConfig({
+        title: "Mua chương",
+        description: "Bạn cần đăng nhập để mua sách này."
+      });
+      setShowLoginDialog(true);
       return;
     }
 
@@ -163,11 +170,15 @@ function BookPaymentActionsContent({
     } finally {
       setIsLoading(false);
     }
-  }, [bookId, handleAuthRedirect, handleCheckoutRedirect, isPurchased, isUserAuthenticated]);
+  }, [bookId, handleCheckoutRedirect, isPurchased, isUserAuthenticated]);
 
   const handleSubscription = useCallback(async () => {
     if (!isUserAuthenticated) {
-      handleAuthRedirect();
+      setDialogConfig({
+        title: "Đăng ký hội viên",
+        description: "Bạn cần đăng nhập để đăng ký gói hội viên."
+      });
+      setShowLoginDialog(true);
       return;
     }
 
@@ -189,53 +200,56 @@ function BookPaymentActionsContent({
     } finally {
       setIsLoading(false);
     }
-  }, [handleAuthRedirect, handleCheckoutRedirect, hasActiveSubscription, isUserAuthenticated]);
+  }, [handleCheckoutRedirect, hasActiveSubscription, isUserAuthenticated]);
 
   if (!isPurchase && !isMembership) {
     return null;
   }
 
-  if (isPurchase && isPurchased) {
-    return null;
-  }
+  return (
+    <>
+      {isPurchase && (
+        <Button
+          type="button"
+          onClick={handlePurchase}
+          disabled={isLoading || isPurchased}
+          className={cn(
+            "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border px-4 text-base font-semibold transition-all sm:w-auto",
+            isPurchased 
+              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 cursor-default hover:bg-emerald-500/10" 
+              : "bg-primary text-primary-foreground",
+            className
+          )}
+        >
+          {isPurchased ? "Đã mua" : `Mua với ${priceLabel}`}
+        </Button>
+      )}
 
-  if (isMembership && hasActiveSubscription) {
-    return null;
-  }
+      {isMembership && (
+        <Button
+          type="button"
+          onClick={handleSubscription}
+          disabled={isLoading || hasActiveSubscription}
+          className={cn(
+            "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border px-4 text-base font-semibold transition-all sm:w-auto",
+            hasActiveSubscription
+              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 cursor-default hover:bg-emerald-500/10"
+              : "bg-primary text-primary-foreground",
+            className
+          )}
+        >
+          {hasActiveSubscription ? "Đã sở hữu" : "Hội viên"}
+        </Button>
+      )}
 
-  if (isPurchase) {
-    return (
-      <Button
-        type="button"
-        onClick={handlePurchase}
-        disabled={isLoading}
-        className={cn(
-          "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border bg-primary px-4 text-base font-semibold text-primary-foreground transition-all sm:w-auto",
-          className
-        )}
-      >
-        Mua với {priceLabel}
-      </Button>
-    );
-  }
-
-  if (isMembership) {
-    return (
-      <Button
-        type="button"
-        onClick={handleSubscription}
-        disabled={isLoading}
-        className={cn(
-          "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border bg-primary px-4 text-base font-semibold text-primary-foreground transition-all sm:w-auto",
-          className
-        )}
-      >
-        Hội viên
-      </Button>
-    );
-  }
-
-  return null;
+      <LoginRequiredDialog 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog}
+        title={dialogConfig.title}
+        description={dialogConfig.description}
+      />
+    </>
+  );
 }
 
 export function BookPaymentActions(props: BookPaymentActionsProps) {
@@ -245,3 +259,4 @@ export function BookPaymentActions(props: BookPaymentActionsProps) {
     </Suspense>
   );
 }
+

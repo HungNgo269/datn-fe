@@ -5,7 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Tag, Link2, FileText, FolderTree, Eye, X, Check } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -113,23 +113,31 @@ export function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] rounded-2xl border border-slate-200 bg-white p-6 shadow-none">
-        <DialogHeader className="space-y-1 pb-2">
-          <DialogTitle className="text-xl font-semibold text-slate-900">
-            {isEditMode ? "Cập nhật danh mục" : "Thêm danh mục mới"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[560px] overflow-hidden rounded-2xl border-0 bg-white p-0 shadow-xl">
+        {/* Gradient Header */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Tag className="h-5 w-5 text-primary" />
+              </div>
+              {isEditMode ? "Cập nhật danh mục" : "Thêm danh mục mới"}
+            </DialogTitle>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="px-6 pb-6 space-y-5">
+          {/* Name Field */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-slate-700">
-              Tên danh mục <span className="text-destructive">*</span>
+            <Label htmlFor="name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Tag className="h-4 w-4 text-slate-400" />
+              Tên danh mục <span className="text-rose-500">*</span>
             </Label>
             <Input
               id="name"
               {...nameField}
               placeholder="Ví dụ: Tiểu thuyết"
-              className={errors.name ? "border-destructive" : ""}
+              className={`h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors.name ? "border-rose-300 bg-rose-50/50" : ""}`}
               onChange={(e) => {
                 const value = e.target.value;
                 nameField.onChange(e);
@@ -141,61 +149,82 @@ export function CategoryDialog({
               }}
             />
             {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
+              <p className="text-sm text-rose-500 flex items-center gap-1">
+                <X className="h-3 w-3" />
+                {errors.name.message}
+              </p>
             )}
           </div>
 
+          {/* Slug Field */}
           <div className="space-y-2">
-            <Label htmlFor="slug" className="text-sm font-medium text-slate-700">
+            <Label htmlFor="slug" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Link2 className="h-4 w-4 text-slate-400" />
               Slug
             </Label>
             <Input
               id="slug"
               {...register("slug")}
               placeholder="ten-danh-muc"
-              className={errors.slug ? "border-destructive" : ""}
+              className={`h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors.slug ? "border-rose-300 bg-rose-50/50" : ""}`}
             />
             {errors.slug && (
-              <p className="text-sm text-destructive">{errors.slug.message}</p>
+              <p className="text-sm text-rose-500 flex items-center gap-1">
+                <X className="h-3 w-3" />
+                {errors.slug.message}
+              </p>
             )}
           </div>
 
+          {/* Description Field */}
           <div className="space-y-2">
-            <Label htmlFor="description">Mô tả</Label>
+            <Label htmlFor="description" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-slate-400" />
+              Mô tả
+            </Label>
             <Input
               id="description"
               {...register("description")}
               placeholder="Mô tả ngắn..."
-              className={errors.description ? "border-destructive" : ""}
+              className={`h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors.description ? "border-rose-300 bg-rose-50/50" : ""}`}
             />
             {errors.description && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-rose-500 flex items-center gap-1">
+                <X className="h-3 w-3" />
                 {errors.description.message}
               </p>
             )}
           </div>
 
+          {/* Parent ID and Status Row */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="parentId">Danh mục cha (ID)</Label>
+              <Label htmlFor="parentId" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <FolderTree className="h-4 w-4 text-slate-400" />
+                Danh mục cha (ID)
+              </Label>
               <Input
                 id="parentId"
                 type="number"
                 min="1"
                 {...register("parentId", { valueAsNumber: true })}
                 placeholder="Để trống nếu không có"
-                className={errors.parentId ? "border-destructive" : ""}
+                className={`h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors.parentId ? "border-rose-300 bg-rose-50/50" : ""}`}
               />
               {errors.parentId && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-rose-500 flex items-center gap-1">
+                  <X className="h-3 w-3" />
                   {errors.parentId.message}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>Trạng thái</Label>
-              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Eye className="h-4 w-4 text-slate-400" />
+                Trạng thái
+              </Label>
+              <div className="flex items-center gap-3 h-11 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 transition-all hover:border-slate-300">
                 <Controller
                   control={control}
                   name="isActive"
@@ -204,38 +233,51 @@ export function CategoryDialog({
                       id="isActive"
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                   )}
                 />
                 <Label
                   htmlFor="isActive"
-                  className="cursor-pointer text-sm text-slate-600"
+                  className="cursor-pointer text-sm text-slate-600 flex-1"
                 >
-                  Hiển thị danh mục này
+                  Hiển thị danh mục
                 </Label>
               </div>
             </div>
           </div>
 
           {mutation.isError && (
-            <p className="text-right text-sm text-destructive">
-              {mutation.error instanceof Error
-                ? mutation.error.message
-                : "Không thể lưu danh mục. Thử lại sau."}
-            </p>
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 flex items-center gap-2 text-rose-600">
+              <X className="h-4 w-4" />
+              <p className="text-sm">
+                {mutation.error instanceof Error
+                  ? mutation.error.message
+                  : "Không thể lưu danh mục. Thử lại sau."}
+              </p>
+            </div>
           )}
 
-          <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="h-11 px-5 rounded-xl border-slate-200 hover:bg-slate-50 transition-colors"
             >
+              <X className="h-4 w-4 mr-2" />
               Hủy
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending && (
+            <Button 
+              type="submit" 
+              disabled={mutation.isPending}
+              className="h-11 px-5 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 transition-all shadow-md shadow-primary/20"
+            >
+              {mutation.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="mr-2 h-4 w-4" />
               )}
               {isEditMode ? "Lưu thay đổi" : "Tạo mới"}
             </Button>
@@ -245,3 +287,4 @@ export function CategoryDialog({
     </Dialog>
   );
 }
+

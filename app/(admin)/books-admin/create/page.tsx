@@ -15,10 +15,12 @@ import {
 } from "@/app/feature/books-upload/schema/uploadBookSchema";
 import { Step1Form } from "@/app/feature/books-upload/components/step1Form";
 import { Step2Form } from "@/app/feature/books-upload/components/step2Form";
+import { ConfirmDialog } from "@/app/share/components/ui/dialog/ConfirmDialog";
 
 export default function CreateBookPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [formData, setFormData] = useState<BookFormState>({
     title: "",
     slug: "",
@@ -62,13 +64,11 @@ export default function CreateBookPage() {
   );
 
   const handleCancel = useCallback(() => {
-    if (
-      confirm(
-        "Bạn có chắc muốn hủy upload? Dữ liệu sẽ không được lưu."
-      )
-    ) {
-      router.back();
-    }
+    setShowCancelDialog(true);
+  }, []);
+
+  const confirmCancel = useCallback(() => {
+    router.back();
   }, [router]);
 
   return (
@@ -181,6 +181,17 @@ export default function CreateBookPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        title="Hủy upload sách"
+        description="Bạn có chắc muốn hủy upload? Dữ liệu sẽ không được lưu."
+        confirmText="Hủy upload"
+        cancelText="Tiếp tục"
+        onConfirm={confirmCancel}
+        variant="destructive"
+      />
     </div>
   );
 }

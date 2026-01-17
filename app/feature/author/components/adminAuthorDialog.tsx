@@ -5,7 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { ImagePlus, Loader2, User, Link2, FileText, Eye, X, Check } from "lucide-react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,6 @@ import {
   AuthorSubmitData,
 } from "@/app/feature/author/schema/authorSchema";
 import { generateSlug } from "../../books/helper";
-import { UploadBookButton } from "../../books-upload/components/uploadBookButton";
 import { ImagePreview } from "../../books-upload/components/ImagePreview";
 import { AuthorInfo } from "../types/authors.types";
 import { useAuthorSubmit } from "../hooks/useAuthorSubmit";
@@ -33,7 +32,7 @@ import { useAuthorSubmit } from "../hooks/useAuthorSubmit";
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[200px] w-full animate-pulse items-center justify-center rounded-md bg-muted/20 text-sm text-muted-foreground">
+    <div className="flex h-[200px] w-full animate-pulse items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">
       Đang tải trình soạn thảo...
     </div>
   ),
@@ -166,20 +165,29 @@ export function AuthorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-none">
-        <DialogHeader className="space-y-1 pb-2">
-          <DialogTitle className="text-xl font-semibold text-slate-900">
-            {isEditMode ? "Cập nhật tác giả" : "Thêm tác giả mới"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto rounded-2xl border-0 bg-white p-0 shadow-xl">
+        {/* Gradient Header */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              {isEditMode ? "Cập nhật tác giả" : "Thêm tác giả mới"}
+            </DialogTitle>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_300px]">
-            <div className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6 space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px]">
+            {/* Left Column - Form Fields */}
+            <div className="space-y-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* Name Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-medium text-slate-700">
-                    Tên tác giả <span className="text-destructive">*</span>
+                  <Label htmlFor="name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <User className="h-4 w-4 text-slate-400" />
+                    Tên tác giả <span className="text-rose-500">*</span>
                   </Label>
                   <Input
                     id="name"
@@ -191,17 +199,21 @@ export function AuthorDialog({
                       }
                     }}
                     placeholder="Nguyễn Nhật Ánh"
+                    className={`h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary ${form.formState.errors.name ? "border-rose-300 bg-rose-50/50" : ""}`}
                   />
                   {form.formState.errors.name && (
-                    <p className="text-sm font-medium text-destructive">
+                    <p className="text-sm text-rose-500 flex items-center gap-1">
+                      <X className="h-3 w-3" />
                       {form.formState.errors.name.message}
                     </p>
                   )}
                 </div>
 
+                {/* Slug Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="slug" className="text-sm font-medium text-slate-700">
-                    Đường dẫn (Slug) <span className="text-destructive">*</span>
+                  <Label htmlFor="slug" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Link2 className="h-4 w-4 text-slate-400" />
+                    Đường dẫn (Slug) <span className="text-rose-500">*</span>
                   </Label>
                   <Input
                     id="slug"
@@ -209,17 +221,23 @@ export function AuthorDialog({
                     disabled
                     {...form.register("slug")}
                     placeholder="nguyen-nhat-anh"
+                    className="h-11 rounded-xl border-slate-200 bg-slate-100/50 text-slate-500"
                   />
                   {form.formState.errors.slug && (
-                    <p className="text-sm font-medium text-destructive">
+                    <p className="text-sm text-rose-500 flex items-center gap-1">
+                      <X className="h-3 w-3" />
                       {form.formState.errors.slug.message}
                     </p>
                   )}
                 </div>
               </div>
 
+              {/* Bio Field */}
               <div className="space-y-2">
-                <Label htmlFor="bio">Tiểu sử / Mô tả</Label>
+                <Label htmlFor="bio" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-slate-400" />
+                  Tiểu sử / Mô tả
+                </Label>
                 <Controller
                   name="bio"
                   control={form.control}
@@ -230,55 +248,85 @@ export function AuthorDialog({
                         value={field.value}
                         onChange={field.onChange}
                         modules={quillModules}
-                        className="rounded-md border border-slate-200 bg-white [&_.ql-editor]:min-h-[250px]"
+                        className="rounded-xl border border-slate-200 bg-white [&_.ql-editor]:min-h-[200px] [&_.ql-toolbar]:rounded-t-xl [&_.ql-toolbar]:border-slate-200 [&_.ql-container]:rounded-b-xl [&_.ql-container]:border-slate-200"
                         placeholder="Nhập tiểu sử tác giả..."
                       />
                     </div>
                   )}
                 />
                 {form.formState.errors.bio && (
-                  <p className="text-sm font-medium text-destructive">
+                  <p className="text-sm text-rose-500 flex items-center gap-1">
+                    <X className="h-3 w-3" />
                     {form.formState.errors.bio.message}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col space-y-6 border-border md:border-l md:pl-6">
+            {/* Right Column - Avatar & Status */}
+            <div className="flex flex-col space-y-5 md:border-l md:border-slate-100 md:pl-6">
+              {/* Avatar Upload */}
               <div className="space-y-3">
-                <Label className="block text-sm font-medium text-slate-700">
-                  Ảnh đại diện <span className="text-destructive">*</span>
+                <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <ImagePlus className="h-4 w-4 text-slate-400" />
+                  Ảnh đại diện <span className="text-rose-500">*</span>
                 </Label>
 
-                <div className="group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-200 bg-slate-50 transition-colors hover:bg-slate-100">
+                <div className="group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-slate-50 to-white transition-all hover:border-primary/50 hover:bg-primary/5">
                   {resolvedPreview ? (
-                    <ImagePreview
-                      src={resolvedPreview}
-                      alt="Author avatar"
-                      onRemove={removeAvatar}
-                    />
+                    <>
+                      <ImagePreview
+                        src={resolvedPreview}
+                        alt="Author avatar"
+                        onRemove={removeAvatar}
+                      />
+                      {/* Replace avatar button */}
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('author-avatar-input')?.click()}
+                        className="absolute bottom-4 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:bg-primary/90 hover:scale-110"
+                      >
+                        <ImagePlus className="h-5 w-5" />
+                      </button>
+                    </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center space-y-2 p-4 text-center text-muted-foreground">
-                      <div className="rounded-full border border-slate-200 bg-white p-3">
-                        <ImagePlus className="h-6 w-6" />
+                    <div 
+                      className="flex flex-col items-center justify-center space-y-3 p-4 text-center cursor-pointer h-full w-full" 
+                      onClick={() => document.getElementById('author-avatar-input')?.click()}
+                    >
+                      <div className="rounded-full bg-gradient-to-br from-primary/10 to-primary/5 p-4 transition-transform group-hover:scale-110">
+                        <ImagePlus className="h-8 w-8 text-primary/60" />
                       </div>
-                      <span className="text-sm font-medium">Chưa có ảnh</span>
+                      <div>
+                        <span className="text-sm font-medium text-slate-600">Nhấn để chọn ảnh</span>
+                        <p className="text-xs text-slate-400 mt-1">PNG, JPG tối đa 5MB</p>
+                      </div>
                     </div>
                   )}
-                </div>
-
-                <div className="w-full">
-                  <UploadBookButton
-                    label=""
+                  {/* Hidden file input */}
+                  <input
+                    id="author-avatar-input"
+                    type="file"
                     accept="image/*"
-                    buttonText={resolvedPreview ? "Thay đổi ảnh" : "Tải ảnh lên"}
-                    onChange={handleAvatarChange}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarChange(file);
+                    }}
+                    className="hidden"
                   />
                 </div>
+
+                {form.formState.errors.avatar && (
+                  <p className="text-sm text-rose-500 flex items-center gap-1">
+                    <X className="h-3 w-3" />
+                    {form.formState.errors.avatar.message}
+                  </p>
+                )}
               </div>
 
-              <div className="border-t border-slate-200 pt-4">
-                <div className="flex items-center space-x-2">
+              {/* Status Toggle */}
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-4 transition-all hover:border-slate-300">
+                <div className="flex items-center space-x-3">
                   <Controller
                     control={form.control}
                     name="isActive"
@@ -287,31 +335,45 @@ export function AuthorDialog({
                         id="isActive"
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                     )}
                   />
-                  <Label
-                    htmlFor="isActive"
-                    className="cursor-pointer text-sm font-normal text-slate-600"
-                  >
-                    Hiển thị công khai tác giả này
-                  </Label>
+                  <div className="flex-1">
+                    <Label
+                      htmlFor="isActive"
+                      className="cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4 text-slate-400" />
+                      Hiển thị công khai
+                    </Label>
+                    <p className="text-xs text-slate-400 mt-0.5">Tác giả sẽ hiển thị trên trang web</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="mt-6 border-t border-slate-200 pt-4">
+          {/* Action Buttons */}
+          <DialogFooter className="border-t border-slate-100 pt-4 gap-3 sm:gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="h-11 px-5 rounded-xl border-slate-200 hover:bg-slate-50 transition-colors"
             >
+              <X className="h-4 w-4 mr-2" />
               Hủy bỏ
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending && (
+            <Button 
+              type="submit" 
+              disabled={mutation.isPending}
+              className="h-11 px-5 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 transition-all shadow-md shadow-primary/20"
+            >
+              {mutation.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="mr-2 h-4 w-4" />
               )}
               {isEditMode ? "Lưu thay đổi" : "Tạo tác giả"}
             </Button>
@@ -321,3 +383,4 @@ export function AuthorDialog({
     </Dialog>
   );
 }
+

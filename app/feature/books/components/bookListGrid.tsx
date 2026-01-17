@@ -17,9 +17,8 @@ export function BookList({ books }: BookListProps) {
   return (
     <div
       className="
-      w-full gap-2
-      grid grid-cols-2
-      sm:grid-cols-3
+      w-full gap-4 sm:gap-5 lg:gap-6
+      grid grid-cols-3
       md:grid-cols-4
       lg:grid-cols-5
       justify-items-start

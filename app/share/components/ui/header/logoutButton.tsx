@@ -20,7 +20,8 @@ export function LogOutButton() {
       Cookies.remove("accessToken", { path: "/" });
       await queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Đăng xuất thành công!");
-      // router.push("/books");
+      // Reload page to refresh book/chapter access status
+      window.location.reload();
     },
   });
 

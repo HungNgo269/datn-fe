@@ -9,11 +9,11 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { deleteBanner, getBanners } from "@/app/feature/banner/api/banner.api";
-import { Banner } from "@/app/feature/banner/types/banner.types";
+import { Banner, BannerPosition } from "@/app/feature/banner/types/banner.types";
 import { AdminBannerList } from "@/app/feature/banner/components/adminBannerList";
 import { BannerDialog } from "@/app/feature/banner/components/adminBannerDialog";
 
-export default function BannersPage() {
+function BannersPageContent() {
   const queryClient = useQueryClient();
 
   const pageParams = useSearchParams().get("page");
@@ -108,5 +108,17 @@ export default function BannersPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function BannersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <BannersPageContent />
+    </Suspense>
   );
 }

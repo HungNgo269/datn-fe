@@ -8,9 +8,12 @@ export default async function BannerRight() {
       page: 1,
       limit: 1,
     });
+    console.log("BannerRight: response", JSON.stringify(bannerResponse));
     const banners = bannerResponse?.data[0] ?? 0;
+    console.log("BannerRight: banners", banners);
 
     if (!banners) {
+      console.log("BannerRight: Returning null because no banners");
       return null;
     }
 

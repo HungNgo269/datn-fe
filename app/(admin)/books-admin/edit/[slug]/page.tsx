@@ -19,6 +19,7 @@ import {
   Step2FormData,
 } from "@/app/feature/books-upload/schema/uploadBookSchema";
 import { useBookSubmit } from "@/app/feature/books/hooks/useBookSubmit";
+import { ConfirmDialog } from "@/app/share/components/ui/dialog/ConfirmDialog";
 
 export default function EditBookPage() {
   const { slug } = useParams<{ slug: string | string[] }>();
@@ -26,6 +27,7 @@ export default function EditBookPage() {
   const bookSlug = Array.isArray(slug) ? slug[0] : slug;
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [formData, setFormData] = useState<BookFormState | null>(null);
   const [authorOptions, setAuthorOptions] = useState<Option[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
@@ -130,13 +132,11 @@ export default function EditBookPage() {
   );
 
   const handleCancel = useCallback(() => {
-    if (
-      confirm(
-        "Bạn có chắc muốn hủy chỉnh sửa? Các thay đổi chưa lưu sẽ bị mất."
-      )
-    ) {
-      router.back();
-    }
+    setShowCancelDialog(true);
+  }, []);
+
+  const confirmCancel = useCallback(() => {
+    router.back();
   }, [router]);
 
   if (isLoading) {
@@ -270,6 +270,17 @@ export default function EditBookPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        title="Hủy chỉnh sửa"
+        description="Bạn có chắc muốn hủy chỉnh sửa? Các thay đổi chưa lưu sẽ bị mất."
+        confirmText="Hủy chỉnh sửa"
+        cancelText="Tiếp tục"
+        onConfirm={confirmCancel}
+        variant="destructive"
+      />
     </div>
   );
 }

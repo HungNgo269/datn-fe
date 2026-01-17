@@ -5,9 +5,8 @@ import {
   getChaptersOfBook,
 } from "@/app/feature/chapters/actions/chapters.actions";
 import IframeBookReader from "@/app/feature/reader/components/IframeBookReader";
-import { redirect } from "next/navigation";
-import Cookies from "js-cookie";
 import { getBookBySlugAction } from "@/app/feature/books/action/books.action";
+import { ChapterAccessGuard } from "@/app/feature/chapters/components/ChapterAccessGuard";
 
 type PageProps = {
   params: Promise<{
@@ -46,7 +45,6 @@ export async function generateMetadata({
 }
 
 export default async function ChapterPage({ params }: PageProps) {
-  const accessToken = Cookies.get("accessToken");
   const { bookSlug, chapterSlug } = await params;
 
   const [response, chapters, book] = await Promise.all([
@@ -55,19 +53,10 @@ export default async function ChapterPage({ params }: PageProps) {
     getBookBySlugAction(bookSlug),
   ]);
 
-  const chapterPath = `/books/${bookSlug}/chapter/${chapterSlug}`;
-  if (!response.hasAccess) {
-    if (accessToken) {
-      redirect(`/subscription?return=${encodeURIComponent(chapterPath)}`);
-    }
-    redirect(`/login?next=${encodeURIComponent(chapterPath)}`);
-  }
-
-  if (!response.contentUrl) {
-    throw new Error("Không thể tải nội dung chương");
-  }
-
-  const chapterContent = await getChaptersContent(response.contentUrl);
+  // Fetch content only if user has access
+  const chapterContent = response.hasAccess && response.contentUrl
+    ? await getChaptersContent(response.contentUrl)
+    : "";
 
   const currentChapterIndex = chapters.findIndex(
     (ch) => ch.slug === chapterSlug
@@ -79,19 +68,29 @@ export default async function ChapterPage({ params }: PageProps) {
       : null;
 
   return (
-    <div className="h-screen w-screen bg-background">
-      <IframeBookReader
-        initialHtml={chapterContent}
-        title={response.title}
-        bookSlug={bookSlug}
-        chapterSlug={chapterSlug}
-        chapters={chapters}
-        currentChapterOrder={currentChapter?.order || response.order}
-        nextChapterSlug={nextChapter?.slug || null}
-        bookTitle={book?.title ?? response.title}
-        bookCoverImage={book?.coverImage ?? null}
-        bookId={book?.id ?? null}
-      />
-    </div>
+    <ChapterAccessGuard
+      hasAccess={response.hasAccess}
+      bookTitle={book?.title ?? "Unknown Book"}
+      bookCoverImage={book?.coverImage ?? ""}
+      bookSlug={bookSlug}
+      chapterTitle={response.title}
+      chapterOrder={currentChapter?.order || response.order}
+      accessType={book?.accessType}
+    >
+      <div className="h-screen w-screen bg-background">
+        <IframeBookReader
+          initialHtml={chapterContent}
+          title={response.title}
+          bookSlug={bookSlug}
+          chapterSlug={chapterSlug}
+          chapters={chapters}
+          currentChapterOrder={currentChapter?.order || response.order}
+          nextChapterSlug={nextChapter?.slug || null}
+          bookTitle={book?.title ?? response.title}
+          bookCoverImage={book?.coverImage ?? null}
+          bookId={book?.id ?? null}
+        />
+      </div>
+    </ChapterAccessGuard>
   );
 }

@@ -22,7 +22,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
       <div>
         <p className="text-sm text-gray-500 font-medium">{title}</p>
-        <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
+        <h3 className="text-2xl font-bold text-gray-800" suppressHydrationWarning>{value}</h3>
         {showDelta ? (
           <div className="mt-1 flex items-center gap-1 text-xs">
             <DeltaIcon

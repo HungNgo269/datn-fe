@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import ReaderChaptersList from "./ReaderChaptersList";
 import ReaderFrame from "./ReaderFrame";
@@ -49,6 +49,15 @@ export default function IframeBookReader({
   bookId,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialPageFromUrl = useMemo(() => {
+    const pageParam = searchParams.get("page");
+    if (pageParam) {
+      const parsed = parseInt(pageParam, 10);
+      return isNaN(parsed) ? undefined : parsed;
+    }
+    return undefined;
+  }, [searchParams]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const userId = useAuthStore((state) => state.user?.id ?? null);
   const bookmarksStore = useReaderDataStore((state) => state.bookmarks);
@@ -101,6 +110,7 @@ export default function IframeBookReader({
       readMode === "paged" ? positionKeyBase : `${positionKeyBase}-scroll`,
     ready,
     readMode,
+    initialPage: initialPageFromUrl,
   });
 
   const [selectedText, setSelectedText] = useState("");
@@ -575,6 +585,7 @@ export default function IframeBookReader({
         currentPage={currentPage}
         totalPages={totalPages}
         themeBg={containerBg}
+        isDarkTheme={themeId === "dark" || themeId === "gray"}
         onBackToBook={handleBackToBook}
         onNextChapter={goToNextChapter}
         nextChapterSlug={resolvedNextChapterSlug}
@@ -638,10 +649,28 @@ export default function IframeBookReader({
           bookmarks={bookBookmarks}
           notes={bookNotes}
           onBookmarkSelect={(bookmark) => {
-            goToPage(bookmark.page);
+            if (bookmark.chapterSlug && bookmark.chapterSlug !== chapterSlug) {
+              // Navigate to the correct chapter first, then the page
+              if (bookSlug) {
+                router.push(
+                  `/books/${bookSlug}/chapter/${bookmark.chapterSlug}?page=${bookmark.page}`
+                );
+              }
+            } else {
+              goToPage(bookmark.page);
+            }
           }}
           onNoteSelect={(note) => {
-            goToPage(note.page);
+            if (note.chapterSlug && note.chapterSlug !== chapterSlug) {
+              // Navigate to the correct chapter first, then the page
+              if (bookSlug) {
+                router.push(
+                  `/books/${bookSlug}/chapter/${note.chapterSlug}?page=${note.page}`
+                );
+              }
+            } else {
+              goToPage(note.page);
+            }
           }}
           onRemoveBookmark={removeBookmarkFromStore}
           onRemoveNote={removeNoteFromStore}

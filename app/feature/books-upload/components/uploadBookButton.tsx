@@ -34,7 +34,11 @@ export function UploadBookButton({
 
   return (
     <div className="space-y-2">
+      <div className="flex items-center gap-2 flex-row">
+
       <Label>{label}</Label>
+      <span className="text-rose-500">*</span>
+      </div>
       <div className="flex items-center gap-4">
         <Button
           type="button"
@@ -50,7 +54,6 @@ export function UploadBookButton({
           type="file"
           onChange={handleChange}
           accept={accept}
-          required={required}
           className="hidden"
         />
       </div>

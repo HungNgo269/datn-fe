@@ -5,6 +5,7 @@ import Link from "next/link";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { toNumericPrice } from "@/lib/helper";
 import { BookCardProps } from "../../books/types/books.type";
+import { Crown, ShoppingBag } from "lucide-react";
 
 type Variant = "lg" | "sm";
 
@@ -52,37 +53,48 @@ export default function BookCard({
 
   return (
     book && (
-      <div className={`flex flex-col group ${style.card}`}>
+      <div className={`flex flex-col group pt-2 ${style.card}`}>
         <Link
           prefetch={false}
           href={`/books/${book.slug}`}
           aria-label={book.title}
         >
           <div
-            className={`relative overflow-hidden rounded-xl shadow-sm transition-transform duration-300 group-hover:-translate-y-1 ${style.imgWrap}`}
+            className={`relative rounded-xl shadow-sm transition-transform duration-300 group-hover:-translate-y-2 ${style.imgWrap}`}
           >
-            <ImageCard
-              bookImage={book.coverImage}
-              bookName={book.title}
-              key={book.id}
-            />
+            <div className="absolute inset-0 overflow-hidden rounded-xl">
+              <ImageCard
+                bookImage={book.coverImage}
+                bookName={book.title}
+                key={book.id}
+              />
+            </div>
 
-            {/* Tương tự ảnh mẫu: Badge nằm đè lên dưới chân ảnh hoặc giữa ảnh */}
+            {/* Badge - Top right corner like reference image */}
             {accessBadgeLabel && (
-              <div className="absolute inset-0 flex items-end justify-center pb-4 bg-black/5">
-                <div
-                  className={`
-                  font-bold tracking-wider rounded-lg shadow-lg backdrop-blur-md
-                  border-2 flex items-center justify-center
+              <div
+                className={`
+                  absolute top-0 right-0 z-10
+                  flex items-center gap-1.5 pl-3 pr-1 py-1
+                  rounded-full shadow-sm border border-white/20
                   ${
                     isMembership
-                      ? "bg-white/80 border-blue-400 text-blue-700"
-                      : "bg-white/80 border-amber-400 text-amber-700"
+                      ? "bg-gradient-to-r from-orange-400 to-amber-600 shadow-orange-500/30"
+                      : "bg-gradient-to-r from-rose-500 to-pink-600 shadow-rose-500/30"
                   }
-                  ${style.badge}
+                  transition-all duration-300 hover:scale-105 hover:shadow-md
                 `}
-                >
+              >
+                <span className="text-[10px] font-black uppercase tracking-wider text-white leading-none pt-0.5">
                   {accessBadgeLabel}
+                </span>
+
+                <div className="flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-sm">
+                  {isMembership ? (
+                    <Crown className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                  ) : (
+                    <ShoppingBag className="w-3 h-3 text-rose-500" strokeWidth={3} />
+                  )}
                 </div>
               </div>
             )}

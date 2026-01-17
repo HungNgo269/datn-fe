@@ -11,6 +11,7 @@ import {
   UserPen,
   ChartBarStacked,
   LogOut,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   {
     name: "Phân tích",
-    icon: <GalleryHorizontal className="w-5 h-5" />,
+    icon: <ChartBarStacked className="w-5 h-5" />,
     path: "/analitics-admin",
   },
   {
@@ -41,7 +42,7 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
     name: "Thể loại",
-    icon: <ChartBarStacked className="w-5 h-5" />,
+    icon: <Layers className="w-5 h-5" />,
     path: "/categories-admin",
   },
   {

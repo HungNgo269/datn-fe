@@ -1,6 +1,6 @@
 import { LucideIcon } from "lucide-react";
 
-export type TimeRange = "day" | "week" | "month";
+export type TimeRange = "7days" | "30days" | "3months";
 
 export interface AnalyticData {
   name: string;

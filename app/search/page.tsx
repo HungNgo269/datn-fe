@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResultSection } from "../feature/search/components/ResultSection";
 import { BookResultCard } from "../feature/search/components/BookResultCard";
 import { AuthorResultCard } from "../feature/search/components/AuthorResultCard";
+import { PremiumBanner } from "@/app/share/components/banner/PremiumBanner";
 
 import { getBooksAction } from "../feature/books/action/books.action";
 import { searchAuthorsAction } from "../feature/author/actions/authors.actions";
@@ -98,200 +99,199 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   };
 
   return (
-    <div className="overflow-x-hidden">
-      <header className="ml-auto mr-auto w-full">
-        <Header />
+    <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
+        <div className="w-full max-w-[1200px] mx-auto">
+          <Header />
+        </div>
       </header>
 
-      <div className="w-full mx-auto mt-20 md:w-[700px] lg:w-[950px] xl:w-[1190px] p-2 lg:p-0">
-        <div className="flex justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
-          <div className="md:w-[700px] lg:w-[800px] xl:w-[850px] flex flex-col gap-5">
-            <div className="mx-auto w-full lg:w-[1190px] p-2">
-              <div className="flex justify-between">
-                <div className="w-full lg:w-[850px] flex flex-col gap-8 text-black">
-                  <span className="font-bold">
-                    Kết quả tìm kiếm cho:&nbsp;
-                    <span className="text-primary">{query}</span>
-                  </span>
-                  {query ? (
-                    <>
-                      <Tabs defaultValue={activeType}>
-                        <TabsList className="flex flex-wrap items-center  border-0 border-b p-0 h-auto">
-                          <TabsTrigger
-                            value="all"
-                            asChild
-                            className="rounded-none border-b-2 border-transparent px-4 pb-2 text-sm font-semibold text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
-                          >
-                            <Link href={buildSearchUrl("all")}>
-                              Tất cả ({bookCount + authorCount})
-                            </Link>
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="books"
-                            asChild
-                            className="rounded-none border-b-2 border-transparent px-4 pb-2 text-sm font-semibold text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
-                          >
-                            <Link href={buildSearchUrl("books")}>
-                              Sách ({bookCount})
-                            </Link>
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="authors"
-                            asChild
-                            className="rounded-none border-b-2 border-transparent px-4 pb-2 text-sm font-semibold text-muted-foreground transition data-[state=active]:border-primary data-[state=active]:text-primary hover:text-foreground"
-                          >
-                            <Link href={buildSearchUrl("authors")}>
-                              Tác giả ({authorCount})
-                            </Link>
-                          </TabsTrigger>
-                        </TabsList>
-                      </Tabs>
-
-                      {activeType === "all" && (
-                        <>
-                          <ResultSection
-                            id="books"
-                            title="Sách"
-                            count={bookCount}
-                            emptyMessage="Không có kết quả, thử tìm kiếm với từ khóa khác"
-                            hideIfEmpty={false}
-                          >
-                            {books.length > 0 ? (
-                              <div className="grid gap-4 md:grid-cols-2">
-                                {books.map((book) => (
-                                  <BookResultCard
-                                    key={book.id}
-                                    book={book}
-                                    query={query}
-                                  />
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="py-10 text-center text-muted-foreground bg-muted/30 rounded-xl">
-                                Không có cuốn sách nào phù hợp với {query}.
-                              </div>
-                            )}
-                          </ResultSection>
-
-                          <ResultSection
-                            id="authors"
-                            title="Tác giả"
-                            count={authorCount}
-                            emptyMessage=""
-                            hideIfEmpty={true}
-                          >
-                            <div className="grid gap-4 md:grid-cols-2">
-                              {authors.map((author) => (
-                                <AuthorResultCard
-                                  key={author.id}
-                                  author={author}
-                                  query={query}
-                                />
-                              ))}
-                            </div>
-                          </ResultSection>
-                        </>
-                      )}
-
-                      {activeType === "books" && (
-                        <>
-                          <ResultSection
-                            id="books"
-                            title="Sách"
-                            count={bookCount}
-                            emptyMessage="Hãy thử tìm kiếm với từ khóa khác"
-                            hideIfEmpty={false}
-                          >
-                            {books.length > 0 ? (
-                              <div className="grid gap-4 md:grid-cols-2">
-                                {books.map((book) => (
-                                  <BookResultCard
-                                    key={book.id}
-                                    book={book}
-                                    query={query}
-                                  />
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="py-10 text-center text-muted-foreground bg-muted/30 rounded-xl">
-                                Không có cuốn sách nào phù hợp với {query}.
-                              </div>
-                            )}
-                          </ResultSection>
-                          {bookResults?.meta &&
-                            bookResults.meta.totalPages > 1 && (
-                              <div className="pt-2">
-                                <Pagination
-                                  meta={bookResults.meta}
-                                  // hashUrl="books"
-                                />
-                              </div>
-                            )}
-                        </>
-                      )}
-
-                      {activeType === "authors" && (
-                        <>
-                          <ResultSection
-                            id="authors"
-                            title="Tác giả"
-                            count={authorCount}
-                            emptyMessage="Hãy thử tìm kiếm với từ khóa khác"
-                            hideIfEmpty={false}
-                          >
-                            <div className="grid gap-4 md:grid-cols-2">
-                              {authors.map((author) => (
-                                <AuthorResultCard
-                                  key={author.id}
-                                  author={author}
-                                  query={query}
-                                />
-                              ))}
-                            </div>
-                          </ResultSection>
-                          {authorResults?.meta &&
-                            authorResults.meta.totalPages > 1 && (
-                              <div className="pt-2">
-                                <Pagination
-                                  meta={authorResults.meta}
-                                  hashUrl="authors"
-                                />
-                              </div>
-                            )}
-                        </>
-                      )}
-
-                      {books.length === 0 && authors.length === 0 && (
-                        <div className="text-center py-20">
-                          <p className="text-lg text-muted-foreground">
-                            Không có kết quả nào
-                          </p>
-                        </div>
-                      )}
-                    </>
-                  ) : null}
-                </div>
+      <main className="w-full max-w-[1200px] mx-auto px-4 lg:px-6 py-8">
+        <div className="flex flex-col lg:flex-row gap-8 xl:gap-12 mt-10">
+          {/* Left Content - Search Results */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col gap-6">
+              <div className="pb-4 border-b border-slate-100">
+                <span className="text-sm text-muted-foreground">
+                  Kết quả tìm kiếm cho:
+                </span>
+                <h1 className="text-2xl font-bold mt-1 text-slate-900 break-words">
+                  "{query}"
+                </h1>
               </div>
+
+              {query ? (
+                <Tabs defaultValue={activeType} className="w-full">
+                  <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b border-slate-100 rounded-none gap-8">
+                    <TabsTrigger
+                      value="all"
+                      asChild
+                      className="px-0 py-3 rounded-none border-b-2 border-transparent bg-transparent font-medium text-slate-500 hover:text-slate-900 data-[state=active]:border-slate-900 data-[state=active]:text-slate-900 data-[state=active]:shadow-none transition-all"
+                    >
+                      <Link href={buildSearchUrl("all")}>
+                        Tất cả <span className="text-xs ml-1 text-slate-400 font-normal">({bookCount + authorCount})</span>
+                      </Link>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="books"
+                      asChild
+                      className="px-0 py-3 rounded-none border-b-2 border-transparent bg-transparent font-medium text-slate-500 hover:text-slate-900 data-[state=active]:border-slate-900 data-[state=active]:text-slate-900 data-[state=active]:shadow-none transition-all"
+                    >
+                      <Link href={buildSearchUrl("books")}>
+                        Sách <span className="text-xs ml-1 text-slate-400 font-normal">({bookCount})</span>
+                      </Link>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="authors"
+                      asChild
+                      className="px-0 py-3 rounded-none border-b-2 border-transparent bg-transparent font-medium text-slate-500 hover:text-slate-900 data-[state=active]:border-slate-900 data-[state=active]:text-slate-900 data-[state=active]:shadow-none transition-all"
+                    >
+                      <Link href={buildSearchUrl("authors")}>
+                        Tác giả <span className="text-xs ml-1 text-slate-400 font-normal">({authorCount})</span>
+                      </Link>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <div className="mt-8 space-y-12">
+                    {activeType === "all" && (
+                      <>
+                        <ResultSection
+                          id="books"
+                          title="Sách"
+                          count={bookCount}
+                          emptyMessage="Không tìm thấy sách phù hợp"
+                          hideIfEmpty={false}
+                        >
+                          {books.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                              {books.map((book) => (
+                                <BookResultCard
+                                  key={book.id}
+                                  book={book}
+                                  query={query}
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg text-sm border border-slate-100">
+                              Không tìm thấy sách nào cho "{query}"
+                            </div>
+                          )}
+                        </ResultSection>
+
+                        <ResultSection
+                          id="authors"
+                          title="Tác giả"
+                          count={authorCount}
+                          emptyMessage=""
+                          hideIfEmpty={true}
+                        >
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {authors.map((author) => (
+                              <AuthorResultCard
+                                key={author.id}
+                                author={author}
+                                query={query}
+                              />
+                            ))}
+                          </div>
+                        </ResultSection>
+                      </>
+                    )}
+
+                    {activeType === "books" && (
+                      <>
+                        <ResultSection
+                          id="books"
+                          title="Sách"
+                          count={bookCount}
+                          emptyMessage="Không tìm thấy sách phù hợp"
+                          hideIfEmpty={false}
+                        >
+                           {books.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                              {books.map((book) => (
+                                <BookResultCard
+                                  key={book.id}
+                                  book={book}
+                                  query={query}
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg text-sm border border-slate-100">
+                              Không tìm thấy sách nào cho "{query}"
+                            </div>
+                          )}
+                        </ResultSection>
+                        {(bookResults?.meta?.totalPages ?? 0) > 1 && (
+                          <div className="mt-8 pt-4 border-t border-slate-100">
+                            <Pagination meta={bookResults!.meta} />
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {activeType === "authors" && (
+                      <>
+                        <ResultSection
+                          id="authors"
+                          title="Tác giả"
+                          count={authorCount}
+                          emptyMessage="Không tìm thấy tác giả phù hợp"
+                          hideIfEmpty={false}
+                        >
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {authors.map((author) => (
+                              <AuthorResultCard
+                                key={author.id}
+                                author={author}
+                                query={query}
+                              />
+                            ))}
+                          </div>
+                        </ResultSection>
+                        {(authorResults?.meta?.totalPages ?? 0) > 1 && (
+                          <div className="mt-8 pt-4 border-t border-slate-100">
+                            <Pagination meta={authorResults!.meta} hashUrl="authors" />
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {!books.length && !authors.length && (
+                      <div className="text-center py-32">
+                        <p className="text-slate-400">Không tìm thấy kết quả nào</p>
+                      </div>
+                    )}
+                  </div>
+                </Tabs>
+              ) : null}
             </div>
           </div>
-          <div className="flex flex-col w-[200px] md:w-[250px] xl:w-[300px] gap-5 mt-10 lg:mt-0">
-            <Suspense fallback={<TrendingBookSkeleton />}>
-              <TrendingBookClient period={"month"} />
-            </Suspense>
-            <Suspense fallback={<TrendingBookSkeleton />}>
-              <PopularBook />
-            </Suspense>
+
+          {/* Right Sidebar - Sticky */}
+          <div className="w-full lg:w-[320px] xl:w-[360px] flex-shrink-0 space-y-8">
+            {/* Banner - Functional Component */}
+            <PremiumBanner />
+
+            <div className="space-y-8 sticky top-24">
+              <Suspense fallback={<TrendingBookSkeleton />}>
+                <TrendingBookClient period={"month"} />
+              </Suspense>
+              <Suspense fallback={<TrendingBookSkeleton />}>
+                <PopularBook />
+              </Suspense>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      <div className="w-full mt-20">
-        <Suspense
-          fallback={<div className="h-40 w-full bg-muted animate-pulse" />}
-        >
+      <footer className="w-full mt-auto border-t">
+        <Suspense fallback={<div className="h-40 w-full bg-slate-50" />}>
           <FooterComponent />
         </Suspense>
-      </div>
+      </footer>
     </div>
   );
 }

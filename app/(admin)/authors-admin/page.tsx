@@ -13,7 +13,7 @@ import { AuthorDialog } from "@/app/feature/author/components/adminAuthorDialog"
 import { AuthorInfo } from "@/app/feature/author/types/authors.types";
 import { useDebounce } from "@/app/share/hook/useDebounce";
 
-export default function AuthorsPage() {
+function AuthorsPageContent() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -190,5 +190,17 @@ export default function AuthorsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function AuthorsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <AuthorsPageContent />
+    </Suspense>
   );
 }

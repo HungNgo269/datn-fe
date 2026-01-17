@@ -17,6 +17,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { Separator } from "@/components/ui/separator";
+import { useMutation } from "@tanstack/react-query";
+import { logout } from "@/app/feature/auth/logout/api/logout.api";
+import { queryClient } from "@/lib/query-client";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
 
 const NAV_LINKS = [
   {
@@ -57,6 +62,18 @@ const NAV_LINKS = [
 export function AccountSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
+  
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: async () => {
+      useAuthStore.getState().clearUser();
+      Cookies.remove("accessToken", { path: "/" });
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success("Đăng xuất thành công!");
+      // Reload page to refresh book/chapter access status
+      window.location.reload();
+    },
+  });
   return (
     <div className={cn("flex flex-col h-full", className)}>
       <div className="p-6 border-b border-border/50">
@@ -118,6 +135,8 @@ export function AccountSidebar({ className }: { className?: string }) {
         <Button
           variant="ghost"
           className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+          onClick={() => logoutMutation.mutate()}
+          disabled={logoutMutation.isPending}
         >
           <LogOut className="w-4 h-4 mr-2" />
           Đăng xuất

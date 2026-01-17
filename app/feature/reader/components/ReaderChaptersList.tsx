@@ -26,11 +26,11 @@ interface ReaderChaptersListProps {
 }
 
 const NOTE_COLOR_CLASSES: Record<NoteColor, string> = {
-  yellow: "border-l-4 border-yellow-400/80 bg-yellow-50/50",
-  green: "border-l-4 border-green-400/80 bg-green-50/50",
-  blue: "border-l-4 border-blue-400/80 bg-blue-50/50",
-  pink: "border-l-4 border-pink-400/80 bg-pink-50/50",
-  purple: "border-l-4 border-purple-400/80 bg-purple-50/50",
+  yellow: "border-l-4 border-yellow-400/80 bg-yellow-400/20",
+  green: "border-l-4 border-green-400/80 bg-green-400/20",
+  blue: "border-l-4 border-blue-400/80 bg-blue-400/20",
+  pink: "border-l-4 border-pink-400/80 bg-pink-400/20",
+  purple: "border-l-4 border-purple-400/80 bg-purple-400/20",
 };
 
 const getNoteColorClass = (color?: NoteColor) =>

@@ -21,10 +21,17 @@ export default async function RecommendedSimilarBooks({
 
     return (
       <div>
+        
         <div className="mt-19 flex flex-row gap-3 md:flex-col">
+            <div className="flex flex-row items-center gap-2">
+
+              <div className="w-1 h-6 bg-gradient-to-b from-primary to-primary/20 rounded-full">
+          
+                         </div>
           <span className="line-clamp-2 text-start text-lg font-bold">
             {title}
           </span>
+            </div>
         </div>
         <Separator />
 

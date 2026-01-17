@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import ViewMoreButton from "@/app/share/components/ui/button/viewMoreButton";
 import CategorySelector from "./categorySelector";
 import BookCarousel from "../../books-carousel/components/bookCarousel";
-import Swipper from "@/app/share/components/ui/swipper/swipper";
+import BookCard from "../../books-carousel/components/bookCard";
 import { Category } from "../types/listCategories";
 import { Book, BookSortBy, SortOrder } from "../../books/types/books.type";
 import { getBooksByQuery } from "../../books/api/books.api";
@@ -69,12 +69,14 @@ export default function BookCategoryClient({
         </span>
 
         <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-row items-center justify-between gap-2">
-            <CategorySelector
-              categories={categories}
-              selectedCategory={selectedCategory || 0}
-              onCategoryChange={handleCategoryChange}
-            />
+          <div className="flex w-full flex-row items-start justify-between gap-4">
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
+              <CategorySelector
+                categories={categories}
+                selectedCategory={selectedCategory || 0}
+                onCategoryChange={handleCategoryChange}
+              />
+            </div>
             <ViewMoreButton
               context="book"
               url={`/books?category=${encodeURIComponent(
@@ -83,9 +85,13 @@ export default function BookCategoryClient({
             />
           </div>
           <div className="block w-full md:hidden">
-            <Swipper books={books} showHeader={false} showViewMore={false} />
+            <div className="grid grid-cols-3 gap-3">
+              {books.slice(0, 6).map((book) => (
+                <BookCard key={book.id} book={book} variant="sm" />
+              ))}
+            </div>
           </div>
-          <div className="hidden w-full md:block">
+          <div className="hidden w-full md:block mt-4">
             <BookCarousel
               books={books}
               variant="lg"

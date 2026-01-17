@@ -6,23 +6,57 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { ChapterCardProps } from "../types/chapter.type";
 import { ChapterItem } from "./chapterItem";
+import { BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { PurchaseChapterWarningModal } from "./PurchaseChapterWarningModal";
+import { SubscriptionWarningModal } from "./SubscriptionWarningModal";
+import { useAuthStore } from "@/app/store/useAuthStore";
+import Cookies from "js-cookie";
 
 interface ChapterListProps {
   chapters: ChapterCardProps[];
   totalChapters?: number;
+  freeChapters?: number;
+  accessType?: string;
   showMoreText?: string;
   initialVisibleChapters?: number;
+  isPurchased?: boolean;
+  isSubscribed?: boolean;
+  bookTitle: string;
+  bookCoverImage: string;
+  bookSlug: string;
 }
 
 export function ChapterList({
   chapters,
   totalChapters,
+  freeChapters = 0,
+  accessType,
   showMoreText = "Xem thêm",
   initialVisibleChapters = 5,
+  ...props
 }: ChapterListProps) {
   const [showAll, setShowAll] = useState(false);
   const [chapterOrder, setChapterOrder] = useState<"DESC" | "ASC">("DESC");
   const pathName = usePathname();
+  
+  // Auth check
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const accessToken = Cookies.get("accessToken");
+  const isUserAuthenticated = isAuthenticated || Boolean(accessToken);
+
+  // Modal state
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [selectedChapter, setSelectedChapter] = useState<ChapterCardProps | null>(null);
+
+  const handleRequireLogin = useCallback((type: "membership" | "purchase", chapter: ChapterCardProps) => {
+    setSelectedChapter(chapter);
+    if (type === "membership") {
+      setShowSubscriptionModal(true);
+    } else {
+      setShowPurchaseModal(true);
+    }
+  }, []);
 
   const handleOrderDisplay = useCallback((order: "DESC" | "ASC") => {
     setChapterOrder(order);
@@ -49,72 +83,105 @@ export function ChapterList({
 
   return (
     <div className="flex w-full flex-col">
-      <div className="flex w-full flex-row items-center justify-between py-2 text-md font-semibold text-muted-foreground/70">
-        <p>Có tất cả {displayedTotal} chương</p>
-        <div className="flex flex-row items-center justify-center gap-2 text-sm">
+      {/* Header */}
+      <div className="flex w-full flex-row items-center justify-between py-3 px-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">
+            Có tất cả {displayedTotal} chương
+          </p>
+        </div>
+        <div className="flex flex-row items-center justify-center gap-2 text-xs">
           <span
             className={cn(
-              "cursor-pointer transition-colors",
+              "cursor-pointer transition-colors px-2 py-1 rounded-md",
               chapterOrder === "ASC"
                 ? "font-semibold text-primary"
                 : "text-muted-foreground hover:text-primary"
             )}
             onClick={() => handleOrderDisplay("ASC")}
           >
-            Từ chương mới nhất
+            Mới nhất
           </span>
-
-          <Separator
-            orientation="vertical"
-            className="w-[1px] bg-border"
-            style={{ height: "16px" }}
-          />
           <span
             className={cn(
-              "cursor-pointer transition-colors",
+              "cursor-pointer transition-colors px-2 py-1 rounded-md",
               chapterOrder === "DESC"
                 ? "font-semibold text-primary"
                 : "text-muted-foreground hover:text-primary"
             )}
             onClick={() => handleOrderDisplay("DESC")}
           >
-            Từ chương 1
+            Từ đầu
           </span>
         </div>
       </div>
 
-      <div className="relative rounded-sm border shadow-sm">
-        <div className="space-y-2">
+      {/* Chapter List Container */}
+      <div className="relative rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="divide-y-0">
           {visibleChapters.map((chapter) => (
             <ChapterItem
               key={chapter.id}
               chapter={chapter}
               basePath={pathName}
+              freeChapters={freeChapters}
+              accessType={accessType}
+              isAuthenticated={isUserAuthenticated}
+              onRequireLogin={handleRequireLogin}
+              isPurchased={props.isPurchased}
+              isSubscribed={props.isSubscribed}
             />
           ))}
         </div>
 
         {!showAll && hasMoreChapters && (
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent" />
         )}
       </div>
 
       {hasMoreChapters && (
-        <div className="mt-4 pt-2 text-center">
+        <div className="mt-4 text-center">
           <button
             onClick={handleToggleShowAll}
-            className="mt-2 cursor-pointer text-sm font-medium text-primary transition-all hover:text-primary hover:underline"
+            className={cn(
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer",
+              "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800"
+            )}
           >
-            {showAll
-              ? "Thu gọn"
-              : `${showMoreText} ${
-                  totalChapters
-                    ? `(${totalChapters - initialVisibleChapters} chương còn lại)`
-                    : `(${chapters.length - initialVisibleChapters} chương nữa)`
-                }`}
+            {showAll ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                Thu gọn
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                {showMoreText} ({totalChapters
+                  ? totalChapters - initialVisibleChapters
+                  : chapters.length - initialVisibleChapters} chương)
+              </>
+            )}
           </button>
         </div>
       )}
+      {/* Purchase warning modal */}
+      <PurchaseChapterWarningModal
+        open={showPurchaseModal}
+        onOpenChange={setShowPurchaseModal}
+        bookTitle={props.bookTitle}
+        bookCoverImage={props.bookCoverImage}
+        bookSlug={props.bookSlug}
+        chapterTitle={selectedChapter?.title || ""}
+        chapterOrder={selectedChapter?.order || 0}
+      />
+
+      {/* Subscription warning modal */}
+      <SubscriptionWarningModal
+        open={showSubscriptionModal}
+        onOpenChange={setShowSubscriptionModal}
+        bookTitle={props.bookTitle}
+        bookCoverImage={props.bookCoverImage}
+      />
     </div>
   );
 }

@@ -13,7 +13,9 @@ import { BookAudioPlayButton } from "@/app/feature/book-audio/components/BookAud
 import { ContinueReadingButton } from "@/app/feature/books-continue/components/ContinueReadingButton";
 import RecommendedSimilarBooks from "@/app/feature/books-recommends/components/RecommendedSimilarBooks";
 import { getBookBySlugAction } from "@/app/feature/books/action/books.action";
+import { getBookPurchaseStatusAction, getUserSubscriptionAction } from "@/app/feature/payments/action/payments.action";
 import { BookPaymentActions } from "@/app/feature/payments/components/BookPaymentActions";
+import { PremiumBanner } from "@/app/share/components/banner/PremiumBanner";
 
 type PageProps = {
   params: Promise<{
@@ -41,18 +43,24 @@ export async function generateMetadata({
 export default async function BookPage({ params }: PageProps) {
   const { bookSlug } = await params;
 
-  const [book, chapters] = await Promise.all([
-    getBookBySlugAction(bookSlug),
-    getChaptersOfBook(bookSlug),
-  ]);
-
+  const book = await getBookBySlugAction(bookSlug);
+  
   if (!book) {
+    console.log("BookPage: Book not found for slug:", bookSlug);
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
         <p>Cuốn sách này đang lỗi hoặc không tồn tại.</p>
       </div>
     );
   }
+
+  console.log("BookPage: fetching details for bookId:", book.id);
+  const [chapters, purchaseStatus, subscription] = await Promise.all([
+    getChaptersOfBook(bookSlug),
+    getBookPurchaseStatusAction(book.id),
+    getUserSubscriptionAction(),
+  ]);
+  console.log("BookPage: Fetch complete. Purchased:", purchaseStatus?.purchased, "Subscribed:", subscription?.status);
 
   const firstChapter = chapters && chapters.length > 0 ? chapters[0] : null;
   return (
@@ -172,23 +180,34 @@ export default async function BookPage({ params }: PageProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 pb-20">
               <div className="flex flex-col gap-6">
-                <ChapterContainer
+              <ChapterContainer
                   bookId={book.id}
                   chapters={chapters}
                   totalChapters={chapters.length}
+                  freeChapters={book.freeChapters}
+                  accessType={book.accessType}
+                  isPurchased={purchaseStatus?.purchased || false}
+                  isSubscribed={subscription?.status === 'ACTIVE' || subscription?.status === 'TRIALING'}
+                  bookTitle={book.title}
+                  bookCoverImage={book.coverImage}
+                  bookSlug={book.slug}
                 />
               </div>
 
               <aside className="hidden lg:block self-start space-y-2 sticky top-0">
+                <div className="mb-6">
+                  <PremiumBanner />
+                </div>
                 <Suspense fallback={<RecommendBookSkeleton />}>
                   <RecommendedSimilarBooks bookId={book.id} limit={5} />
                 </Suspense>
               </aside>
 
               <div className="lg:hidden mt-8">
-                <h3 className="text-lg font-bold mb-4 text-foreground border-l-4 border-primary pl-3">
-                  Có thể bạn thích
-                </h3>
+                <div className="mb-8">
+                  <PremiumBanner />
+                </div>
+           
                 <Suspense fallback={<RecommendBookSkeleton />}>
                   <RecommendedSimilarBooks bookId={book.id} limit={10} />
                 </Suspense>

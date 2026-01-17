@@ -18,6 +18,7 @@ interface ReaderTopBarProps {
   currentPage: number;
   totalPages: number;
   themeBg: string;
+  isDarkTheme?: boolean;
   onBackToBook: () => void;
   onNextChapter: () => void;
   nextChapterSlug: string | null | undefined;
@@ -33,18 +34,23 @@ interface ReaderTopBarProps {
 interface ReaderTopBarIconButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement> {
   isActive?: boolean;
+  isDarkTheme?: boolean;
 }
 
 function ReaderTopBarIconButton({
   isActive,
+  isDarkTheme,
   className,
   ...props
 }: ReaderTopBarIconButtonProps) {
   return (
     <button
       className={cn(
-        "rounded p-2 text-foreground transition-colors hover:cursor-pointer hover:bg-muted",
-        isActive && "text-primary",
+        "rounded p-2 transition-colors hover:cursor-pointer",
+        isDarkTheme
+          ? "text-gray-200 hover:bg-white/10 hover:text-white"
+          : "text-gray-700 hover:bg-black/10 hover:text-gray-900",
+        isActive && (isDarkTheme ? "text-cyan-400" : "text-primary"),
         className
       )}
       {...props}
@@ -57,6 +63,7 @@ export default function ReaderTopBar({
   currentPage,
   totalPages,
   themeBg,
+  isDarkTheme,
   onBackToBook,
   onNextChapter,
   nextChapterSlug,
@@ -92,22 +99,41 @@ export default function ReaderTopBar({
       style={barBg ? { backgroundColor: barBg } : undefined}
     >
       <div className="z-10 flex items-center gap-1">
-        <ReaderTopBarIconButton onClick={onBackToBook} title="Quay lại sách">
+        <ReaderTopBarIconButton
+          onClick={onBackToBook}
+          title="Quay lại sách"
+          isDarkTheme={isDarkTheme}
+        >
           <ArrowLeft className="h-5 w-5" />
         </ReaderTopBarIconButton>
       </div>
 
       <div className="pointer-events-none absolute left-1/2 top-1/2 w-full max-w-[50%] -translate-x-1/2 -translate-y-1/2 text-center">
         <div className="hidden md:block">
-          <h1 className="mx-auto line-clamp-1 text-sm font-semibold text-foreground md:text-base">
+          <h1
+            className={cn(
+              "mx-auto line-clamp-1 text-sm font-semibold md:text-base",
+              isDarkTheme ? "text-gray-100" : "text-gray-900"
+            )}
+          >
             {title}
           </h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p
+            className={cn(
+              "mt-0.5 text-xs",
+              isDarkTheme ? "text-gray-400" : "text-gray-500"
+            )}
+          >
             Trang {currentPage} / {totalPages || "--"}
           </p>
         </div>
 
-        <div className="text-xs font-medium text-muted-foreground md:hidden">
+        <div
+          className={cn(
+            "text-xs font-medium md:hidden",
+            isDarkTheme ? "text-gray-400" : "text-gray-500"
+          )}
+        >
           {currentPage}/{totalPages || "-"}
         </div>
       </div>
@@ -120,6 +146,7 @@ export default function ReaderTopBar({
           onClick={onToggleChapters}
           title="Danh sách chương"
           isActive={isChaptersOpen}
+          isDarkTheme={isDarkTheme}
         >
           <List className="h-5 w-5" />
         </ReaderTopBarIconButton>
@@ -128,13 +155,18 @@ export default function ReaderTopBar({
           onClick={onToggleBookmark}
           title="Đánh dấu trang"
           isActive={isBookmarked}
+          isDarkTheme={isDarkTheme}
         >
           <Bookmark
             className={cn("h-5 w-5", isBookmarked ? "fill-current" : undefined)}
           />
         </ReaderTopBarIconButton>
 
-        <ReaderTopBarIconButton onClick={onToggleNotes} title="Ghi chú">
+        <ReaderTopBarIconButton
+          onClick={onToggleNotes}
+          title="Ghi chú"
+          isDarkTheme={isDarkTheme}
+        >
           <StickyNote className="h-5 w-5" />
         </ReaderTopBarIconButton>
 
@@ -142,6 +174,7 @@ export default function ReaderTopBar({
           onClick={onToggleSettings}
           title="Cài đặt"
           isActive={isSettingsOpen}
+          isDarkTheme={isDarkTheme}
         >
           <Settings className="h-5 w-5" />
         </ReaderTopBarIconButton>
@@ -150,6 +183,7 @@ export default function ReaderTopBar({
           onClick={toggleFullscreen}
           className="hidden sm:block"
           title="Toàn màn hình (F11)"
+          isDarkTheme={isDarkTheme}
         >
           {isFullscreen ? (
             <Minimize className="h-5 w-5" />
@@ -158,11 +192,17 @@ export default function ReaderTopBar({
           )}
         </ReaderTopBarIconButton>
 
-        <div className="mx-1 h-6 w-px bg-border" />
+        <div
+          className={cn(
+            "mx-1 h-6 w-px",
+            isDarkTheme ? "bg-gray-600" : "bg-border"
+          )}
+        />
 
         <ReaderTopBarIconButton
           onClick={onNextChapter}
           title={nextChapterSlug ? "Chương tiếp theo" : "Quay lại sách"}
+          isDarkTheme={isDarkTheme}
         >
           <ChevronRight className="h-5 w-5" />
         </ReaderTopBarIconButton>

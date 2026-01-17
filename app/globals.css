@@ -186,11 +186,27 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Hide scrollbar but keep scroll functionality */
+  html,
+  body,
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+    width: 0;
+    height: 0;
+  }
 }
 
 @layer components {
   .overlay-backdrop {
-    @apply bg-black/50;
+    @apply bg-black/50 backdrop-blur-sm;
   }
 
   .reader-floating-action {

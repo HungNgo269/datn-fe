@@ -3,13 +3,18 @@
 import { useCallback } from "react";
 import { Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useBookAudioStore } from "@/app/store/useBookAudioStore";
+import {
+  useBookAudioStore,
+  MOCK_CHAPTERS,
+  type AudioChapter,
+} from "@/app/store/useBookAudioStore";
 import { cn } from "@/lib/utils";
 
 interface BookAudioPlayButtonProps {
   bookSlug: string;
   bookTitle: string;
   coverImage: string;
+  chapters?: AudioChapter[];
   className?: string;
 }
 
@@ -17,18 +22,22 @@ export function BookAudioPlayButton({
   bookSlug,
   bookTitle,
   coverImage,
+  chapters,
   className,
 }: BookAudioPlayButtonProps) {
   const currentTrackId = useBookAudioStore(
     (state) => state.currentTrack?.id ?? null
   );
   const isPlaying = useBookAudioStore((state) => state.isPlaying);
-  const startDemoTrack = useBookAudioStore((state) => state.startDemoTrack);
+  const startPlayback = useBookAudioStore((state) => state.startPlayback);
   const stopTrack = useBookAudioStore((state) => state.stopTrack);
   const resumeTrack = useBookAudioStore((state) => state.resumeTrack);
 
   const isCurrentTrack = currentTrackId === bookSlug;
   const active = isCurrentTrack && isPlaying;
+
+  // Use provided chapters or fallback to mock data
+  const bookChapters = chapters && chapters.length > 0 ? chapters : MOCK_CHAPTERS;
 
   const handleClick = useCallback(() => {
     if (isCurrentTrack && isPlaying) {
@@ -41,13 +50,27 @@ export function BookAudioPlayButton({
       return;
     }
 
-    startDemoTrack({
-      id: bookSlug,
-      title: bookTitle,
-      episode: "Demo chapter preview",
-      coverImage,
-    });
-  }, [bookSlug, bookTitle, coverImage, isCurrentTrack, isPlaying, resumeTrack, startDemoTrack, stopTrack]);
+    // Start playing chapter 1 (index 0)
+    startPlayback(
+      {
+        id: bookSlug,
+        title: bookTitle,
+        coverImage,
+        chapters: bookChapters,
+      },
+      0 // Start from chapter 1
+    );
+  }, [
+    bookSlug,
+    bookTitle,
+    coverImage,
+    bookChapters,
+    isCurrentTrack,
+    isPlaying,
+    resumeTrack,
+    startPlayback,
+    stopTrack,
+  ]);
 
   return (
     <Button

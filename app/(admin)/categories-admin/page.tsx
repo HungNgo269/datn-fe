@@ -17,7 +17,7 @@ import { Pagination } from "@/app/share/components/ui/pagination/pagination";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useDebounce } from "@/app/share/hook/useDebounce";
 
-export default function CategoryPage() {
+function CategoryPageContent() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -188,5 +188,17 @@ export default function CategoryPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function CategoryPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <CategoryPageContent />
+    </Suspense>
   );
 }

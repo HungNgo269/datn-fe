@@ -22,6 +22,7 @@ import Header from "../share/components/ui/header/header";
 import { getCategories } from "../feature/categories/actions/categories.action";
 import PopularBook from "../feature/books-popular/components/popularBook";
 import TrendingBook from "../feature/books-trending/components/trendingBook";
+import { PremiumBanner } from "@/app/share/components/banner/PremiumBanner";
 const BOOK_PAGE_TITLE = "Khám phá truyện & tiểu thuyết | NextBook";
 
 const BOOK_PAGE_DESCRIPTION =
@@ -136,39 +137,37 @@ export default async function BookPage({ searchParams }: BookPageProps) {
       <header className="ml-auto mr-auto w-full  ">
         <Header />
       </header>{" "}
-      <div className="w-full mx-auto mt-20 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
-        <div className="flex  justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
-          <div className="md:w-[700px] lg:w-[800px] xl:w-[850px]  flex flex-col gap-5">
-            <div className="mx-auto w-full lg:w-[1190px] p-2">
-              <div className="flex justify-between">
-                <div className="w-full lg:w-[850px] flex flex-col gap-5">
-                  <CategoryName currentSlug={categorySlug} />
-                  <div className="flex flex-col sm:flex-row justify-between ">
-                    <CategoryFilter
-                      currentCategory={categorySlug!}
-                      categories={categories.data}
-                    />
-                    <SortSelection currentSort={sortBy} />
-                  </div>
-                  <div className="flex flex-col min-h-[500px]">
-                    <Suspense fallback={<BookListSkeleton />}>
-                      <BookList books={books} />
-                    </Suspense>
-                    <div className="mt-10 flex w-full justify-center">
-                      <Pagination meta={meta} />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col  w-4/5 md:w-[250px] xl:w-[300px] gap-5">
-                  <Suspense fallback={<TrendingBookSkeleton />}>
-                    <TrendingBook period={"month"} />
-                  </Suspense>
-                  <Suspense fallback={<TrendingBookSkeleton />}>
-                    <PopularBook />
-                  </Suspense>
-                </div>
+      <div className="w-full max-w-[1190px] mx-auto mt-20 px-4 lg:px-0">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 xl:gap-10 mt-10">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0 flex flex-col gap-5">
+            <CategoryName currentSlug={categorySlug} />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CategoryFilter
+                currentCategory={categorySlug!}
+                categories={categories.data}
+              />
+              <SortSelection currentSort={sortBy} />
+            </div>
+            <div className="flex flex-col min-h-[500px]">
+              <Suspense fallback={<BookListSkeleton />}>
+                <BookList books={books} />
+              </Suspense>
+              <div className="mt-10 flex w-full justify-center">
+                <Pagination meta={meta} />
               </div>
             </div>
+          </div>
+
+          {/* Sidebar - Stacks below on mobile, beside on lg+ */}
+          <div className="w-full lg:w-[250px] xl:w-[300px] flex-shrink-0 flex flex-col gap-5 mt-10">
+            <PremiumBanner />
+            <Suspense fallback={<TrendingBookSkeleton />}>
+              <TrendingBook period={"month"} />
+            </Suspense>
+            <Suspense fallback={<TrendingBookSkeleton />}>
+              <PopularBook />
+            </Suspense>
           </div>
         </div>
       </div>

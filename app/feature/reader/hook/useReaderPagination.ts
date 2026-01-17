@@ -7,6 +7,7 @@ interface UseReaderPaginationProps {
   storageKey: string;
   ready: boolean;
   readMode: "paged" | "scroll";
+  initialPage?: number;
 }
 
 export function useReaderPagination({
@@ -14,6 +15,7 @@ export function useReaderPagination({
   storageKey,
   ready,
   readMode,
+  initialPage,
 }: UseReaderPaginationProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -84,7 +86,11 @@ export function useReaderPagination({
     const timer = setTimeout(() => {
       const total = calculateTotalPages();
       setCurrentPage(1);
-      if (typeof window !== "undefined") {
+
+      // Priority: initialPage (from URL) > localStorage
+      if (initialPage && initialPage > 1 && total > 0 && initialPage <= total) {
+        goToPage(initialPage);
+      } else if (typeof window !== "undefined") {
         const savedPage = localStorage.getItem(storageKey);
         if (savedPage) {
           const pageNum = parseInt(savedPage, 10);
@@ -96,7 +102,7 @@ export function useReaderPagination({
       setRestoredKey(restoreKey);
     }, 300);
     return () => clearTimeout(timer);
-  }, [ready, calculateTotalPages, goToPage, restoreKey, storageKey]);
+  }, [ready, calculateTotalPages, goToPage, restoreKey, storageKey, initialPage]);
 
   useEffect(() => {
     if (ready && isPositionRestored && currentPage > 0) {

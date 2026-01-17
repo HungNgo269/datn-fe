@@ -14,7 +14,7 @@ import { getBooks, deleteBook } from "@/app/feature/books/api/books.api";
 import { Book } from "@/app/feature/books/types/books.type";
 import { useDebounce } from "@/app/share/hook/useDebounce";
 
-export default function BooksPage() {
+function BooksPageContent() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -174,5 +174,17 @@ export default function BooksPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function BooksPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <BooksPageContent />
+    </Suspense>
   );
 }

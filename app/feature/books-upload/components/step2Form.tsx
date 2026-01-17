@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Users, Tag, DollarSign, Gift, FileText, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import "react-quill-new/dist/quill.snow.css";
@@ -27,7 +27,7 @@ import { useAuthorSubmit } from "../../author/hooks/useAuthorSubmit";
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[200px] w-full animate-pulse items-center justify-center rounded-md bg-muted/20 text-sm text-muted-foreground">
+    <div className="flex h-[200px] w-full animate-pulse items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">
       Đang tải trình soạn thảo...
     </div>
   ),
@@ -149,9 +149,11 @@ export function Step2Form({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-6">
+        {/* Author Field */}
         <div className="space-y-1 md:col-span-3">
-          <Label>
-            Tác giả <span className="text-destructive">*</span>
+          <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Users className="h-4 w-4 text-slate-400" />
+            Tác giả <span className="text-rose-500">*</span>
           </Label>
           <Controller
             control={form.control}
@@ -169,19 +171,22 @@ export function Step2Form({
               />
             )}
           />
-          <p className="text-[0.8rem] text-muted-foreground">
+          <p className="text-xs text-slate-400">
             Nhập tên tác giả, tìm kiếm. Nếu chưa có, nhấn tạo mới.
           </p>
           {form.formState.errors.authorIds && (
-            <p className="text-sm font-medium text-destructive">
+            <p className="text-sm text-rose-500 flex items-center gap-1">
+              <X className="h-3 w-3" />
               {form.formState.errors.authorIds.message}
             </p>
           )}
         </div>
 
+        {/* Category Field */}
         <div className="space-y-1 md:col-span-3">
-          <Label>
-            Thể loại <span className="text-destructive">*</span>
+          <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Tag className="h-4 w-4 text-slate-400" />
+            Thể loại <span className="text-rose-500">*</span>
           </Label>
           <Controller
             control={form.control}
@@ -199,14 +204,19 @@ export function Step2Form({
             )}
           />
           {form.formState.errors.categoryIds && (
-            <p className="text-sm font-medium text-destructive">
+            <p className="text-sm text-rose-500 flex items-center gap-1">
+              <X className="h-3 w-3" />
               {form.formState.errors.categoryIds.message}
             </p>
           )}
         </div>
 
+        {/* Price Field */}
         <div className="space-y-1 md:col-span-3">
-          <Label htmlFor="price">Giá (VND)</Label>
+          <Label htmlFor="price" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-slate-400" />
+            Giá (VND)
+          </Label>
           <div className="relative">
             <Input
               id="price"
@@ -215,22 +225,27 @@ export function Step2Form({
               min="0"
               {...form.register("price", { valueAsNumber: true })}
               placeholder="0"
-              className="pr-12"
+              className="h-11 rounded-xl border-slate-200 bg-slate-50/50 pr-12 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
               disabled={isSubmitting}
             />
-            <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">
+            <span className="absolute right-3 top-3 text-sm text-slate-400">
               đ
             </span>
           </div>
           {form.formState.errors.price && (
-            <p className="text-sm font-medium text-destructive">
+            <p className="text-sm text-rose-500 flex items-center gap-1">
+              <X className="h-3 w-3" />
               {form.formState.errors.price.message}
             </p>
           )}
         </div>
 
+        {/* Free Chapters Field */}
         <div className="space-y-1 md:col-span-3">
-          <Label htmlFor="freeChapters">Số chương miễn phí</Label>
+          <Label htmlFor="freeChapters" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Gift className="h-4 w-4 text-slate-400" />
+            Số chương miễn phí
+          </Label>
           <Input
             id="freeChapters"
             type="number"
@@ -239,18 +254,24 @@ export function Step2Form({
               valueAsNumber: true,
             })}
             placeholder="0"
+            className="h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
             disabled={isSubmitting}
           />
           {form.formState.errors.freeChapters && (
-            <p className="text-sm font-medium text-destructive">
+            <p className="text-sm text-rose-500 flex items-center gap-1">
+              <X className="h-3 w-3" />
               {form.formState.errors.freeChapters.message}
             </p>
           )}
         </div>
       </div>
 
+      {/* Description Field */}
       <div className="space-y-2">
-        <Label htmlFor="description">Mô tả</Label>
+        <Label htmlFor="description" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+          <FileText className="h-4 w-4 text-slate-400" />
+          Mô tả
+        </Label>
         <Controller
           name="description"
           control={form.control}
@@ -262,26 +283,28 @@ export function Step2Form({
                 onChange={field.onChange}
                 modules={quillModules}
                 readOnly={isSubmitting}
-                className="rounded-md bg-background lg:[&_.ql-editor]:min-h-[200px]"
+                className="rounded-xl border border-slate-200 bg-white [&_.ql-editor]:min-h-[200px] [&_.ql-toolbar]:rounded-t-xl [&_.ql-toolbar]:border-slate-200 [&_.ql-container]:rounded-b-xl [&_.ql-container]:border-slate-200"
                 placeholder="Nhập mô tả sách chi tiết..."
               />
             </div>
           )}
         />
         {form.formState.errors.description && (
-          <p className="text-sm font-medium text-destructive">
+          <p className="text-sm text-rose-500 flex items-center gap-1">
+            <X className="h-3 w-3" />
             {form.formState.errors.description.message}
           </p>
         )}
       </div>
 
-      <div className="sticky bottom-0 z-10 mt-8 flex items-center justify-between border-t border-border bg-background/95 py-4 pt-6 backdrop-blur">
+      {/* Action Buttons */}
+      <div className="sticky bottom-0 z-10 mt-8 flex items-center justify-between pt-6 border-t border-slate-100">
         <Button
           type="button"
           variant="outline"
           onClick={() => onBack(form.getValues())}
           disabled={isSubmitting}
-          className="border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary/50"
+          className="h-11 px-5 rounded-xl border-slate-200 hover:bg-slate-50 transition-colors"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Quay lại bước 1
@@ -290,17 +313,19 @@ export function Step2Form({
         <div className="flex gap-3">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="h-11 px-5 rounded-xl border-slate-200 hover:bg-slate-50 transition-colors"
           >
+            <X className="mr-2 h-4 w-4" />
             Hủy bỏ
           </Button>
 
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="min-w-[150px] shadow-md"
+            className="h-11 px-5 min-w-[150px] rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 transition-all shadow-md shadow-primary/20"
           >
             {isSubmitting ? (
               <>
