@@ -16,6 +16,9 @@ export interface BookAudioTrack {
   id: string;
   title: string;
   coverImage: string;
+  accessType?: string;
+  isPurchased?: boolean;
+  isSubscribed?: boolean;
   chapters: AudioChapter[];
 }
 

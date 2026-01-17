@@ -130,6 +130,9 @@ export function ChapterList({
               onRequireLogin={handleRequireLogin}
               isPurchased={props.isPurchased}
               isSubscribed={props.isSubscribed}
+              bookTitle={props.bookTitle}
+              bookCoverImage={props.bookCoverImage}
+              bookSlug={props.bookSlug}
             />
           ))}
         </div>

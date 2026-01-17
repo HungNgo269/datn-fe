@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Play, Pause, X } from "lucide-react";
+import { Play, Pause, X, LockOpenIcon } from "lucide-react";
 import { useBookAudioStore } from "@/app/store/useBookAudioStore";
 import { cn } from "@/lib/utils";
 
@@ -116,17 +116,45 @@ export function BookAudioChapterList({
                   {formatDuration(chapter.duration)}
                 </span>
 
-                {/* Free/Premium Badge */}
-                <span
-                  className={cn(
-                    "rounded px-2 py-0.5 text-xs font-medium",
-                    chapter.isFree
-                      ? "bg-muted text-muted-foreground"
-                      : "bg-amber-100 text-amber-700"
-                  )}
-                >
-                  {chapter.isFree ? "Miễn phí" : "Hội viên"}
-                </span>
+                {/* Access Badge */}
+                {(() => {
+                  const isFree = chapter.isFree ?? false;
+                  const isPurchased = currentTrack.isPurchased ?? false;
+                  const isSubscribed = currentTrack.isSubscribed ?? false;
+                  const accessType = currentTrack.accessType;
+                  
+                  const isUnlocked = isFree || isPurchased || (isSubscribed && accessType === 'membership');
+
+                  if (isFree) {
+                    return (
+                        <span className="rounded px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                            Miễn phí
+                        </span>
+                    );
+                  }
+
+                  if (isUnlocked) {
+                      return (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full w-[40px] text-muted-foreground">
+                              <LockOpenIcon className="w-3.5 h-3.5" />
+                          </span>
+                      )
+                  }
+
+                   if (accessType === 'membership') {
+                    return (
+                      <span className="rounded px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700">
+                        Hội viên
+                      </span>
+                    );
+                  }
+                  
+                  return (
+                    <span className="rounded px-2 py-0.5 text-xs font-medium bg-rose-100 text-rose-700">
+                      Mua sách
+                    </span>
+                  );
+                })()}
 
                 {/* Play Button */}
                 <button

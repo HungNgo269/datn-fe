@@ -66,6 +66,9 @@ export interface ChapterCardProps {
   view_count?: number;
   createdAt?: string | Date;
   updatedAt?: string;
+  audio?: {
+    duration: number;
+  };
 }
 export interface ChapterContent {
   id: number;

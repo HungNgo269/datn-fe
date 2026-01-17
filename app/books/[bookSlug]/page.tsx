@@ -74,6 +74,7 @@ export default async function BookPage({ params }: PageProps) {
                 <div className="aspect-[3/4] relative">
                   {book.coverImage && (
                     <ImageCard
+                      key={book.id}
                       bookImage={book.coverImage}
                       bookName={book.title}
                       priority={true}
@@ -161,11 +162,33 @@ export default async function BookPage({ params }: PageProps) {
                     />
                   )}
                   <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-                    <BookAudioPlayButton
-                      bookSlug={book.slug}
-                      bookTitle={book.title}
-                      coverImage={book.coverImage}
-                    />
+                    {chapters && chapters.some((c) => c.audio) && (
+                      <BookAudioPlayButton
+                        bookSlug={book.slug}
+                        bookTitle={book.title}
+                        coverImage={book.coverImage}
+                        chapters={chapters?.map((chapter) => ({
+                          id: chapter.id.toString(),
+                          title: chapter.title,
+                          duration: chapter.audio?.duration ?? 0,
+                          date: chapter.createdAt
+                            ? new Date(chapter.createdAt).toLocaleDateString(
+                                "vi-VN"
+                              )
+                            : undefined,
+                          isFree:
+                            (book.freeChapters === undefined ||
+                              chapter.order <= book.freeChapters) ??
+                            true,
+                        }))}
+                        accessType={book.accessType}
+                        isPurchased={purchaseStatus?.purchased || false}
+                        isSubscribed={
+                          subscription?.status === "ACTIVE" ||
+                          subscription?.status === "TRIALING"
+                        }
+                      />
+                    )}
                   </div>
 
                   {/* <Button

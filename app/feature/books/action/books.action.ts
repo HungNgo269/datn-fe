@@ -6,7 +6,7 @@ import { Book, GetBooksParams } from "../types/books.type";
 
 export async function getBookBySlugAction(slug: string) {
   return handleActionRequest<Book>(`/books/${slug}`, {
-    revalidate: 10,
+    revalidate: 0,
   });
 }
 export async function getBookByIdAction(id: number) {

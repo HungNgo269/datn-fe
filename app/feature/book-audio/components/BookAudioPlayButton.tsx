@@ -15,6 +15,9 @@ interface BookAudioPlayButtonProps {
   bookTitle: string;
   coverImage: string;
   chapters?: AudioChapter[];
+  accessType?: string;
+  isPurchased?: boolean;
+  isSubscribed?: boolean;
   className?: string;
 }
 
@@ -23,6 +26,9 @@ export function BookAudioPlayButton({
   bookTitle,
   coverImage,
   chapters,
+  accessType,
+  isPurchased,
+  isSubscribed,
   className,
 }: BookAudioPlayButtonProps) {
   const currentTrackId = useBookAudioStore(
@@ -36,8 +42,8 @@ export function BookAudioPlayButton({
   const isCurrentTrack = currentTrackId === bookSlug;
   const active = isCurrentTrack && isPlaying;
 
-  // Use provided chapters or fallback to mock data
-  const bookChapters = chapters && chapters.length > 0 ? chapters : MOCK_CHAPTERS;
+  // Use provided chapters or empty array
+  const bookChapters = chapters ?? [];
 
   const handleClick = useCallback(() => {
     if (isCurrentTrack && isPlaying) {
@@ -57,6 +63,9 @@ export function BookAudioPlayButton({
         title: bookTitle,
         coverImage,
         chapters: bookChapters,
+        accessType,
+        isPurchased,
+        isSubscribed,
       },
       0 // Start from chapter 1
     );
@@ -70,6 +79,9 @@ export function BookAudioPlayButton({
     resumeTrack,
     startPlayback,
     stopTrack,
+    accessType,
+    isPurchased,
+    isSubscribed,
   ]);
 
   return (
