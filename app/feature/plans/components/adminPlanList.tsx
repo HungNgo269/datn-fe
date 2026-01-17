@@ -25,67 +25,97 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Category } from "@/app/feature/categories/types/listCategories";
+import { Plan } from "@/app/feature/plans/types/plans.types";
 
-interface CategoriesTableProps {
-  categories: Category[];
-  onEdit: (category: Category) => void;
+interface AdminPlanListProps {
+  plans: Plan[];
+  onEdit: (plan: Plan) => void;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
   isFetching?: boolean;
 }
 
-export function AdminCategoryList({
-  categories,
+export function AdminPlanList({
+  plans,
   onEdit,
   onDelete,
   isDeleting,
   isFetching,
-}: CategoriesTableProps) {
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
-    null
-  );
+}: AdminPlanListProps) {
+  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
+
+  const formatPrice = (price: number, currency: string) => {
+    if (currency.toLowerCase() === "vnd") {
+      return `${price.toLocaleString("vi-VN")}₫`;
+    }
+    return `${price} ${currency.toUpperCase()}`;
+  };
+
+  const formatInterval = (interval: string) => {
+    return interval === "MONTH" ? "Tháng" : "Năm";
+  };
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-[0_1px_1px_rgba(0,0,0,0.04)] overflow-hidden">
       <Table>
         <TableHeader className="bg-slate-50/80">
           <TableRow>
-            <TableHead className="text-slate-700">Thể loại</TableHead>
-            <TableHead className="text-slate-700">Slug</TableHead>
-            <TableHead className="text-slate-700">Mô tả</TableHead>
+            <TableHead className="text-slate-700">Tên gói</TableHead>
+            <TableHead className="text-slate-700">Loại</TableHead>
+            <TableHead className="text-slate-700">Giá</TableHead>
+            <TableHead className="text-slate-700">Chu kỳ</TableHead>
+            <TableHead className="text-slate-700">Trạng thái</TableHead>
             <TableHead className="text-right text-slate-700"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isFetching ? (
             <TableRow>
-              <TableCell colSpan={4} className="h-24">
+              <TableCell colSpan={6} className="h-24">
                 <div className="flex items-center justify-center">
                   <Loader2 className="animate-spin text-slate-500" />
                 </div>
               </TableCell>
             </TableRow>
-          ) : categories.length === 0 ? (
+          ) : plans.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
-                Không tìm thấy thể loại
+              <TableCell colSpan={6} className="h-24 text-center">
+                Không tìm thấy gói hội viên
               </TableCell>
             </TableRow>
           ) : (
-            categories.map((cat) => (
+            plans.map((plan) => (
               <TableRow
-                key={cat.id}
+                key={plan.id}
                 className="hover:bg-slate-50/80 transition-colors"
               >
                 <TableCell className="font-semibold text-slate-900">
-                  {cat.name}
+                  {plan.name}
                 </TableCell>
-                <TableCell className="text-slate-500">{cat.slug}</TableCell>
                 <TableCell className="text-slate-600">
-                  {cat.description || "--"}
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    plan.plan === "PREMIUM" 
+                      ? "bg-purple-100 text-purple-800" 
+                      : "bg-blue-100 text-blue-800"
+                  }`}>
+                    {plan.plan}
+                  </span>
+                </TableCell>
+                <TableCell className="text-slate-600 font-medium">
+                  {formatPrice(plan.price, plan.currency)}
+                </TableCell>
+                <TableCell className="text-slate-600">
+                  {formatInterval(plan.interval)}
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    plan.isActive 
+                      ? "bg-green-100 text-green-800" 
+                      : "bg-gray-100 text-gray-800"
+                  }`}>
+                    {plan.isActive ? "Hoạt động" : "Tạm dừng"}
+                  </span>
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -100,14 +130,14 @@ export function AdminCategoryList({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32">
                       <DropdownMenuItem
-                        onSelect={() => onEdit(cat)}
+                        onSelect={() => onEdit(plan)}
                         className="cursor-pointer"
                       >
                         Chỉnh sửa
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onSelect={() => setCategoryToDelete(cat)}
+                        onSelect={() => setPlanToDelete(plan)}
                         className="cursor-pointer text-rose-600 focus:text-rose-600"
                         disabled={isDeleting}
                       >
@@ -123,24 +153,24 @@ export function AdminCategoryList({
       </Table>
 
       <AlertDialog
-        open={!!categoryToDelete}
-        onOpenChange={(open) => !open && setCategoryToDelete(null)}
+        open={!!planToDelete}
+        onOpenChange={(open) => !open && setPlanToDelete(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xóa thể loại này ư</AlertDialogTitle>
+            <AlertDialogTitle>Xóa gói hội viên này?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này không thể hoàn tác {categoryToDelete?.name} sẽ bị
-              xóa vĩnh viễn
+              Hành động này không thể hoàn tác. {planToDelete?.name} sẽ bị
+              xóa vĩnh viễn.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (categoryToDelete) {
-                  onDelete(categoryToDelete.id);
-                  setCategoryToDelete(null);
+                if (planToDelete) {
+                  onDelete(planToDelete.id);
+                  setPlanToDelete(null);
                 }
               }}
               className="bg-destructive hover:bg-destructive/90"

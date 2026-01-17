@@ -1,79 +1,37 @@
-import { BackendResponse } from "@/app/types/api.types";
+// app/api/view-image/route.ts
 import { NextRequest } from "next/server";
 
-const CACHE_SECONDS = 60 * 60 * 24 * 365;
-
 export async function GET(request: NextRequest) {
-  const rawFilename = request.nextUrl.searchParams.get("key");
-
-  if (!rawFilename) {
-    return new Response("Missing filename", { status: 400 });
-  }
-
-  let key = rawFilename;
-
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!backendUrl) {
-    return new Response("Backend URL is not configured", { status: 500 });
+  const key = request.nextUrl.searchParams.get("key");
+  
+  if (!key) {
+    return new Response("Missing key", { status: 400 });
   }
 
   try {
-    key = decodeURIComponent(rawFilename);
-  } catch {
-    key = rawFilename;
-  }
-
-  try {
-    key = key.replace(/^\/+/, "");
-    if (!key.startsWith("uploads/")) {
-      key = `uploads/${key}`;
-    }
-
-    const presignedResponse = await fetch(
-      `${backendUrl}/storage/presigned-download?key=${encodeURIComponent(key)}`
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/storage/presigned-download?key=${encodeURIComponent(key)}`
     );
-
-    if (!presignedResponse.ok) {
-      const errorBody = await presignedResponse.text().catch(() => "");
-      console.error("Presigned URL Response Error:", {
-        status: presignedResponse.status,
-        body: errorBody,
-      });
-      return new Response("Could not get presigned URL from Backend", {
-        status:
-          presignedResponse.status === 401 || presignedResponse.status === 403
-            ? presignedResponse.status
-            : 502,
-      });
+    
+    if (!res.ok) {
+      return new Response("Failed to get image URL", { status: 502 });
     }
 
-    const payload = (await presignedResponse.json()) as BackendResponse<{
-      url: string;
-    }>;
-    const response = payload?.data;
-
-    if (!payload?.success || !response?.url) {
-      console.error("Presigned URL Response Error:", payload);
-      return new Response("Could not get presigned URL from Backend", {
-        status: 502,
-      });
+    const { data } = await res.json();
+    
+    const imageRes = await fetch(data.url);
+    
+    if (!imageRes.ok) {
+      return new Response("Image not found", { status: 404 });
     }
-    const presignedUrl = response.url;
-
-    const imageResponse = await fetch(presignedUrl);
-    if (!imageResponse.ok) {
-      return new Response("Image not found on Storage", { status: 404 });
-    }
-
-    return new Response(imageResponse.body, {
+    return new Response(imageRes.body, {
       headers: {
-        "Content-Type":
-          imageResponse.headers.get("Content-Type") || "image/jpeg",
-        "Cache-Control": `public, max-age=${CACHE_SECONDS}, immutable`,
+        "Content-Type": imageRes.headers.get("Content-Type") || "image/jpeg",
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {
-    console.error("Proxy Image Error:", error);
+    console.error("Image proxy error:", error);
     return new Response("Internal Server Error", { status: 500 });
   }
 }

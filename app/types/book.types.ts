@@ -29,6 +29,8 @@ export interface ContinueReadingEntry {
   chapterTitle?: string | null;
   page: number;
   updatedAt: string;
+  accessType?: string;
+  price?: string | number | null;
 }
 
 export type ReaderReadMode = "paged" | "scroll";

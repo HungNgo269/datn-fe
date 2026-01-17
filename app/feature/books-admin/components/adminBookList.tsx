@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 interface BookListProps {
   books: Book[];
@@ -55,6 +56,8 @@ export function AdminBookList({
   isDeleting,
   isFetching,
 }: BookListProps) {
+  const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-[0_1px_1px_rgba(0,0,0,0.04)] overflow-hidden">
       <Table>
@@ -177,7 +180,12 @@ export function AdminBookList({
                   </div>
                 </TableCell>
                 <TableCell className="text-slate-600 text-center">
-                  {book.totalChapters}
+                  <Link
+                    href={`/books-admin/${book.slug}/chapters`}
+                    className="hover:underline text-primary font-medium"
+                  >
+                    {book.totalChapters}
+                  </Link>
                 </TableCell>
                 <TableCell className="text-slate-600 text-sm text-center">
                   {book.createdAt ? `${formatDate(book.createdAt)}` : "--"}
@@ -211,37 +219,19 @@ export function AdminBookList({
                             Chỉnh sửa
                           </DropdownMenuItem>
                         ) : null}
+                        <Link href={`/books-admin/${book.slug}/chapters`}>
+                          <DropdownMenuItem className="cursor-pointer">
+                            Quản lý chương
+                          </DropdownMenuItem>
+                        </Link>
                         <DropdownMenuSeparator />
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              className="cursor-pointer text-rose-600 focus:text-rose-600"
-                              disabled={isDeleting}
-                            >
-                              Xóa
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-2xl border border-slate-200 bg-white p-6 shadow-none">
-                            <AlertDialogHeader className="space-y-2">
-                              <AlertDialogTitle className="text-lg font-semibold text-slate-900">
-                                Bạn thực sự muốn xóa cuốn sách này
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-sm text-slate-600">
-                                Hành động này không thể hoàn tác {book.title} sẽ
-                                bị xóa vĩnh viễn
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter className="mt-4 border-t border-slate-200 pt-4">
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => onDelete(book.id)}
-                                className="bg-rose-600 text-white hover:bg-rose-700"
-                              >
-                                Xóa
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <DropdownMenuItem
+                          onSelect={() => setBookToDelete(book)}
+                          className="cursor-pointer text-rose-600 focus:text-rose-600"
+                          disabled={isDeleting}
+                        >
+                          Xóa
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -251,6 +241,37 @@ export function AdminBookList({
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={!!bookToDelete}
+        onOpenChange={(open) => !open && setBookToDelete(null)}
+      >
+        <AlertDialogContent className="rounded-2xl border border-slate-200 bg-white p-6 shadow-none">
+          <AlertDialogHeader className="space-y-2">
+            <AlertDialogTitle className="text-lg font-semibold text-slate-900">
+              Bạn thực sự muốn xóa cuốn sách này
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-slate-600">
+              Hành động này không thể hoàn tác {bookToDelete?.title} sẽ bị xóa
+              vĩnh viễn
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 border-t border-slate-200 pt-4">
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (bookToDelete) {
+                  onDelete(bookToDelete.id);
+                  setBookToDelete(null);
+                }
+              }}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

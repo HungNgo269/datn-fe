@@ -1,27 +1,13 @@
+// components/ImageCard.tsx - CỰC KỲ ĐỠN GIẢN
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
 interface ImageCardProps {
-  bookImage?: string | null;
+  bookImage?: string | null; // VD: "uploads/avatars/c1ee9840-589c-4d10-98d6-f75eb2228002.jpg"
   bookName: string;
   priority?: boolean;
-}
-
-const PROXY_IMAGE_ROUTE = "/api/view-image";
-const FALLBACK_IMAGE = "/images/sachFallBack.jpg";
-
-function normalizeSrc(src?: string | null) {
-  if (!src) return;
-  const trimmed = src.trim();
-  if (!trimmed) return;
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  if (trimmed.startsWith("/uploads/")) {
-    return `${PROXY_IMAGE_ROUTE}?key=${encodeURIComponent(trimmed.slice(1))}`;
-  }
-  if (trimmed.startsWith("/")) return trimmed;
-  return `${PROXY_IMAGE_ROUTE}?key=${encodeURIComponent(trimmed)}`;
 }
 
 export default function ImageCard({
@@ -29,34 +15,24 @@ export default function ImageCard({
   bookName,
   priority = false,
 }: ImageCardProps) {
-  const normalizedSrc = useMemo(() => normalizeSrc(bookImage), [bookImage]);
-  const [hasError, setHasError] = useState(false);
-  const imgSrc = hasError
-    ? FALLBACK_IMAGE
-    : normalizedSrc ?? FALLBACK_IMAGE;
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    setHasError(false);
-  }, [normalizedSrc]);
-
-  const handleError = () => {
-    if (!hasError && imgSrc !== FALLBACK_IMAGE) {
-      setHasError(true);
-    }
-  };
-
-  const bypassOptimization =
-    imgSrc.startsWith(PROXY_IMAGE_ROUTE) || /^https?:\/\//i.test(imgSrc);
+  const isUrl = bookImage?.startsWith("http");
+  const src = error || !bookImage
+    ? "/images/sachFallBack.jpg"
+    : isUrl
+      ? bookImage
+      : `/api/view-image?key=${encodeURIComponent(bookImage)}`;
 
   return (
     <Image
-      src={imgSrc}
-      alt={bookName || "Book cover"}
+      src={src}
+      alt={bookName}
       width={400}
       height={600}
       priority={priority}
-      unoptimized={bypassOptimization}
-      onError={handleError}
+      unoptimized
+      onError={() => setError(true)}
       sizes="(max-width: 640px) 40vw, (max-width: 1024px) 25vw, 200px"
       className="object-cover duration-500 group-hover:scale-[102%] transition-transform h-full w-full"
     />

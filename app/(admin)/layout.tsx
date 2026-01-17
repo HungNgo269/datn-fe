@@ -12,6 +12,7 @@ import {
   ChartBarStacked,
   LogOut,
   Layers,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,11 @@ const MENU_ITEMS: MenuItem[] = [
     name: "Banner",
     icon: <GalleryHorizontal className="w-5 h-5" />,
     path: "/banners-admin",
+  },
+  {
+    name: "Gói hội viên",
+    icon: <CreditCard className="w-5 h-5" />,
+    path: "/plans-admin",
   },
 ];
 

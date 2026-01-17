@@ -3,9 +3,8 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
-import { toNumericPrice } from "@/lib/helper";
 import { BookCardProps } from "../../books/types/books.type";
-import { Crown, ShoppingBag } from "lucide-react";
+import { BookBadge } from "./BookBadge";
 
 type Variant = "lg" | "sm";
 
@@ -29,27 +28,13 @@ const MAP = {
 export default function BookCard({
   book,
   variant = "lg",
+  ranking,
 }: {
   book: BookCardProps;
   variant?: Variant;
+  ranking?: number;
 }) {
   const style = MAP[variant];
-
-  const { accessBadgeLabel, isMembership } = useMemo(() => {
-    const priceValue = toNumericPrice(book.price);
-    const normalizedAccessType = book.accessType?.toString().toUpperCase();
-
-    const isMembership = normalizedAccessType === "MEMBERSHIP";
-    const isFree = normalizedAccessType === "FREE";
-    const requiresPayment =
-      normalizedAccessType === "PURCHASE" || (!isFree && priceValue > 0);
-
-    let label = null;
-    if (isMembership) label = "HỘI VIÊN";
-    else if (requiresPayment) label = "SÁCH BÁN";
-
-    return { accessBadgeLabel: label, isMembership };
-  }, [book.accessType, book.price]);
 
   return (
     book && (
@@ -70,38 +55,23 @@ export default function BookCard({
               />
             </div>
 
-            {/* Badge - Top right corner like reference image */}
-            {accessBadgeLabel && (
-              <div
-                className={`
-                  absolute top-0 right-0 z-10
-                  flex items-center gap-1.5 pl-3 pr-1 py-1
-                  rounded-full shadow-sm border border-white/20
-                  ${
-                    isMembership
-                      ? "bg-gradient-to-r from-orange-400 to-amber-600 shadow-orange-500/30"
-                      : "bg-gradient-to-r from-rose-500 to-pink-600 shadow-rose-500/30"
-                  }
-                  transition-all duration-300 hover:scale-105 hover:shadow-md
-                `}
-              >
-                <span className="text-[10px] font-black uppercase tracking-wider text-white leading-none pt-0.5">
-                  {accessBadgeLabel}
-                </span>
+            {/* Badge using reusable component */}
+            <BookBadge 
+              accessType={book.accessType} 
+              price={book.price}
+              size={variant}
+            />
 
-                <div className="flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-sm">
-                  {isMembership ? (
-                    <Crown className="w-3 h-3 text-amber-500" strokeWidth={3} />
-                  ) : (
-                    <ShoppingBag className="w-3 h-3 text-rose-500" strokeWidth={3} />
-                  )}
-                </div>
+            {/* Ranking number */}
+            {ranking && (
+              <div className="absolute -bottom-6 left-0 text-5xl md:text-6xl font-black text-foreground" style={{ WebkitTextStroke: '1px white' }}>
+                {ranking}
               </div>
             )}
           </div>
         </Link>
 
-        <div className="mt-3 flex flex-col gap-1">
+        <div className={`flex flex-col gap-1 ${ranking ? 'mt-6' : 'mt-3'}`}>
           <Link prefetch={false} href={`/books/${book.slug}`}>
             <h3
               className={`font-bold line-clamp-1 transition-colors group-hover:text-primary ${style.title}`}

@@ -17,7 +17,7 @@ interface TrendingBookProps {
 
 export default async function TrendingBook({
   period = DEFAULT_TIMEFRAME,
-  limit = 5,
+  limit = 10,
   title = "Xu hướng",
   searchParamKey = "trendingPeriod",
 }: TrendingBookProps) {

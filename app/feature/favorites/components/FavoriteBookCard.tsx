@@ -6,6 +6,7 @@ import { FavoriteResponseDto } from "../types/favorite.type";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
+import { BookBadge } from "@/app/feature/books-carousel/components/BookBadge";
 
 interface FavoriteBookCardProps {
   favorite: FavoriteResponseDto;
@@ -33,6 +34,13 @@ export function FavoriteBookCard({ favorite }: FavoriteBookCardProps) {
       <div className="flex flex-col h-full">
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg border-b">
           <ImageCard bookImage={book.coverImage || ""} bookName={book.title} />
+          
+          {/* Add badge */}
+          <BookBadge 
+            accessType={book.accessType} 
+            price={book.price}
+            size="sm"
+          />
         </div>
 
         <div className="flex flex-col flex-1 p-3 gap-2">

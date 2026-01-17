@@ -1,5 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
+*.md          # Ignores all .md files in any directory
+!README.md    # Optional: Exception to keep your main README
+frontend/*.md
+**/*.md
 # dependencies
 /node_modules
 /.pnp

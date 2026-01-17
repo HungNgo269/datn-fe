@@ -25,6 +25,7 @@ interface BookCarouselProps {
   variant?: Variant;
   isLoading?: boolean;
   className?: string;
+  showRanking?: boolean;
 }
 
 export default function BookCarousel({
@@ -32,6 +33,7 @@ export default function BookCarousel({
   variant = "lg",
   isLoading = false,
   className = "",
+  showRanking = false,
 }: BookCarouselProps) {
   const cfg = CAROUSEL_CONFIG[variant];
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -76,20 +78,29 @@ export default function BookCarousel({
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           onTransitionEnd={() => setIsTransitioning(false)}
         >
-          {slides.map((page, index) => (
-            <div key={index} className={`w-full flex-shrink-0 ${cfg.grid}`}>
-              {page.map((book, bIndex) => (
-                <div
-                  key={book?.id ?? `skel-${index}-${bIndex}`}
-                  className="w-full"
-                >
-                  {isLoading ? (
-                    <BookCardSkeleton variant={variant} />
-                  ) : (
-                    book && <BookCard book={book} variant={variant} />
-                  )}
-                </div>
-              ))}
+          {slides.map((page, slideIndex) => (
+            <div key={slideIndex} className={`w-full flex-shrink-0 ${cfg.grid}`}>
+              {page.map((book, bIndex) => {
+                const globalIndex = slideIndex * ITEMS_PER_SLIDE + bIndex + 1;
+                return (
+                  <div
+                    key={book?.id ?? `skel-${slideIndex}-${bIndex}`}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <BookCardSkeleton variant={variant} />
+                    ) : (
+                      book && (
+                        <BookCard 
+                          book={book} 
+                          variant={variant} 
+                          ranking={showRanking ? globalIndex : undefined}
+                        />
+                      )
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>

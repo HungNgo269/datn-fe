@@ -4,6 +4,8 @@ export interface FavoriteBookSummaryDto {
   slug: string;
   coverImage: string | null;
   description: string | null;
+  accessType?: string;
+  price?: string | number | null;
 }
 
 export interface FavoriteResponseDto {

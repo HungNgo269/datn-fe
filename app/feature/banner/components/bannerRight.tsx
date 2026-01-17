@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getRightSideBannerByIndex } from "../actions/banner.action";
 import Link from "next/link";
+import { getValidBannerUrl } from "@/lib/utils";
 
 export default async function BannerRight() {
   try {
@@ -25,7 +26,7 @@ export default async function BannerRight() {
         <Image
           fill
           className="object-cover rounded-md"
-          src={banners.imageUrl}
+          src={getValidBannerUrl(banners.imageUrl)}
           alt={banners.description! ?? ""}
         ></Image>
       </Link>

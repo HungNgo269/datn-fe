@@ -3,7 +3,8 @@
 import { handleActionRequest } from "@/lib/handleActionRequest";
 import { Book, BookCardProps } from "../../books/types/books.type";
 
-const RECOMMEND_REVALIDATE_SECONDS = 6 * 3600;
+// Cache for 55 minutes (less than 1h presigned URL expiry from backend)
+const RECOMMEND_REVALIDATE_SECONDS = 55 * 60;
 
 export async function getRecommendedSimilarBooks(
   bookId: number,
@@ -12,12 +13,12 @@ export async function getRecommendedSimilarBooks(
   return handleActionRequest<Book[]>(
     `/recommendations/similar/${bookId}?limit=${limit}`,
     {
-      revalidate: RECOMMEND_REVALIDATE_SECONDS,
+      revalidate: 0,
     }
   );
 }
 export async function getRecommendedPersonalBooks(limit: number) {
   return handleActionRequest<Book[]>(`/recommendations?limit=${limit}`, {
-    revalidate: RECOMMEND_REVALIDATE_SECONDS,
+    revalidate: 0,
   });
 }

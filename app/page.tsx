@@ -3,7 +3,7 @@ import Header from "./share/components/ui/header/header";
 import CategoryBookWrapper from "./feature/categories/components/categoryBookWrapper";
 import BannerComponent from "./feature/banner/components/bannerHomeSlider";
 import NewBookList from "./feature/books-new/components/newBookList";
-import PopularBook from "./feature/books-popular/components/popularBook";
+import PopularBookList from "./feature/books-popular/components/PopularBookList";
 import TrendingBook from "./feature/books-trending/components/trendingBook";
 import FooterComponent from "./share/components/ui/footer/footer";
 import {
@@ -47,6 +47,10 @@ export default async function HomePage({
       <div className="w-full mx-auto mt-5 md:w-[700px] lg:w-[950px]  xl:w-[1190px] p-2 lg:p-0 ">
         <div className="flex  justify-between mt-10 lg:flex-row flex-col lg:gap-3 xl:gap-10">
           <div className="md:w-[700px] lg:w-[800px] xl:w-[850px]  flex flex-col gap-5">
+            <Suspense fallback={<BookListSkeleton count={10} />}>
+              <PopularBookList />
+            </Suspense>
+
             <div className="block md:hidden">
               <Suspense fallback={<BookListSkeleton variant="sm" count={10} />}>
                 <SwipperNewBook />
@@ -63,15 +67,13 @@ export default async function HomePage({
             <Suspense fallback={<BookListSkeleton count={10} />}>
               <RecommendedPersonalBookList />
             </Suspense>
+
             <RecommendedSimilarByLastBookWrapper></RecommendedSimilarByLastBookWrapper>
           </div>
-          <div className="flex flex-col  w-4/5 md:w-[250px] xl:w-[300px] gap-5 mt-11">
+          <div className="flex flex-col  w-4/5 md:w-[250px] xl:w-[300px] gap-5 mt-13">
             <BannerRight></BannerRight>
             <Suspense fallback={<TrendingBookSkeleton />}>
               <TrendingBook period={trendingPeriod} />
-            </Suspense>
-            <Suspense fallback={<TrendingBookSkeleton />}>
-              <PopularBook />
             </Suspense>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 import type { Book } from "@/app/feature/books/types/books.type";
 import { HighlightedText } from "./HighlightedText";
+import { BookBadge } from "@/app/feature/books-carousel/components/BookBadge";
 
 interface BookResultCardProps {
   book: Book;
@@ -32,6 +33,13 @@ export function BookResultCard({ book, query }: BookResultCardProps) {
           sizes="100px"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           unoptimized
+        />
+        
+        {/* Add badge */}
+        <BookBadge 
+          accessType={book.accessType} 
+          price={book.price}
+          size="sm"
         />
       </div>
       <div className="flex flex-1 flex-col gap-1.5">

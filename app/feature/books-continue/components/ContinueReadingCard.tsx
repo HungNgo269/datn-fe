@@ -1,11 +1,14 @@
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { ContinueReadingEntry } from "@/app/types/book.types";
 import Link from "next/link";
+import { BookBadge } from "@/app/feature/books-carousel/components/BookBadge";
+
 const CARD_SIZING = {
   wrapper: "xl:w-[160px] lg:w-[130px] md:w-[130px] w-full",
   image:
     "relative overflow-hidden rounded-[8px] xl:w-[160px] xl:h-[207px] lg:w-[130px] lg:h-[182px] md:w-[130px] h-[207px] w-full",
 };
+
 export default function HistoryCard({
   entry,
 }: {
@@ -22,6 +25,13 @@ export default function HistoryCard({
           <ImageCard
             bookImage={entry.bookCoverImage || ""}
             bookName={entry.bookTitle}
+          />
+          
+          {/* Add badge */}
+          <BookBadge 
+            accessType={entry.accessType} 
+            price={entry.price}
+            size="sm"
           />
         </div>
       </Link>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Loader2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +45,8 @@ export function AdminAuthorList({
   isDeleting,
   isFetching,
 }: AuthorsTableProps) {
+  const [authorToDelete, setAuthorToDelete] = useState<AuthorInfo | null>(null);
+
   return (
     <div className="flex w-full flex-col gap-5">
       <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-sm overflow-hidden">
@@ -114,36 +117,13 @@ export function AdminAuthorList({
                           Chỉnh sửa
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              className="cursor-pointer text-rose-600 focus:text-rose-600"
-                              disabled={isDeleting}
-                            >
-                              Xóa
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Xóa tác giả này?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Hành động này không thể hoàn tác {author.name}{" "}
-                                sẽ bị xóa vĩnh viễn
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => onDelete(author.id)}
-                                className="bg-destructive hover:bg-destructive/90"
-                              >
-                                Xóa
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <DropdownMenuItem
+                          onSelect={() => setAuthorToDelete(author)}
+                          className="cursor-pointer text-rose-600 focus:text-rose-600"
+                          disabled={isDeleting}
+                        >
+                          Xóa
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -153,6 +133,35 @@ export function AdminAuthorList({
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog
+        open={!!authorToDelete}
+        onOpenChange={(open) => !open && setAuthorToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa tác giả này?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác {authorToDelete?.name} sẽ bị xóa
+              vĩnh viễn
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (authorToDelete) {
+                  onDelete(authorToDelete.id);
+                  setAuthorToDelete(null);
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

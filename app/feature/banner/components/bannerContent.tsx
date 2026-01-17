@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Banner } from "../types/banner.types";
+import { getValidBannerUrl } from "@/lib/utils";
 
 interface BannerContentProps {
   banners: Banner[];
@@ -21,7 +22,7 @@ export default function BannerContent({
           const content = (
             <div className="relative w-full h-full">
               <Image
-                src={banner.imageUrl}
+                src={getValidBannerUrl(banner.imageUrl)}
                 alt={banner?.title || "banner name"}
                 fill
                 sizes="100vw"
