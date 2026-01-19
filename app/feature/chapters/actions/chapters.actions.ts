@@ -18,7 +18,7 @@ export async function getChaptersDetails(
   return handleActionRequest<ChapterContent>(
     `/books/${bookSlug}/chapters/${chapterSlug}`,
     {
-      cache: "no-store",
+      next: { revalidate: 3600 },
       headers: accessToken
         ? {
             Authorization: `Bearer ${accessToken}`,
@@ -29,7 +29,7 @@ export async function getChaptersDetails(
 }
 
 export async function getChaptersContent(url: string) {
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, { next: { revalidate: 3600 } });
   if (!res.ok) {
     throw new Error(`Không thể tải nội dung sách: ${res.status}`);
   }

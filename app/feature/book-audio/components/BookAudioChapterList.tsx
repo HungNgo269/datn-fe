@@ -45,10 +45,8 @@ export function BookAudioChapterList({
     (originalIndex: number, isLocked: boolean, accessType?: string) => {
       // Validate access before any action
       if (isLocked) {
-        const message = accessType === 'membership' 
-          ? 'Bạn cần đăng ký hội viên để nghe chương này' 
-          : 'Bạn cần mua sách để nghe chương này';
-        alert(message);
+        const dialogAccessType = accessType === 'membership' ? 'membership' : 'purchase';
+        useBookAudioStore.getState().showPurchaseDialog(dialogAccessType);
         return;
       }
 

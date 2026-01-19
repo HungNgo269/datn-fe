@@ -11,12 +11,9 @@ export function useCloudUpload() {
   ) => {
     setIsUploading(true);
     try {
-      console.log("folder", folder);
       const presigned = await getPresignedUrl(file.name, folder);
-      console.log("file.name", file.name);
-
+      
       await uploadFileToCloud(presigned.uploadUrl, file);
-      console.log("presigned.key", presigned.key);
 
       // Return the key as-is from backend
       // Backend should return either a full public URL or a storage key

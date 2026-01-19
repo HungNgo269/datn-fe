@@ -86,8 +86,6 @@ export function PlanDialog({
     if (!open) return;
 
     if (planToEdit) {
-      console.log("Plan to edit:", planToEdit);
-      
       // Normalize interval value to match enum (backend might return lowercase)
       const normalizedInterval = planToEdit.interval?.toUpperCase() as BillingInterval || BillingInterval.MONTH;
       const normalizedPlan = planToEdit.plan?.toUpperCase() as SubscriptionPlan || SubscriptionPlan.PREMIUM;

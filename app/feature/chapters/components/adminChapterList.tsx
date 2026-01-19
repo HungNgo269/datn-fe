@@ -95,9 +95,7 @@ export function AdminChapterList({
               <TableHead className="text-slate-700 font-semibold">
                 Tên chương
               </TableHead>
-              <TableHead className="w-[200px] text-slate-700 font-semibold">
-                Slug
-              </TableHead>
+
               <TableHead className="w-[280px] text-center text-slate-700 font-semibold">
                 Thao tác
               </TableHead>
@@ -123,12 +121,9 @@ export function AdminChapterList({
                     <TableCell className="font-medium">
                       {chapter.title}
                     </TableCell>
-                    <TableCell className="text-slate-600 text-sm font-mono">
-                      {chapter.slug}
-                    </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-2">
-                        <Button
+                        {/* <Button
                           variant="outline"
                           size="sm"
                           className="h-8"
@@ -140,7 +135,7 @@ export function AdminChapterList({
                             <Pencil className="mr-1.5 h-3.5 w-3.5" />
                             Sửa
                           </Link>
-                        </Button>
+                        </Button> */}
 
                         <Button
                           variant={hasAudio ? "secondary" : "default"}

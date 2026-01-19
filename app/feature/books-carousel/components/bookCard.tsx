@@ -60,6 +60,8 @@ export default function BookCard({
               accessType={book.accessType} 
               price={book.price}
               size={variant}
+              isOnPromotion={book.isOnPromotion}
+              discountPercent={book.discountPercent}
             />
 
             {/* Ranking number */}

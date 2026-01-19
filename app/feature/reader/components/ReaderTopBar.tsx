@@ -142,14 +142,7 @@ export default function ReaderTopBar({
         className={cn("z-10 flex items-center gap-1", !barBg && "bg-card")}
         style={barBg ? { backgroundColor: barBg } : undefined}
       >
-        <ReaderTopBarIconButton
-          onClick={onToggleChapters}
-          title="Danh sách chương"
-          isActive={isChaptersOpen}
-          isDarkTheme={isDarkTheme}
-        >
-          <List className="h-5 w-5" />
-        </ReaderTopBarIconButton>
+
 
         <ReaderTopBarIconButton
           onClick={onToggleBookmark}
@@ -169,7 +162,14 @@ export default function ReaderTopBar({
         >
           <StickyNote className="h-5 w-5" />
         </ReaderTopBarIconButton>
-
+        <ReaderTopBarIconButton
+          onClick={onToggleChapters}
+          title="Danh sách chương"
+          isActive={isChaptersOpen}
+          isDarkTheme={isDarkTheme}
+        >
+          <List className="h-5 w-5" />
+        </ReaderTopBarIconButton>
         <ReaderTopBarIconButton
           onClick={onToggleSettings}
           title="Cài đặt"

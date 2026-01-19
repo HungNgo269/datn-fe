@@ -75,8 +75,13 @@ export function ChapterItem({
   allChapters,
 }: ChapterItemProps) {
   const isFree = chapter.order <= freeChapters;
+  // Check if the entire book is free (accessType = "FREE" means all chapters are free)
+  const isBookFree = accessType?.toUpperCase() === "FREE";
   const isUnlocked =
-    isFree || isPurchased || (isSubscribed && accessType === "membership");
+    isBookFree || // All chapters unlocked for free books
+    isFree || 
+    isPurchased || 
+    (isSubscribed && accessType === "membership");
   const isLocked = !isUnlocked;
 
   // Optimized Selectors: Only subscribe to primitive values to avoid re-renders on object reference changes
@@ -86,14 +91,11 @@ export function ChapterItem({
   );
   const isPlaying = useBookAudioStore((state) => state.isPlaying);
   
-  const { startPlayback, playChapter, pauseTrack, resumeTrack } = useBookAudioStore(
-    (state) => ({
-      startPlayback: state.startPlayback,
-      playChapter: state.playChapter,
-      pauseTrack: state.pauseTrack,
-      resumeTrack: state.resumeTrack,
-    })
-  );
+  // Get actions individually to avoid creating new object references on every render
+  const startPlayback = useBookAudioStore((state) => state.startPlayback);
+  const playChapter = useBookAudioStore((state) => state.playChapter);
+  const pauseTrack = useBookAudioStore((state) => state.pauseTrack);
+  const resumeTrack = useBookAudioStore((state) => state.resumeTrack);
 
   const chapterIdStr = chapter.id.toString();
   const isCurrentBook = currentTrackId === bookSlug;
@@ -141,14 +143,16 @@ export function ChapterItem({
         ? validAudioChapters.map((c) => ({
             id: c.id.toString(),
             title: c.title,
-            duration: c.audio?.duration && c.audio.duration > 0 ? c.audio.duration : 600000,
+            // Convert duration from seconds to milliseconds (API returns seconds)
+            duration: c.audio?.duration && c.audio.duration > 0 ? c.audio.duration * 1000 : 0,
             isFree: c.order <= freeChapters,
           }))
         : [
             {
               id: chapterIdStr,
               title: chapter.title,
-              duration: chapter.audio?.duration && chapter.audio.duration > 0 ? chapter.audio.duration : 600000,
+              // Convert duration from seconds to milliseconds (API returns seconds)
+              duration: chapter.audio?.duration && chapter.audio.duration > 0 ? chapter.audio.duration * 1000 : 0,
               isFree: isFree,
             },
           ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
 import {
   Pause,
   Play,
@@ -22,11 +22,13 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   useBookAudioStore,
-  getCurrentChapter,
 } from "@/app/store/useBookAudioStore";
 import Image from "next/image";
+import Link from "next/link";
 import { BookAudioChapterList } from "./BookAudioChapterList";
 import { getChapterAudio } from "../api/audio.api";
+import { HiddenAudioPlayer } from "./HiddenAudioPlayer";
+import { PlayerProgressBar } from "./PlayerProgressBar";
 
 export default function BookAudioStickyPlayer() {
   const currentTrack = useBookAudioStore((state) => state.currentTrack);
@@ -43,14 +45,14 @@ export default function BookAudioStickyPlayer() {
   const playPreviousChapter = useBookAudioStore(
     (state) => state.playPreviousChapter
   );
-  const playChapter = useBookAudioStore((state) => state.playChapter);
-  const getNextChapterIndex = useBookAudioStore((state) => state.getNextChapterIndex);
+
   const isShuffleOn = useBookAudioStore((state) => state.isShuffleOn);
   const repeatMode = useBookAudioStore((state) => state.repeatMode);
   const toggleShuffle = useBookAudioStore((state) => state.toggleShuffle);
   const toggleRepeat = useBookAudioStore((state) => state.toggleRepeat);
+  const updateChapterDuration = useBookAudioStore((state) => state.updateChapterDuration);
 
-  const [elapsed, setElapsed] = useState<number>(0);
+  // Removed 'elapsed' state from here!
   const [duration, setDuration] = useState<number>(0);
   const [volume, setVolume] = useState<number>(80);
   const [isChapterListOpen, setIsChapterListOpen] = useState<boolean>(false);
@@ -82,9 +84,7 @@ export default function BookAudioStickyPlayer() {
     }
   }, [playMode, toggleRepeat, toggleShuffle]);
 
-  // Replace oscillator refs with HTMLAudioElement
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUrlRef = useRef<string | null>(null);
 
   // Get current chapter
   const currentChapter = useMemo(() => {
@@ -92,11 +92,13 @@ export default function BookAudioStickyPlayer() {
     return currentTrack.chapters[currentChapterIndex] ?? null;
   }, [currentTrack, currentChapterIndex]);
 
-  // Initialize duration from chapter info, but allow updates from metadata
+  // Initialize duration from chapter info (already in milliseconds from store)
   useEffect(() => {
-    // FIX: Hardcode 10 minutes (600000ms) if duration is 0, per user request for testing seeking
     const chapterDuration = currentChapter?.duration || 0;
-    setDuration(chapterDuration > 0 ? chapterDuration : 600000);
+    // Use real duration from chapter data, no fallback needed
+    if (chapterDuration > 0) {
+      setDuration(chapterDuration);
+    }
   }, [currentChapter]);
 
   // Check if can navigate
@@ -112,17 +114,20 @@ export default function BookAudioStickyPlayer() {
   // Fetch and load audio from backend API
   useEffect(() => {
     if (!currentChapter?.id || !currentTrack) {
-      setElapsed(0);
+      // setElapsed(0); // Removed
       setIsLoadingAudio(false);
       setAudioError(null);
-      isSeeking.current = false; // Reset seeking state
       return;
     }
 
     setIsLoadingAudio(true);
     setAudioError(null);
-    setElapsed(0);
-    isSeeking.current = false; // Reset seeking state
+    // setElapsed(0); // Removed
+    
+    // Pause current audio before loading new one
+    if (audioRef.current) {
+        audioRef.current.pause();
+    }
 
     getChapterAudio(currentChapter.id)
       .then((response) => {
@@ -130,14 +135,27 @@ export default function BookAudioStickyPlayer() {
           audioRef.current.src = response.url;
           audioRef.current.playbackRate = playbackSpeed;
           audioRef.current.volume = volume / 100;
-          audioUrlRef.current = response.url;
+
+          
+          // Set duration from API response (convert seconds to milliseconds)
+          if (response.duration && response.duration > 0) {
+            const durationMs = response.duration * 1000;
+            setDuration(durationMs);
+            // Update store so playlist shows correct duration
+            if (currentChapter.id) {
+                updateChapterDuration(currentChapter.id, durationMs);
+            }
+          }
           
           // Auto-play if isPlaying is true
           if (isPlaying) {
-            audioRef.current.play().catch((err) => {
-              console.error("Auto-play error:", err);
-              pauseTrack();
-            });
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch((err) => {
+                  console.error("Auto-play error:", err);
+                  // Don't auto-pause here, let the user try again
+                });
+            }
           }
         }
       })
@@ -156,10 +174,13 @@ export default function BookAudioStickyPlayer() {
     if (!audioRef.current || !currentTrack) return;
 
     if (isPlaying) {
-      audioRef.current.play().catch((err) => {
-        console.error("Play error:", err);
-        pauseTrack();
-      });
+        // Only call play if it's paused to avoid promise race conditions
+        if (audioRef.current.paused) {
+             audioRef.current.play().catch((err) => {
+                console.error("❌ Play error:", err);
+                pauseTrack();
+            });
+        }
     } else {
       audioRef.current.pause();
     }
@@ -179,68 +200,51 @@ export default function BookAudioStickyPlayer() {
     }
   }, [playbackSpeed]);
 
-  // Ref to track if user is currently seeking (dragging the slider)
-  const isSeeking = useRef<boolean>(false);
 
-  // Setup audio event listeners
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleTimeUpdate = () => {
-      // Only update state if NOT seeking, to prevent slider jitter/fighting
-      if (!isSeeking.current) {
-         setElapsed((audio.currentTime || 0) * 1000);
-      }
-    };
-
-    const handleEnded = () => {
-      const nextIndex = getNextChapterIndex();
-      if (nextIndex !== null) {
-        playChapter(nextIndex);
+  const handleEnded = useCallback(() => {
+    // Use getState() to get fresh values without adding to dependencies
+    const state = useBookAudioStore.getState();
+    const currentTrack = state.currentTrack;
+    const currentIndex = state.currentChapterIndex;
+    
+    if (!currentTrack) return;
+    
+    // Check if there is a next chapter
+    const nextIndex = state.getNextChapterIndex();
+    
+    if (nextIndex !== null) {
+      // If it's a different chapter, play it
+      if (nextIndex !== currentIndex) {
+          state.playChapter(nextIndex);
       } else {
-        stopTrack();
+           // Same chapter (Repeat One), just replay
+           if (audioRef.current) {
+               audioRef.current.currentTime = 0;
+               audioRef.current.play();
+           }
       }
-    };
+    } else {
+      // End of playlist
+      state.pauseTrack(); 
+    }
+  }, []);
 
-    const handleError = () => {
+  const handleError = useCallback((e: React.SyntheticEvent<HTMLAudioElement>) => {
+    console.error('🔴 Audio error:', e);
+    // Only show error if we have a src and it failed
+    if (e.currentTarget.src) {
       setAudioError("Lỗi khi phát audio");
-      pauseTrack();
-    };
+      useBookAudioStore.getState().pauseTrack();
+    }
+  }, []);
 
-    const handleMetadata = () => {
-        if (audio.duration && !isNaN(audio.duration) && audio.duration !== Infinity) {
-            setDuration(audio.duration * 1000);
-        }
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-    audio.addEventListener('loadedmetadata', handleMetadata);
-    audio.addEventListener('durationchange', handleMetadata);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audio.removeEventListener('loadedmetadata', handleMetadata);
-      audio.removeEventListener('durationchange', handleMetadata);
-    };
-  }, [getNextChapterIndex, playChapter, stopTrack, pauseTrack]);
-
-
-  const progressPercent = useMemo(() => {
-    if (!duration) return 0;
-    return Math.min((elapsed / duration) * 100, 100);
-  }, [duration, elapsed]);
-
-  const formatTime = (timeMs: number): string => {
-    const totalSeconds = Math.max(0, Math.floor(timeMs / 1000));
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${String(seconds).padStart(2, "0")}`;
-  };
+  const handlePlaySignal = useCallback(() => {
+       // Sync store playing state if needed
+       const state = useBookAudioStore.getState();
+       if (!state.isPlaying) {
+           state.resumeTrack();
+       }
+  }, []);
 
   const handlePlayPause = useCallback(() => {
     if (isPlaying) {
@@ -282,38 +286,6 @@ export default function BookAudioStickyPlayer() {
     }
   }, [canGoPrevious, playPreviousChapter]);
 
-  const handleSeekStart = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
-     e.currentTarget.setPointerCapture(e.pointerId);
-     isSeeking.current = true;
-  }, []);
-
-  const handleSeekEnd = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
-     isSeeking.current = false;
-     e.currentTarget.releasePointerCapture(e.pointerId);
-  }, []);
-
-  const handleSeek = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!audioRef.current) return;
-      
-      const newPercent = Number(e.target.value);
-      // Use state 'duration' (which includes fallback) instead of audio.duration
-      // This ensures we can seek even if audio hasn't fully loaded duration metadata
-      const validDuration = duration > 0 ? duration : 600000;
-      
-      const newTimeSec = (newPercent / 100) * (validDuration / 1000); 
-      
-      // Update visual immediately
-      setElapsed(newTimeSec * 1000);
-      
-      // Update audio
-      // Check for finite to avoid errors
-      if (Number.isFinite(newTimeSec)) {
-          audioRef.current.currentTime = newTimeSec;
-      }
-    },
-    [duration]
-  );
 
   if (!currentTrack || !currentChapter || (!isVisible && !isPlaying)) {
     return null;
@@ -321,8 +293,12 @@ export default function BookAudioStickyPlayer() {
 
   return (
     <>
-      {/* Hidden Audio Element */}
-      <audio ref={audioRef} preload="auto" />
+      <HiddenAudioPlayer 
+        audioRef={audioRef}
+        onEnded={handleEnded}
+        onError={handleError}
+        onPlay={handlePlaySignal}
+      />
 
       {/* Chapter List Panel */}
       <BookAudioChapterList
@@ -335,18 +311,20 @@ export default function BookAudioStickyPlayer() {
         <div className="relative mx-auto flex h-16 sm:h-[72px] xl:h-20 items-center px-2 sm:px-4 xl:px-6">
           {/* Left Section - Track Info */}
           <div className="flex w-[140px] sm:w-[200px] lg:w-[280px] xl:w-[320px] shrink-0 items-center gap-2 sm:gap-3">
-            <div className="relative h-10 w-10 sm:h-14 sm:w-14 xl:h-16 xl:w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted shadow-md">
+            <Link href={`/books/${currentTrack.id}`} className="relative h-10 w-10 sm:h-14 sm:w-14 xl:h-16 xl:w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted shadow-md block hover:opacity-90 transition-opacity">
               <Image
                 src={currentTrack.coverImage}
                 alt={currentTrack.title}
                 fill
                 className="object-cover"
               />
-            </div>
+            </Link>
             <div className="min-w-0 max-w-[80px] sm:max-w-[120px] lg:max-w-[200px] xl:max-w-[220px]">
-              <p className="truncate text-xs sm:text-sm xl:text-base font-medium text-foreground hover:underline cursor-pointer">
-                {currentTrack.title}
-              </p>
+              <Link href={`/books/${currentTrack.id}`} className="block">
+                <p className="truncate text-xs sm:text-sm xl:text-base font-medium text-foreground hover:underline cursor-pointer">
+                  {currentTrack.title}
+                </p>
+              </Link>
               <p className="truncate text-[10px] sm:text-xs xl:text-sm text-muted-foreground">
                 {isLoadingAudio ? (
                   <span className="flex items-center gap-1">
@@ -488,42 +466,9 @@ export default function BookAudioStickyPlayer() {
               </button>
             </div>
 
-            {/* Progress Bar */}
-            <div className="flex w-full items-center gap-1 sm:gap-2">
-              <span className="min-w-[32px] sm:min-w-[40px] text-right text-[10px] sm:text-xs xl:text-sm tabular-nums text-muted-foreground">
-                {formatTime(elapsed)}
-              </span>
-              <div className="group relative h-4 flex-1 flex items-center cursor-pointer">
-                {/* Visual track background */}
-                <div className="absolute left-0 right-0 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700">
-                  {/* Filled portion */}
-                  <div
-                    className="absolute left-0 top-0 h-full rounded-full bg-primary transition-colors"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-                {/* Thumb */}
-                <div
-                  className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-primary shadow-md pointer-events-none"
-                  style={{ left: `${progressPercent}%`, marginLeft: "-7px" }}
-                />
-                {/* Invisible range input on top */}
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={progressPercent}
-                    onChange={handleSeek}
-                    onPointerDown={handleSeekStart}
-                    onPointerUp={handleSeekEnd}
-                    onPointerCancel={handleSeekEnd}
-                    className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-transparent [&::-moz-range-thumb]:cursor-pointer"
-                  />
-              </div>
-              <span className="min-w-[32px] sm:min-w-[40px] text-[10px] sm:text-xs xl:text-sm tabular-nums text-muted-foreground">
-                {formatTime(duration)}
-              </span>
-            </div>
+            {/* Progress Bar Component */}
+            <PlayerProgressBar audioRef={audioRef} duration={duration} />
+            
           </div>
 
           {/* Right Section - Additional Controls */}

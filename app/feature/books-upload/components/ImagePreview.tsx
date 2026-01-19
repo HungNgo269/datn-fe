@@ -6,15 +6,16 @@ import { getValidImageUrl } from "@/lib/utils";
 interface ImagePreviewProps {
   src: string;
   alt: string;
-  onRemove: () => void;
+  onRemove: (e: React.MouseEvent) => void;
+  className?: string;
 }
 
-export function ImagePreview({ src, alt, onRemove }: ImagePreviewProps) {
+export function ImagePreview({ src, alt, onRemove, className = "" }: ImagePreviewProps) {
   // Normalize the src - handles blob URLs, full public URLs, and keys
   const normalizedSrc = src.startsWith("blob:") ? src : getValidImageUrl(src);
   
   return (
-    <div className="relative group w-full max-w-[200px] aspect-[2/3] rounded-md overflow-hidden shadow-sm border border-border">
+    <div className={`relative group w-full aspect-[2/3] rounded-md overflow-hidden shadow-sm border border-border ${className}`}>
       <Image
         src={normalizedSrc}
         alt={alt}

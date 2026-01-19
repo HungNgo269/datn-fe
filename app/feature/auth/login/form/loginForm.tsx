@@ -53,7 +53,7 @@ function LoginFormContent() {
         redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
 
       if (data.user.roles.includes("admin")) {
-        router.push("/books-admin");
+        router.push("/analitics-admin");
         return;
       }
       router.push(safeRedirect ?? "/");

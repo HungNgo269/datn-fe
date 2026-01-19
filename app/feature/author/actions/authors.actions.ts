@@ -62,7 +62,7 @@ export async function getAuthorsAction({
   const url = `/authors?${params.toString()}`;
 
   return handleActionPaginatedRequest<AuthorInfo>(url, {
-    revalidate: 60,
+    revalidate: 3600,
   });
 }
 
@@ -72,6 +72,6 @@ export async function getAuthorBySlugAction(slug: string) {
   }
 
   return handleActionRequest<AuthorInfo>(`/authors/slug/${slug}`, {
-    revalidate: 60,
+    revalidate: 3600,
   });
 }

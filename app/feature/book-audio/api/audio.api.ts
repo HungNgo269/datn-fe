@@ -6,6 +6,7 @@ export interface ChapterAudioResponse {
   chapterId: number;
   status: string;
   url: string;
+  duration: number; // Duration in seconds from API
 }
 
 /**

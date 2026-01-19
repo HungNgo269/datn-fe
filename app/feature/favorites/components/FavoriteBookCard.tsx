@@ -40,6 +40,8 @@ export function FavoriteBookCard({ favorite }: FavoriteBookCardProps) {
             accessType={book.accessType} 
             price={book.price}
             size="sm"
+            isOnPromotion={book.isOnPromotion}
+            discountPercent={book.discountPercent}
           />
         </div>
 

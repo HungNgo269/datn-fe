@@ -6,6 +6,8 @@ export interface FavoriteBookSummaryDto {
   description: string | null;
   accessType?: string;
   price?: string | number | null;
+  isOnPromotion?: boolean;
+  discountPercent?: number;
 }
 
 export interface FavoriteResponseDto {

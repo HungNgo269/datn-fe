@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
   BookOpen,
   ChevronLeft,
+  ChevronDown,
   Menu,
   GalleryHorizontal,
   UserPen,
@@ -13,6 +14,7 @@ import {
   LogOut,
   Layers,
   CreditCard,
+  BadgePercent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,10 +26,16 @@ import { queryClient } from "@/lib/query-client";
 import { useAuthStore } from "../store/useAuthStore";
 import { logout } from "../feature/auth/logout/api/logout.api";
 
+interface SubMenuItem {
+  name: string;
+  path: string;
+}
+
 interface MenuItem {
   name: string;
   icon: React.ReactNode;
-  path: string;
+  path?: string;
+  children?: SubMenuItem[];
 }
 
 const MENU_ITEMS: MenuItem[] = [
@@ -61,6 +69,14 @@ const MENU_ITEMS: MenuItem[] = [
     icon: <CreditCard className="w-5 h-5" />,
     path: "/plans-admin",
   },
+  {
+    name: "Khuyến mãi",
+    icon: <BadgePercent className="w-5 h-5" />,
+    children: [
+      { name: "Khuyến mãi sách", path: "/promotions-admin/books" },
+      { name: "Khuyến mãi gói", path: "/promotions-admin/plans" },
+    ],
+  },
 ];
 
 export default function AdminLayout({
@@ -70,15 +86,26 @@ export default function AdminLayout({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(["Khuyến mãi"]);
   const router = useRouter();
   const pathname = usePathname();
+  
   const activeItem = useMemo(() => {
-    return (
-      MENU_ITEMS.find((item) => pathname.startsWith(item.path)) ||
-      MENU_ITEMS[0] ||
-      null
-    );
+    // Check submenu items first
+    for (const item of MENU_ITEMS) {
+      if (item.children) {
+        const matchedChild = item.children.find((child) => 
+          pathname.startsWith(child.path)
+        );
+        if (matchedChild) return { ...matchedChild, parentName: item.name };
+      }
+      if (item.path && pathname.startsWith(item.path)) {
+        return item;
+      }
+    }
+    return MENU_ITEMS[0] || null;
   }, [pathname]);
+
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: async () => {
@@ -105,6 +132,32 @@ export default function AdminLayout({
       setMobileOpen(false);
     },
     [router]
+  );
+
+  const toggleExpanded = useCallback((menuName: string) => {
+    setExpandedMenus((prev) =>
+      prev.includes(menuName)
+        ? prev.filter((name) => name !== menuName)
+        : [...prev, menuName]
+    );
+  }, []);
+
+  const isMenuActive = useCallback(
+    (item: MenuItem) => {
+      if (item.path) {
+        return pathname.startsWith(item.path);
+      }
+      if (item.children) {
+        return item.children.some((child) => pathname.startsWith(child.path));
+      }
+      return false;
+    },
+    [pathname]
+  );
+
+  const isSubMenuActive = useCallback(
+    (path: string) => pathname.startsWith(path),
+    [pathname]
   );
 
   return (
@@ -144,22 +197,85 @@ export default function AdminLayout({
           </Button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {MENU_ITEMS.map((item) => (
-            <Button
-              key={item.name}
-              variant={activeItem?.name === item.name ? "default" : "ghost"}
-              className={cn(
-                "w-full justify-start gap-3 transition-all",
-                collapsed ? "px-2" : "px-4",
-                activeItem?.name === item.name &&
-                  "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+            <div key={item.name}>
+              {/* Menu item with children (dropdown) */}
+              {item.children ? (
+                <div className="space-y-1">
+                  <Button
+                    variant={isMenuActive(item) ? "default" : "ghost"}
+                    className={cn(
+                      "w-full justify-between gap-3 transition-all",
+                      collapsed ? "px-2" : "px-4",
+                      isMenuActive(item)
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary/90"
+                        : "hover:bg-sidebar-accent/50"
+                    )}
+                    onClick={() => toggleExpanded(item.name)}
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.icon}
+                      {!collapsed && <span>{item.name}</span>}
+                    </div>
+                    {!collapsed && (
+                      <ChevronDown
+                        className={cn(
+                          "w-4 h-4 transition-transform",
+                          expandedMenus.includes(item.name) && "rotate-180"
+                        )}
+                      />
+                    )}
+                  </Button>
+                  
+                  {/* Submenu items */}
+                  {!collapsed && expandedMenus.includes(item.name) && (
+                    <div className="ml-4 pl-4 border-l border-sidebar-border space-y-1">
+                      {item.children.map((child) => (
+                        <Button
+                          key={child.path}
+                          variant="ghost"
+                          size="sm"
+                          className={cn(
+                            "w-full justify-start gap-2 text-sm",
+                            isSubMenuActive(child.path)
+                              ? "text-sidebar-foreground font-bold"
+                              : "text-sidebar-foreground font-medium hover:bg-sidebar-accent/50"
+                          )}
+                          onClick={() => handleChangePage(child.path)}
+                        >
+                          <span
+                            className={cn(
+                              "w-1.5 h-1.5 rounded-full transition-colors",
+                              isSubMenuActive(child.path)
+                                ? "bg-primary"
+                                : "bg-sidebar-foreground/40 group-hover:bg-sidebar-foreground"
+                            )}
+                          />
+                          {child.name}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Regular menu item */
+                <Button
+                  variant={isMenuActive(item) ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-3 transition-all",
+                    collapsed ? "px-2" : "px-4",
+                    isMenuActive(item)
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary/90"
+                      : "hover:bg-sidebar-accent/50"
+                  )}
+                  onClick={() => item.path && handleChangePage(item.path)}
+                >
+                  {item.icon}
+                  {!collapsed && <span>{item.name}</span>}
+                </Button>
               )}
-              onClick={() => handleChangePage(item.path)}
-            >
-              {item.icon}
-              {!collapsed && <span>{item.name}</span>}
-            </Button>
+            </div>
           ))}
         </nav>
 
@@ -202,3 +318,4 @@ export default function AdminLayout({
     </div>
   );
 }
+

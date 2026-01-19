@@ -9,7 +9,8 @@ export async function getBooks(params: {
   q?: string;
   endpoint?: string;
 }) {
-  const { endpoint = "/books", ...query } = params;
+  const { endpoint = "/books", q, ...rest } = params;
+  const query = { ...rest, search: q };
   return handlePaginatedRequest<Book>(() =>
     axiosClient.get(endpoint, { params: query })
   );

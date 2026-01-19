@@ -35,7 +35,8 @@ function HeaderSearchContent({ compact = false }: HeaderSearchProps) {
       const target = trimmed
         ? `/search?q=${encodeURIComponent(trimmed)}`
         : "/search";
-      router.push(target);
+      // Use replace instead of push to avoid polluting browser history
+      router.replace(target);
     },
     [router]
   );
@@ -47,7 +48,7 @@ function HeaderSearchContent({ compact = false }: HeaderSearchProps) {
       }
       debounceRef.current = setTimeout(() => {
         navigateToResults(value);
-      }, 500);
+      }, 800); // Increased from 500ms to reduce API calls
     },
     [navigateToResults]
   );

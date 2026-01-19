@@ -39,8 +39,6 @@ export default async function CategoryBookWrapper() {
       booksIni = [];
     }
   }
-  console.log("CategoryBookWrapper: Fetched categories", categories);
-  console.log("CategoryBookWrapper: Fetched books", booksIni);
   return (
     <div className="flex w-full flex-row justify-between md:w-[700px] lg:w-full">
       <BookCategoryClient categories={categories} booksIni={booksIni} />

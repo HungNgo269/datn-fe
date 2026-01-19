@@ -58,7 +58,7 @@ export function useBookSubmit() {
         freeChapters: accessType === "FREE" ? 0 : (data.freeChapters ?? 0),
       };
 
-      console.log("📤 Book Payload being sent:", JSON.stringify(bookPayload, null, 2));
+
 
       let result;
       if (mode === "create") {

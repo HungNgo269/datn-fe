@@ -46,7 +46,7 @@ export default async function BookPage({ params }: PageProps) {
   const book = await getBookBySlugAction(bookSlug);
   
   if (!book) {
-    console.log("BookPage: Book not found for slug:", bookSlug);
+
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
         <p>Cuốn sách này đang lỗi hoặc không tồn tại.</p>
@@ -54,14 +54,13 @@ export default async function BookPage({ params }: PageProps) {
     );
   }
 
-  console.log("BookPage: fetching details for bookId:", book.id);
+
   const [chapters, purchaseStatus, subscription] = await Promise.all([
     getChaptersOfBook(bookSlug),
     getBookPurchaseStatusAction(book.id),
     getUserSubscriptionAction(),
   ]);
-  console.log("BookPage: Fetch complete. Purchased:", purchaseStatus?.purchased, "Subscribed:", subscription?.status);
-  console.log("BookPage: chapters:", chapters);
+
   const firstChapter = chapters && chapters.length > 0 ? chapters[0] : null;
   return (
     <>
@@ -151,6 +150,8 @@ export default async function BookPage({ params }: PageProps) {
                     bookId={book.id}
                     accessType={book.accessType}
                     price={book.price}
+                    isOnPromotion={book.isOnPromotion}
+                    discountPercent={book.discountPercent}
                   />
 
                   {firstChapter && (
@@ -191,14 +192,9 @@ export default async function BookPage({ params }: PageProps) {
                     )}
                   </div>
 
-                  {/* <Button
-                  variant="outline"
-                  className="h-12 w-12 p-0 rounded-md border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white shrink-0 hidden sm:flex"
-                >
-                  <Share2 className="w-5 h-5" />
-                </Button> */}
-                </div>
+
               </div>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 pb-20">

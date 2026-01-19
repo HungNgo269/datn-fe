@@ -13,42 +13,53 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50/50">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md shadow-sm">
         <Header />
       </header>
 
-      <div className="flex flex-1 container mx-auto px-0 md:px-4 lg:px-8 py-6 gap-8 mt-[80px]">
-        <aside className="hidden lg:block w-64 shrink-0 h-[calc(100vh-8rem)] sticky top-24">
-          <div className="h-full rounded-xl  overflow-hidden ">
-            <AccountSidebar />
-          </div>
-        </aside>
-        <Separator
-          orientation="vertical"
-          className="w-[1px] bg-border"
-          style={{ height: "100vh" }}
-        />
-        <div className="lg:hidden fixed bottom-6 right-6 z-50">
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button size="icon" className="rounded-full h-12 w-12 ">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72">
-              <AccountSidebar />
-            </SheetContent>
-          </Sheet>
-        </div>
+      {/* Main Content */}
+      <div className="flex-1 w-full min-h-screen">
+        <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12 ">
+          <div className="flex gap-6 lg:gap-8">
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:block w-72 xl:w-80 shrink-0">
+              <div className="sticky top-24">
+                <AccountSidebar />
+              </div>
+            </aside>
 
-        <main className="flex-1 min-w-0">
-          <div className="bg-background rounded-xl min-h-[500px]">
-            {children}
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden fixed bottom-6 right-6 z-50">
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    className="rounded-full h-14 w-14 shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90"
+                  >
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-80">
+                  <AccountSidebar />
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Main Content Area */}
+            <main className="flex-1 min-w-0">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
+                <div className="p-6 lg:p-8">
+                  {children}
+                </div>
+              </div>
+            </main>
           </div>
-        </main>
+        </div>
       </div>
 
+      {/* Footer */}
       <FooterComponent />
     </div>
   );

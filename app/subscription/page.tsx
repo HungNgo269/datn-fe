@@ -266,11 +266,29 @@ function SubscriptionPageContent() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-baseline gap-1 mb-3">
-                    <span className="text-3xl font-bold text-white">
-                      {formatPrice(plan.price)}
-                    </span>
-                    <span className="text-slate-400 text-sm">
+                  <div className="flex items-end gap-1 mb-3">
+                    <div className="flex flex-col">
+                      {plan.isOnPromotion && plan.discountPercent ? (
+                        <>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm text-slate-400 line-through decoration-slate-400/80">
+                              {formatPrice(plan.price)}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#a3e635] font-black text-[#1a2e05]">
+                              -{plan.discountPercent}%
+                            </span>
+                          </div>
+                          <span className="text-3xl font-bold text-white text-[#a3e635]">
+                             {formatPrice(plan.price * (1 - plan.discountPercent / 100))}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-3xl font-bold text-white">
+                          {formatPrice(plan.price)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-slate-400 text-sm ml-1 mb-1">
                       /{formatInterval(plan.interval, plan.intervalCount)}
                     </span>
                   </div>

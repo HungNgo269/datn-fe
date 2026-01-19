@@ -32,6 +32,8 @@ interface BookPaymentActionsProps {
   accessType?: string | null;
   price?: number | string | null;
   className?: string;
+  isOnPromotion?: boolean;
+  discountPercent?: number;
 }
 
 function BookPaymentActionsContent({
@@ -39,6 +41,8 @@ function BookPaymentActionsContent({
   accessType,
   price,
   className,
+  isOnPromotion,
+  discountPercent,
 }: BookPaymentActionsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -126,7 +130,15 @@ function BookPaymentActionsContent({
   }, [subscriptionStatus, user?.subscriptionPlan]);
 
   const priceValue = toNumericPrice(price);
-  const priceLabel = priceValue > 0 ? formatCurrency(priceValue) : "Thanh toán";
+  
+  // Calculate final price with promotion
+  let finalPrice = priceValue;
+  if (isOnPromotion && discountPercent && discountPercent > 0) {
+    finalPrice = priceValue * (1 - discountPercent / 100);
+  }
+
+  const priceLabel = finalPrice > 0 ? formatCurrency(finalPrice) : "Thanh toán";
+  const originalPriceLabel = formatCurrency(priceValue);
 
   const handleCheckoutRedirect = useCallback(
     (checkoutUrl?: string | null) => {
@@ -208,39 +220,62 @@ function BookPaymentActionsContent({
 
   return (
     <>
-      {isPurchase && (
-        <Button
-          type="button"
-          onClick={handlePurchase}
-          disabled={isLoading || isPurchased}
-          className={cn(
-            "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border px-4 text-base font-semibold transition-all sm:w-auto",
-            isPurchased 
-              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 cursor-default hover:bg-emerald-500/10" 
-              : "bg-primary text-primary-foreground",
-            className
-          )}
-        >
-          {isPurchased ? "Đã mua" : `Mua với ${priceLabel}`}
-        </Button>
-      )}
+      <div className="flex flex-col items-start gap-2 sm:items-center sm:flex-row">
+        {/* Promotion Display for Book Details */}
+        {isPurchase && !isPurchased && isOnPromotion && discountPercent && discountPercent > 0 && (
+          <div className="flex shadow-md rounded-lg overflow-hidden font-sans h-12 border border-border">
+            {/* Green side: -20% */}
+            <div className="bg-[#26CCC2] text-[#1a2e05] font-black px-3 flex items-center justify-center text-lg">
+              -{discountPercent}%
+            </div>
+            {/* Dark side: Prices */}
+            <div className="bg-background px-3 flex flex-col items-end justify-center leading-none min-w-[80px]">
+              <span className="text-xs text-muted-foreground line-through decoration-muted-foreground/80 decoration-1">
+                {originalPriceLabel}
+              </span>
+              <span className="text-base font-bold text-[#26CCC2] ">
+                {priceLabel}
+              </span>
+            </div>
+          </div>
+        )}
 
-      {isMembership && (
-        <Button
-          type="button"
-          onClick={handleSubscription}
-          disabled={isLoading || hasActiveSubscription}
-          className={cn(
-            "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border px-4 text-base font-semibold transition-all sm:w-auto",
-            hasActiveSubscription
-              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 cursor-default hover:bg-emerald-500/10"
-              : "bg-primary text-primary-foreground",
-            className
-          )}
-        >
-          {hasActiveSubscription ? "Đã sở hữu" : "Hội viên"}
-        </Button>
-      )}
+        {isPurchase && (
+          <Button
+            type="button"
+            onClick={handlePurchase}
+            disabled={isLoading || isPurchased}
+            className={cn(
+              "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border px-4 text-base font-semibold transition-all sm:w-auto",
+              isPurchased 
+                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 cursor-default hover:bg-emerald-500/10" 
+                : "bg-primary text-primary-foreground",
+              className
+            )}
+          >
+            {isPurchased ? "Đã mua" : (
+              isOnPromotion ? "Mua ngay" : `Mua với ${priceLabel}`
+            )}
+          </Button>
+        )}
+
+        {isMembership && (
+          <Button
+            type="button"
+            onClick={handleSubscription}
+            disabled={isLoading || hasActiveSubscription}
+            className={cn(
+              "flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border px-4 text-base font-semibold transition-all sm:w-auto",
+              hasActiveSubscription
+                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 cursor-default hover:bg-emerald-500/10"
+                : "bg-primary text-primary-foreground",
+              className
+            )}
+          >
+            {hasActiveSubscription ? "Đã sở hữu" : "Hội viên"}
+          </Button>
+        )}
+      </div>
 
       <LoginRequiredDialog 
         open={showLoginDialog} 

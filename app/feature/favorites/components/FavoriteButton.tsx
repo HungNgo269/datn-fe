@@ -57,7 +57,8 @@ function FavoriteButtonContent({
       try {
         return await getFavoriteStatus(bookId);
       } catch (err) {
-        if (err instanceof ApiError && err.statusCode === 401) {
+        // Gracefully handle authentication and not-found errors
+        if (err instanceof ApiError && (err.statusCode === 401 || err.statusCode === 404)) {
           return null;
         }
         throw err;

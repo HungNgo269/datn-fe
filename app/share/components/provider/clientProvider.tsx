@@ -15,6 +15,14 @@ const BookAudioStickyPlayer = dynamic(
   { ssr: false }
 );
 
+const BookAudioDialogManager = dynamic(
+  () =>
+    import("@/app/feature/book-audio/components/BookAudioDialogManager").then(
+      (mod) => mod.BookAudioDialogManager
+    ),
+  { ssr: false }
+);
+
 export default function ClientProvider({
   children,
 }: {
@@ -32,6 +40,7 @@ export default function ClientProvider({
         {children}
         <Suspense fallback={null}>
           <BookAudioStickyPlayer />
+          <BookAudioDialogManager />
         </Suspense>
       </ThemeProvider>
     </QueryClientProvider>

@@ -23,6 +23,8 @@ export interface Plan {
   isActive: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
+  isOnPromotion?: boolean;
+  discountPercent?: number;
 }
 
 // Input types for create/update operations

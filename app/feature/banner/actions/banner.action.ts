@@ -3,7 +3,7 @@
 import { handleActionPaginatedRequest } from "@/lib/handleActionRequest";
 import { Banner, BannerPosition } from "../types/banner.types";
 
-const HOME_BANNER_REVALIDATE_SECONDS = 60;
+const HOME_BANNER_REVALIDATE_SECONDS = 3600;
 
 interface GetBannerOptions {
   page?: number;

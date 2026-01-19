@@ -56,13 +56,25 @@ export function BookAudioPlayButton({
       return;
     }
 
-    // Fix: Ensure all chapters have a fallback duration of 10 mins (600000) if 0
-    const chaptersWithDuration = bookChapters.map(c => ({
-      ...c,
-      duration: c.duration > 0 ? c.duration : 600000
-    }));
+    // Chapters already have duration in milliseconds (converted from API seconds)
+    // No need for fallback, duration will be updated when audio loads
+    const chaptersWithDuration = bookChapters;
 
-    // Start playing chapter 1 (index 0)
+    // Default to index 0
+    let startIndex = 0;
+
+    // If not purchased or subscribed, find the first free chapter
+    // Note: isSubscribed here implies active subscription that covers this book
+    const hasFullAccess = isPurchased || (isSubscribed && accessType === 'membership');
+    
+    if (!hasFullAccess) {
+        const firstFreeIndex = chaptersWithDuration.findIndex(c => c.isFree);
+        if (firstFreeIndex !== -1) {
+            startIndex = firstFreeIndex;
+        }
+    }
+
+    // Start playing
     startPlayback(
       {
         id: bookSlug,
@@ -73,7 +85,7 @@ export function BookAudioPlayButton({
         isPurchased,
         isSubscribed,
       },
-      0 // Start from chapter 1
+      startIndex
     );
   }, [
     bookSlug,

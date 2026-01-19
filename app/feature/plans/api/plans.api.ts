@@ -18,7 +18,6 @@ export async function getPlanById(id: number) {
 }
 
 export async function createPlan(payload: PlanFields) {
-  console.log("Creating plan with payload:", payload);
   return handleRequest<Plan>(() =>
     axiosClient.post("/admin/plans", payload)
   );

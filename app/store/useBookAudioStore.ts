@@ -33,6 +33,10 @@ interface BookAudioState {
   isShuffleOn: boolean;
   repeatMode: 0 | 1 | 2; // 0=off, 1=repeat all, 2=repeat one
 
+  // Purchase Required Dialog
+  isPurchaseDialogOpen: boolean;
+  purchaseDialogAccessType: "purchase" | "membership";
+
   // Actions
   startPlayback: (track: BookAudioTrack, chapterIndex?: number) => void;
   playChapter: (index: number) => void;
@@ -45,11 +49,14 @@ interface BookAudioState {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   getNextChapterIndex: () => number | null;
+  showPurchaseDialog: (accessType: "purchase" | "membership") => void;
+  hidePurchaseDialog: () => void;
 
   // Legacy support
   startDemoTrack: (
     payload: { id: string; title: string; episode?: string; coverImage: string; duration?: number }
   ) => void;
+  updateChapterDuration: (chapterId: string, duration: number) => void;
 }
 
 // Mock chapters for demo
@@ -72,12 +79,21 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
   playRequestId: 0,
   isShuffleOn: false,
   repeatMode: 0,
+  isPurchaseDialogOpen: false,
+  purchaseDialogAccessType: "purchase",
 
   toggleShuffle: () => set((state) => ({ isShuffleOn: !state.isShuffleOn })),
   
   toggleRepeat: () => set((state) => ({ 
     repeatMode: ((state.repeatMode + 1) % 3) as 0 | 1 | 2 
   })),
+
+  showPurchaseDialog: (accessType) => set({ 
+    isPurchaseDialogOpen: true, 
+    purchaseDialogAccessType: accessType 
+  }),
+
+  hidePurchaseDialog: () => set({ isPurchaseDialogOpen: false }),
 
   getNextChapterIndex: () => {
     const { currentTrack, currentChapterIndex, isShuffleOn, repeatMode } = get();
@@ -136,10 +152,8 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
     const isUnlocked = isFree || isPurchased || (isSubscribed && accessType === 'membership');
     
     if (!isUnlocked) {
-      const message = accessType === 'membership' 
-        ? 'Bạn cần đăng ký hội viên để nghe chương này' 
-        : 'Bạn cần mua sách để nghe chương này';
-      alert(message);
+      const dialogAccessType = accessType === 'membership' ? 'membership' : 'purchase';
+      get().showPurchaseDialog(dialogAccessType);
       return;
     }
     
@@ -177,10 +191,8 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
     }
     
     // All remaining chapters are locked
-    const message = accessType === 'membership' 
-      ? 'Các chương tiếp theo yêu cầu hội viên' 
-      : 'Các chương tiếp theo yêu cầu mua sách';
-    alert(message);
+    const dialogAccessType = accessType === 'membership' ? 'membership' : 'purchase';
+    get().showPurchaseDialog(dialogAccessType);
   },
 
   playPreviousChapter: () => {
@@ -210,7 +222,8 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
     }
     
     // All previous chapters are locked (shouldn't happen often, but handle it)
-    alert('Không có chương trước đó có thể phát');
+    const dialogAccessType = accessType === 'membership' ? 'membership' : 'purchase';
+    get().showPurchaseDialog(dialogAccessType);
   },
 
   pauseTrack: () => {
@@ -254,6 +267,17 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
       isVisible: true,
       playRequestId: state.playRequestId + 1,
     })),
+    
+  updateChapterDuration: (chapterId: string, duration: number) =>
+    set((state) => {
+      if (!state.currentTrack) return {};
+      const chapters = state.currentTrack.chapters.map((c) =>
+        c.id === chapterId ? { ...c, duration } : c
+      );
+      return { 
+        currentTrack: { ...state.currentTrack, chapters } 
+      };
+    }),
 }));
 
 // Helper to get current chapter from store

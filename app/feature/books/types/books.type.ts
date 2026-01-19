@@ -20,6 +20,9 @@ export interface Book {
   description?: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+  isOnPromotion?: boolean;
+  discountPercent?: number;
+  promotionEndDate?: string | Date | null;
 }
 export interface AuthorsList {
   bookId: number;
@@ -54,6 +57,9 @@ export interface BookCardProps {
   totalChapters?: number;
   freeChapters?: number;
   authors: AuthorsList[];
+  isOnPromotion?: boolean;
+  discountPercent?: number;
+  promotionEndDate?: string | Date | null;
 }
 export interface BookUploadData {
   file: File;

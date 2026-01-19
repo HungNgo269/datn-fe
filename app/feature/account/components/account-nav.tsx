@@ -116,13 +116,27 @@ export function AccountSidebar({ className }: { className?: string }) {
           >
             <Wallet className="w-3.5 h-3.5 mr-1.5" /> Nạp xu
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full text-xs h-9 bg-background hover:bg-muted/50 font-medium"
-          >
-            Nâng cấp
-          </Button>
+          {user?.subscriptionPlan === "FREE" ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-xs h-9 bg-background hover:bg-muted/50 font-medium"
+              asChild
+            >
+              <Link href="/subscription">
+                Nâng cấp
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-xs h-9 bg-primary/10 text-primary hover:bg-primary/20 font-medium border-primary/20"
+              disabled
+            >
+              Hội viên
+            </Button>
+          )}
         </div>
       </div>
 

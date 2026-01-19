@@ -10,7 +10,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { Info, CreditCard, Edit } from "lucide-react";
+import { Info, CreditCard, Edit, ChartBarStacked } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,18 @@ export function HeaderButton() {
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator />
+
+        {user?.roles?.includes("admin") && (
+          <>
+            <DropdownMenuItem className="cursor-pointer" asChild>
+              <Link href="/analitics-admin" className="flex items-center w-full">
+                <ChartBarStacked className="mr-2 h-4 w-4" />
+                <span>Trang quản trị</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
 
         <DropdownMenuItem className="cursor-pointer" asChild>
           <Link href="/profile" className="flex items-center w-full">
