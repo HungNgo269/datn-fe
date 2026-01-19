@@ -162,7 +162,7 @@ export default async function BookPage({ params }: PageProps) {
                     />
                   )}
                   <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-                    {chapters && chapters.some((c) => c.audio) && (
+                    {chapters && chapters.some((c) => c.audio || c.hasAudio) && (
                       <BookAudioPlayButton
                         bookSlug={book.slug}
                         bookTitle={book.title}
@@ -208,7 +208,7 @@ export default async function BookPage({ params }: PageProps) {
                   chapters={chapters}
                   totalChapters={chapters.length}
                   freeChapters={book.freeChapters}
-                  accessType={book.accessType}
+                  accessType={book.accessType?.toLowerCase()}
                   isPurchased={purchaseStatus?.purchased || false}
                   isSubscribed={subscription?.status === 'ACTIVE' || subscription?.status === 'TRIALING'}
                   bookTitle={book.title}

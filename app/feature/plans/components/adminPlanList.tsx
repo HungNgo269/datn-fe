@@ -52,8 +52,9 @@ export function AdminPlanList({
     return `${price} ${currency.toUpperCase()}`;
   };
 
-  const formatInterval = (interval: string) => {
-    return interval === "MONTH" ? "Tháng" : "Năm";
+  const formatInterval = (interval: string, intervalCount: number) => {
+    const unit = interval === "MONTH" ? "Tháng" : "Năm";
+    return `${intervalCount} ${unit}`;
   };
 
   return (
@@ -106,7 +107,7 @@ export function AdminPlanList({
                   {formatPrice(plan.price, plan.currency)}
                 </TableCell>
                 <TableCell className="text-slate-600">
-                  {formatInterval(plan.interval)}
+                  {formatInterval(plan.interval, plan.intervalCount)}
                 </TableCell>
                 <TableCell>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

@@ -78,6 +78,12 @@ export function ChapterList({
     [initialVisibleChapters, showAll, sortedChapters]
   );
 
+  // Create a consistently sorted list (by order ASC) for the audio playlist
+  // regardless of how the user views the list (ASC or DESC)
+  const sortedPlaylistChapters = useMemo(() => {
+    return [...chapters].sort((a, b) => a.order - b.order);
+  }, [chapters]);
+
   const displayedTotal = totalChapters ?? chapters.length;
   const hasMoreChapters = chapters.length > initialVisibleChapters;
 
@@ -133,6 +139,7 @@ export function ChapterList({
               bookTitle={props.bookTitle}
               bookCoverImage={props.bookCoverImage}
               bookSlug={props.bookSlug}
+              allChapters={sortedPlaylistChapters}
             />
           ))}
         </div>
@@ -176,6 +183,7 @@ export function ChapterList({
         bookSlug={props.bookSlug}
         chapterTitle={selectedChapter?.title || ""}
         chapterOrder={selectedChapter?.order || 0}
+        accessType={accessType}
       />
 
       {/* Subscription warning modal */}

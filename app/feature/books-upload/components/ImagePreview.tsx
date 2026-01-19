@@ -1,6 +1,7 @@
 ﻿import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { getValidImageUrl } from "@/lib/utils";
 
 interface ImagePreviewProps {
   src: string;
@@ -9,10 +10,13 @@ interface ImagePreviewProps {
 }
 
 export function ImagePreview({ src, alt, onRemove }: ImagePreviewProps) {
+  // Normalize the src - handles blob URLs, full public URLs, and keys
+  const normalizedSrc = src.startsWith("blob:") ? src : getValidImageUrl(src);
+  
   return (
     <div className="relative group w-full max-w-[200px] aspect-[2/3] rounded-md overflow-hidden shadow-sm border border-border">
       <Image
-        src={src}
+        src={normalizedSrc}
         alt={alt}
         fill
         className="object-cover transition-transform group-hover:scale-105"

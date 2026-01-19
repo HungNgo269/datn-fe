@@ -15,6 +15,7 @@ interface PurchaseChapterWarningModalProps {
   chapterTitle: string;
   chapterOrder: number;
   chapterPrice?: number;
+  accessType?: string;
 }
 
 export function PurchaseChapterWarningModal({
@@ -26,8 +27,10 @@ export function PurchaseChapterWarningModal({
   chapterTitle,
   chapterOrder,
   chapterPrice = 167,
+  accessType,
 }: PurchaseChapterWarningModalProps) {
   const router = useRouter();
+  const isMembership = accessType === "membership";
 
   const handlePurchase = () => {
     // Navigate to book page where user can purchase
@@ -58,7 +61,10 @@ export function PurchaseChapterWarningModal({
 
           {/* Description */}
           <p className="text-base text-muted-foreground">
-            Bạn cần mua cuốn sách này để đọc toàn bộ nội dung
+            {isMembership 
+              ? "Bạn cần đăng ký gói hội viên để đọc toàn bộ nội dung"
+              : "Bạn cần mua cuốn sách này để đọc toàn bộ nội dung"
+            }
           </p>
 
           {/* Book Cover */}
@@ -84,7 +90,7 @@ export function PurchaseChapterWarningModal({
             onClick={handlePurchase}
             className="w-full max-w-sm h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full text-base shadow-lg"
           >
-            Mua sách
+            {isMembership ? "Đăng ký hội viên" : "Mua sách"}
           </Button>
         </div>
       </DialogContent>

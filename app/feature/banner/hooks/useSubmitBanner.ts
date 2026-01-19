@@ -2,6 +2,7 @@
 import { useCloudUpload } from "@/app/share/hook/useCloudUpload";
 import { createBanner, updateBanner } from "../api/banner.api";
 import { BannerFormValues } from "../schema/banner.schema";
+import { extractStorageKey } from "@/lib/urlHelpers";
 
 export function useBannerSubmit() {
   const { uploadFile } = useCloudUpload();
@@ -22,12 +23,8 @@ export function useBannerSubmit() {
         setStatusMessage("Đang upload ảnh bìa banner ...");
         finalImageUrl = await uploadFile(data.imageUrl, "cover");
       } else if (typeof data.imageUrl === "string") {
-        if (data.imageUrl.includes("/uploads/")) {
-          const parts = data.imageUrl.split("/uploads/");
-          finalImageUrl = "uploads/" + parts[1];
-        } else {
-          finalImageUrl = data.imageUrl;
-        }
+        // Extract storage key from full public URL if needed
+        finalImageUrl = extractStorageKey(data.imageUrl);
       }
 
       setStatusMessage("Đang lưu thông tin banner...");

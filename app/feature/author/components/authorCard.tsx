@@ -27,7 +27,6 @@ export default function AuthorCard({ author }: AuthorCardProps) {
               alt={author.name}
               fill
               priority={false}
-              unoptimized
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 230px"
               className="object-cover transition-transform duration-500 group-hover:scale-[103%]"
             />

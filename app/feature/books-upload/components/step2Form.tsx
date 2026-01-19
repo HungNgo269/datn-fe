@@ -93,6 +93,21 @@ export function Step2Form({
     form.reset(step2Defaults);
   }, [form, step2Defaults]);
 
+  const accessType = form.watch("accessType");
+
+  useEffect(() => {
+    if (accessType === "FREE" || accessType === "MEMBERSHIP") {
+      // For FREE and MEMBERSHIP, always set price to 0
+      form.setValue("price", 0);
+    } else if (accessType === "PURCHASE") {
+      // For PURCHASE, if price is 0, clear it to prompt user to enter a valid price
+      const currentPrice = form.getValues("price");
+      if (currentPrice === 0) {
+        form.setValue("price", undefined as any);
+      }
+    }
+  }, [accessType, form]);
+
   const handleCreateAuthor = useCallback(
     async (inputValue: string): Promise<Option> => {
       try {
@@ -279,10 +294,10 @@ export function Step2Form({
               <Input
                 id="price"
                 type="number"
-                step="1000"
-                min="0"
+                step="1"
+                min="1"
                 {...form.register("price", { valueAsNumber: true })}
-                placeholder="0"
+                placeholder="Nhập giá (tối thiểu 1đ)"
                 className="h-11 rounded-xl border-slate-200 bg-slate-50/50 pr-12 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 disabled={isSubmitting}
               />

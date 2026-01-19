@@ -29,6 +29,7 @@ interface ChapterItemProps {
   bookTitle?: string;
   bookCoverImage?: string;
   bookSlug?: string;
+  allChapters?: ChapterCardProps[]; // Add this prop to receive full list
 }
 
 // Access badge component
@@ -36,44 +37,35 @@ function AccessBadge({
   isFree,
   accessType,
   isUnlocked,
+  isLocked,
 }: {
   isFree: boolean;
   accessType?: string;
   isUnlocked?: boolean;
+  isLocked?: boolean;
 }) {
-  if (isFree) {
-    return (
-      <span
-        className="inline-flex items-center 
-      gap-1 px-2 py-0.5 rounded-full text-md font-medium 
-      text-primary "
-      >
-        Miễn phí
-      </span>
-    );
-  }
-
-  if (isUnlocked) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full w-[60px] ">
-        <LockOpenIcon className="w-4 h-4" />
-      </span>
-    );
-  }
-
-  if (accessType === "membership") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-md font-medium text-amber-600">
-        Hội viên
-      </span>
-    );
-  }
-
-  // Default: purchase required
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-md font-medium text-rose-600">
-      Mua sách
-    </span>
+    // Quan trọng: w-[100px] và justify-center giúp mọi thứ luôn thẳng trục giữa
+    <div className="flex items-center justify-center w-[100px] shrink-0">
+      {isFree ? (
+        <span className="text-sm font-medium text-primary">
+          Miễn phí
+        </span>
+      ) : isUnlocked ? (
+        <LockOpenIcon className="w-4 h-4 text-slate-400" />
+      ) : (
+        <div className={cn(
+          "flex items-center gap-1.5 text-sm font-medium",
+          accessType === "membership" ? "text-amber-600" : "text-rose-600"
+        )}>
+          {/* Chỉ hiện text trên màn hình lớn nếu muốn, hoặc để nguyên để đồng nhất */}
+          <span className="hidden sm:inline">
+            {accessType === "membership" ? "Hội viên" : "Mua sách"}
+          </span>
+          <Lock className="h-4 w-4" />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -89,6 +81,7 @@ export function ChapterItem({
   bookTitle,
   bookCoverImage,
   bookSlug,
+  allChapters,
 }: ChapterItemProps) {
   const isFree = chapter.order <= freeChapters;
 
@@ -98,9 +91,8 @@ export function ChapterItem({
   const isLocked = !isUnlocked; // Simplified logic: if not unlocked, it is locked.
 
   // Audio Store
-  const currentTrackId = useBookAudioStore(
-    (state) => state.currentTrack?.id ?? null
-  );
+  const currentTrack = useBookAudioStore((state) => state.currentTrack); // Need full track to get chapter IDs
+  const currentTrackId = currentTrack?.id ?? null;
   const currentChapterIndex = useBookAudioStore(
     (state) => state.currentChapterIndex
   );
@@ -111,18 +103,27 @@ export function ChapterItem({
   const resumeTrack = useBookAudioStore((state) => state.resumeTrack);
 
   // Check if this specific chapter is currently playing
-  // Note: We need to match both the book (via slug/id) AND the chapter index
-  // Currently useBookAudioStore tracks chapters by index in the array given to it.
-  // Assuming 'chapter.order' corresponds to the index (0-based) or we need to find its index.
-  // If chapter.order is 1-based, we convert to 0-based: index = order - 1
-  const chapterIndex = chapter.order - 1;
-  const isCurrentBook = currentTrackId === bookSlug; // Assuming bookSlug is the track ID
-  const isCurrentChapter = isCurrentBook && currentChapterIndex === chapterIndex;
+  // FIX: Use ID-based comparison for accuracy, as the playlist might be a filtered subset of allChapters
+  const activeChapterId = currentTrack?.chapters?.[currentChapterIndex]?.id;
+  const chapterIdStr = chapter.id.toString();
+  
+  const isCurrentBook = currentTrackId === bookSlug;
+  const isCurrentChapter = isCurrentBook && activeChapterId === chapterIdStr;
   const isChapterPlaying = isCurrentChapter && isPlaying;
+
+    // Find index in the FULL list if available, otherwise fallback to local logic
+  const chapterIndex = (function() {
+      if (allChapters && allChapters.length > 0) {
+          return allChapters.findIndex(c => c.id === chapter.id);
+      }
+      return chapter.order - 1; 
+  })();
 
   const handlePlayAudio = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isLocked) return;
 
     if (!bookSlug || !bookTitle || !bookCoverImage) return;
 
@@ -133,33 +134,89 @@ export function ChapterItem({
         resumeTrack();
       }
     } else if (isCurrentBook) {
-        playChapter(chapterIndex);
-    } else {
-        // Start new book playback
-        // NOTE: Ideally we should pass ALL chapters to startPlayback so the user can navigate.
-        // Passing just this one chapter might limit navigation.
-        // However, fetching all chapters here might be redundant if the store can't handle it easily?
-        // Actually, startPlayback expects a track with chapters.
-        // If we want FULL navigation, we need the parent to pass all chapters to this item (expensive) or the store to fetch them.
-        // For now, let's create a single-chapter track or partial track.
-        // BETTER APPROACH: The user is on the Book Detail page. We know the full chapter list is available in the parent.
-        // But `ChapterItem` only knows about `chapter`.
-        // If we want the "next" button to work, we need the full list.
-        // As a compromise/start, we can't fully support "Next" if we launch from here without full data.
-        // BUT, since we are on the page, maybe we DO have full data in the store if the user clicked the main play button?
-        // If not, we might launch with just this chapter.
+        // Fix: Find index in CURRENT TRACK's chapters list (filtered), not global list
+        const playingTrackIndex = currentTrack?.chapters?.findIndex(c => c.id === chapter.id.toString());
         
+        if (playingTrackIndex !== undefined && playingTrackIndex !== -1) {
+             playChapter(playingTrackIndex);
+        } else {
+             // If not found in current playlist (rare, but possible if context differs), restart playback logic
+             // Recalculate everything as if it's a new playback
+             const validAudioChapters = (allChapters && allChapters.length > 0)
+                ? allChapters.filter(c => c.audio || c.hasAudio)
+                : [];
+
+             const chaptersToPlay = (validAudioChapters.length > 0) 
+                ? validAudioChapters.map(c => ({
+                    id: c.id.toString(),
+                    title: c.title,
+                    duration: (c.audio?.duration && c.audio.duration > 0) ? c.audio.duration : 600000,
+                    isFree: c.order <= freeChapters
+                }))
+                : [{
+                     id: chapter.id.toString(),
+                     title: chapter.title,
+                     duration: (chapter.audio?.duration && chapter.audio.duration > 0) ? chapter.audio.duration : 600000,
+                     isFree: isFree
+                 }];
+
+             const targetChapterId = chapter.id;
+             const startIndexInPlaylist = (validAudioChapters.length > 0)
+                  ? validAudioChapters.findIndex(c => c.id === targetChapterId)
+                  : 0;
+             const finalStartIndex = startIndexInPlaylist >= 0 ? startIndexInPlaylist : 0;
+
+             startPlayback({
+                  id: bookSlug,
+                  title: bookTitle,
+                  coverImage: bookCoverImage,
+                  chapters: chaptersToPlay,
+                  accessType: accessType,
+                  isPurchased: isPurchased,
+                  isSubscribed: isSubscribed
+             }, finalStartIndex);
+        }
+    } else {
+        // Check if we have the full chapter list to create a proper playlist
+        // Filter to only chapters that HAVE audio, otherwise we get 0-duration items that are filtered out or shouldn't be played
+        const validAudioChapters = (allChapters && allChapters.length > 0)
+            ? allChapters.filter(c => c.audio || c.hasAudio)
+            : [];
+
+        const chaptersToPlay = (validAudioChapters.length > 0) 
+            ? validAudioChapters.map(c => ({
+                id: c.id.toString(),
+                title: c.title,
+                // FIX: If duration is 0/missing, default to 10 mins (600000) so it shows in the list
+                duration: (c.audio?.duration && c.audio.duration > 0) ? c.audio.duration : 600000,
+                isFree: c.order <= freeChapters
+            }))
+            : [{
+                 id: chapter.id.toString(),
+                 title: chapter.title,
+                 duration: (chapter.audio?.duration && chapter.audio.duration > 0) ? chapter.audio.duration : 600000,
+                 isFree: isFree
+             }];
+
+        // Find the correct start index in the FILTERED list
+        // If we filtered out some chapters (non-audio), the index will shift.
+        const targetChapterId = chapter.id;
+        const startIndexInPlaylist = (validAudioChapters.length > 0)
+             ? validAudioChapters.findIndex(c => c.id === targetChapterId)
+             : 0;
+             
+        // Safety check: if for some reason the current chapter was filtered out (e.g. hasAudio is false but we are here?), fallback to 0
+        const finalStartIndex = startIndexInPlaylist >= 0 ? startIndexInPlaylist : 0;
+
         startPlayback({
              id: bookSlug,
              title: bookTitle,
              coverImage: bookCoverImage,
-             chapters: [{
-                 id: chapter.id.toString(),
-                 title: chapter.title,
-                 duration: chapter.audio?.duration ?? 0,
-                 isFree: isFree
-             }]
-        }, 0);
+             chapters: chaptersToPlay,
+             accessType: accessType,
+             isPurchased: isPurchased,
+             isSubscribed: isSubscribed
+        }, finalStartIndex);
     }
   };
 
@@ -178,79 +235,72 @@ export function ChapterItem({
     }
   };
 
-  return (
-    <div
-      className={cn(
-        "group relative flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-200",
-        "hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent",
-        "border-b border-slate-100 last:border-b-0",
-        chapter.is_viewed && "bg-slate-50/50"
-      )}
-    >
-      {/* Chapter content */}
-      <div className="flex flex-1 min-w-0 flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <Link
-            prefetch={false}
-            href={!isLocked ? `${basePath}/chapter/${chapter.slug}` : "#"}
-            onClick={handleClick}
+return (
+  <div
+    className={cn(
+      "group relative flex items-center justify-between rounded-xl px-4 py-4 transition-all duration-200",
+      "hover:bg-slate-50 border-b border-slate-100 last:border-b-0",
+      chapter.is_viewed && "bg-slate-50/50"
+    )}
+  >
+    {/* Bên trái: Tiêu đề chương */}
+    <div className="flex-1 min-w-0 pr-4">
+      <Link
+        href={!isLocked ? `${basePath}/chapter/${chapter.slug}` : "#"}
+        className={cn(
+          "line-clamp-1 text-sm transition-colors font-medium",
+          chapter.is_viewed ? "text-muted-foreground" : "text-foreground",
+          isLocked && "text-muted-foreground/80"
+        )}
+      >
+        {chapter.title}
+      </Link>
+    </div>
+
+    {/* Bên phải: Cụm chức năng được cố định trục dọc */}
+    <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+      
+      {/* Cột 1: Badge Trạng thái - Đã fix width 100px ở component trên */}
+      <AccessBadge
+        isFree={isFree}
+        accessType={accessType}
+        isUnlocked={isUnlocked}
+        isLocked={isLocked}
+      />
+
+      {/* Cột 2: Nút Audio - Fix width 40px để icon Play luôn thẳng hàng */}
+      <div className="flex justify-center w-[40px]">
+        {(chapter.audio || chapter.hasAudio) ? (
+          <button
+            onClick={handlePlayAudio}
+            disabled={isLocked}
             className={cn(
-              "flex-1 truncate text-sm transition-colors",
-              chapter.is_viewed
-                ? "text-muted-foreground"
-                : "text-foreground font-medium hover:text-primary",
-              isLocked && "opacity-80"
+              "flex h-8 w-8 items-center justify-center rounded-full transition-all border",
+              isChapterPlaying 
+                ? "bg-primary text-primary-foreground border-primary" 
+                : "bg-white text-primary border-slate-200 hover:border-primary",
+              isLocked && "opacity-0 pointer-events-none" // Ẩn nút nếu bị khóa để đỡ rối, hoặc để opacity thấp
             )}
           >
-            <span>{chapter.title}</span>
-          </Link>
-
-          {/* Lock icon for locked chapters */}
-          {isLocked && (
-            <Lock className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
-          )}
-        </div>
-
-        {/* Date - shown on mobile */}
-        <span className="text-[10px] text-muted-foreground/70 sm:hidden">
-          {formatDateTimeUTC(chapter.createdAt)}
-        </span>
+            {isChapterPlaying ? (
+              <Pause className="h-3.5 w-3.5 fill-current" />
+            ) : (
+              <Play className="h-3.5 w-3.5 fill-current translate-x-[0.5px]" />
+            )}
+          </button>
+        ) : (
+          <div className="w-8" /> 
+        )}
       </div>
 
-      {/* Right side: Badge + Date + Audio Button */}
-      <div className="flex items-center gap-3 ml-3 sm:w-[240px] justify-end">
-        <AccessBadge
-          isFree={isFree}
-          accessType={accessType}
-          isUnlocked={isUnlocked}
-        />
-        
-        {/* Audio Button - Only show if chapter has audio */}
-        {chapter.audio && (
-             <button
-                onClick={handlePlayAudio}
-                className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full transition-all border",
-                    isChapterPlaying 
-                        ? "bg-primary text-primary-foreground border-primary" 
-                        : "bg-white text-primary border-slate-200 hover:border-primary hover:bg-primary/5"
-                )}
-                title={isChapterPlaying ? "Dừng phát" : "Phát audio chương này"}
-             >
-                {isChapterPlaying ? (
-                    <Pause className="h-3.5 w-3.5 fill-current" />
-                ) : (
-                    <Play className="h-3.5 w-3.5 fill-current translate-x-[1px]" />
-                )}
-             </button>
-        )}
-
-        {/* Date - hidden on mobile */}
-        <span className="hidden sm:inline-block flex-shrink-0 text-xs text-muted-foreground/70 min-w-[80px] text-right">
-          {formatDateTimeUTC(chapter.createdAt)}
+      {/* Cột 3: Ngày tháng - Fix width để lề phải luôn thẳng */}
+      <div className="hidden md:flex justify-end w-[80px]">
+        <span className="text-xs text-muted-foreground/60 tabular-nums">
+          {formatDateTimeUTC(chapter.createdAt).split(' ')[0]}
         </span>
       </div>
     </div>
-  );
+  </div>
+);
 }
 

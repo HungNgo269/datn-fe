@@ -14,7 +14,7 @@ import {
   removeBookFromFavorites,
 } from "../api/favorites.api";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import { FavoriteStatusResponseDto } from "../types/favorite.type";
+import { FavoriteStatusResponseDto, FavoriteCountResponseDto } from "../types/favorite.type";
 import { LoginRequiredDialog } from "@/app/share/components/ui/dialog/LoginRequiredDialog";
 
 interface FavoriteButtonProps {
@@ -34,8 +34,19 @@ function FavoriteButtonContent({
   const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const shouldFetchStatus = Boolean(bookId && effectiveUserId);
-  const shouldFetchCount = Boolean(bookId && !effectiveUserId);
 
+  // Always fetch count - it works for both authenticated and non-authenticated users
+  const { data: favoriteCount } = useQuery({
+    queryKey: ["favorite-count", bookId],
+    queryFn: async () => {
+      return await getFavoriteCount(bookId);
+    },
+    enabled: Boolean(bookId),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  // Only fetch status when user is authenticated (for isFavorited flag)
   const {
     data: favoriteStatus,
     isLoading: isStatusLoading,
@@ -57,16 +68,6 @@ function FavoriteButtonContent({
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: favoriteCount } = useQuery({
-    queryKey: ["favorite-count", bookId],
-    queryFn: async () => {
-      return await getFavoriteCount(bookId);
-    },
-    enabled: shouldFetchCount,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
-
   const isFavorited = favoriteStatus?.isFavorited ?? false;
   const totalFavorites =
     favoriteStatus?.totalFavorites ?? favoriteCount?.totalFavorites ?? 0;
@@ -85,11 +86,15 @@ function FavoriteButtonContent({
       return true;
     },
     onMutate: async (currentlyFavorited) => {
+      // Cancel both queries to prevent race conditions
       await queryClient.cancelQueries({
         queryKey: ["favorite-status", bookId],
       });
+      await queryClient.cancelQueries({
+        queryKey: ["favorite-count", bookId],
+      });
 
-      const previous =
+      const previousStatus =
         queryClient.getQueryData<FavoriteStatusResponseDto | null>([
           "favorite-status",
           bookId,
@@ -98,21 +103,42 @@ function FavoriteButtonContent({
           totalFavorites: 0,
         };
 
-      const nextState: FavoriteStatusResponseDto = {
+      const previousCount =
+        queryClient.getQueryData<FavoriteCountResponseDto | null>([
+          "favorite-count",
+          bookId,
+        ]) ?? {
+          totalFavorites: 0,
+        };
+
+      const newCount = Math.max(
+        0,
+        (previousStatus.totalFavorites || previousCount.totalFavorites || 0) + 
+        (currentlyFavorited ? -1 : 1)
+      );
+
+      const nextStatus: FavoriteStatusResponseDto = {
         isFavorited: !currentlyFavorited,
-        totalFavorites: Math.max(
-          0,
-          previous.totalFavorites + (currentlyFavorited ? -1 : 1)
-        ),
+        totalFavorites: newCount,
       };
 
-      queryClient.setQueryData(["favorite-status", bookId], nextState);
+      const nextCount: FavoriteCountResponseDto = {
+        totalFavorites: newCount,
+      };
 
-      return { previous, nextState };
+      // Update both caches optimistically
+      queryClient.setQueryData(["favorite-status", bookId], nextStatus);
+      queryClient.setQueryData(["favorite-count", bookId], nextCount);
+
+      return { previousStatus, previousCount, nextStatus, nextCount };
     },
     onError: (error, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(["favorite-status", bookId], context.previous);
+      // Rollback both caches on error
+      if (context?.previousStatus) {
+        queryClient.setQueryData(["favorite-status", bookId], context.previousStatus);
+      }
+      if (context?.previousCount) {
+        queryClient.setQueryData(["favorite-count", bookId], context.previousCount);
       }
 
       if (error instanceof Error && error.message === "UNAUTHENTICATED") {
@@ -123,16 +149,18 @@ function FavoriteButtonContent({
       toast.error("Không thể cập nhật trạng thái yêu thích. Thử lại sau.");
     },
     onSuccess: (_data, _variables, context) => {
-      if (!context?.nextState) return;
+      if (!context?.nextStatus) return;
 
       toast.success(
-        context.nextState.isFavorited
+        context.nextStatus.isFavorited
           ? "Đã thêm vào danh sách yêu thích."
           : "Đã bỏ khỏi danh sách yêu thích."
       );
     },
     onSettled: () => {
+      // Invalidate both query caches to refetch fresh data
       queryClient.invalidateQueries({ queryKey: ["favorite-status", bookId] });
+      queryClient.invalidateQueries({ queryKey: ["favorite-count", bookId] });
     },
   });
 

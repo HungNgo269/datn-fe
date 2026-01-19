@@ -49,6 +49,12 @@ export function Step1Form({
     // Initialize cover preview from default values
     useEffect(() => {
         const cover = defaultValues?.cover;
+        
+        // Cleanup previous blob URL if exists
+        if (coverPreview && coverPreview.startsWith("blob:")) {
+            URL.revokeObjectURL(coverPreview);
+        }
+        
         if (cover instanceof File) {
             const url = URL.createObjectURL(cover);
             setCoverPreview(url);
@@ -75,17 +81,22 @@ export function Step1Form({
     const handleCoverChange = useCallback(
         (file: File) => {
             form.setValue("cover", file, { shouldValidate: true });
-            const reader = new FileReader();
-            reader.onloadend = () => setCoverPreview(reader.result as string);
-            reader.readAsDataURL(file);
+            // Use blob URL instead of data URL to prevent 431 error
+            // Data URLs are too long when encoded in Next.js Image query params
+            const blobUrl = URL.createObjectURL(file);
+            setCoverPreview(blobUrl);
         },
         [form]
     );
 
     const removeCover = useCallback(() => {
+        // Cleanup blob URL if exists
+        if (coverPreview && coverPreview.startsWith("blob:")) {
+            URL.revokeObjectURL(coverPreview);
+        }
         form.setValue("cover", undefined);
         setCoverPreview(null);
-    }, [form]);
+    }, [form, coverPreview]);
 
     const fileLabel = useMemo(() => {
         const file = watchedFile;

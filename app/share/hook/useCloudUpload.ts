@@ -18,6 +18,9 @@ export function useCloudUpload() {
       await uploadFileToCloud(presigned.uploadUrl, file);
       console.log("presigned.key", presigned.key);
 
+      // Return the key as-is from backend
+      // Backend should return either a full public URL or a storage key
+      // Do NOT strip the domain - we need the full URL for image preview
       return presigned.key;
     } catch (error) {
       throw error;

@@ -18,7 +18,7 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
         <Header />
       </header>
 
-      <div className="flex flex-1 container mx-auto px-0 md:px-4 lg:px-8 py-6 gap-6 mt-12">
+      <div className="flex flex-1 container mx-auto px-0 md:px-4 lg:px-8 py-6 gap-8 mt-[80px]">
         <aside className="hidden lg:block w-64 shrink-0 h-[calc(100vh-8rem)] sticky top-24">
           <div className="h-full rounded-xl  overflow-hidden ">
             <AccountSidebar />

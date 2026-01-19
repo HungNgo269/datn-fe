@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCloudUpload } from "@/app/share/hook/useCloudUpload";
 import { AuthorSubmitData } from "@/app/feature/author/schema/authorSchema";
 import { createAuthor, updateAuthor } from "../api/authors.api";
+import { extractStorageKey } from "@/lib/urlHelpers";
 
 export function useAuthorSubmit() {
   const { uploadFile } = useCloudUpload();
@@ -23,7 +24,8 @@ export function useAuthorSubmit() {
         setStatusMessage("Đang upload ảnh đại diện...");
         avatarKey = await uploadFile(data.avatar, "avatar");
       } else if (typeof data.avatar === "string") {
-        avatarKey = data.avatar;
+        // Extract storage key from full public URL if needed
+        avatarKey = extractStorageKey(data.avatar);
       }
 
       setStatusMessage("Đang lưu thông tin tác giả...");

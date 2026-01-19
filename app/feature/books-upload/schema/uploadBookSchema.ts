@@ -28,7 +28,19 @@ export const Step2Schema = z.object({
     description: z.string().optional(),
     price: z.number().min(0),
     freeChapters: z.number().min(0),
-});
+}).refine(
+    (data) => {
+        // For PURCHASE books, price must be > 0
+        if (data.accessType === "PURCHASE" && data.price < 1) {
+            return false;
+        }
+        return true;
+    },
+    {
+        message: "Sách trả phí phải có giá lớn hơn 0 VND",
+        path: ["price"],
+    }
+);
 
 export type Step1FormData = z.infer<typeof Step1EditSchema>;
 export type Step2FormData = z.infer<typeof Step2Schema>;

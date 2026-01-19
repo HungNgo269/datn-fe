@@ -33,3 +33,10 @@ export async function updatePlan(id: number, payload: PlanFields) {
 export async function deletePlan(id: number) {
   return handleRequest<boolean>(() => axiosClient.delete(`/admin/plans/${id}`));
 }
+
+export async function getActivePlans() {
+  // Use the public endpoint that returns active plans
+  return handleRequest<Plan[]>(() => 
+    axiosClient.get("/plans")
+  );
+}

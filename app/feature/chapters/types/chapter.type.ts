@@ -64,6 +64,7 @@ export interface ChapterCardProps {
   is_viewed?: boolean;
   book_id?: number;
   view_count?: number;
+  hasAudio?: boolean;
   createdAt?: string | Date;
   updatedAt?: string;
   audio?: {

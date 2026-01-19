@@ -12,6 +12,7 @@ import {
   Volume2,
   X,
   ListMusic,
+  Loader2,
 } from "lucide-react";
 import {
   Popover,
@@ -25,6 +26,7 @@ import {
 } from "@/app/store/useBookAudioStore";
 import Image from "next/image";
 import { BookAudioChapterList } from "./BookAudioChapterList";
+import { getChapterAudio } from "../api/audio.api";
 
 export default function BookAudioStickyPlayer() {
   const currentTrack = useBookAudioStore((state) => state.currentTrack);
@@ -49,10 +51,13 @@ export default function BookAudioStickyPlayer() {
   const toggleRepeat = useBookAudioStore((state) => state.toggleRepeat);
 
   const [elapsed, setElapsed] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
   const [volume, setVolume] = useState<number>(80);
   const [isChapterListOpen, setIsChapterListOpen] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [isSpeedPopoverOpen, setIsSpeedPopoverOpen] = useState<boolean>(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState<boolean>(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
@@ -77,16 +82,9 @@ export default function BookAudioStickyPlayer() {
     }
   }, [playMode, toggleRepeat, toggleShuffle]);
 
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
-  const rafRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const pausedElapsedRef = useRef<number>(0);
-  const latestElapsedRef = useRef<number>(0);
-  const isActiveRef = useRef<boolean>(false);
-  const playbackSpeedRef = useRef<number>(1);
-  const lastTickTimeRef = useRef<number>(0);
+  // Replace oscillator refs with HTMLAudioElement
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
   // Get current chapter
   const currentChapter = useMemo(() => {
@@ -94,7 +92,12 @@ export default function BookAudioStickyPlayer() {
     return currentTrack.chapters[currentChapterIndex] ?? null;
   }, [currentTrack, currentChapterIndex]);
 
-  const durationMs = currentChapter?.duration ?? 0;
+  // Initialize duration from chapter info, but allow updates from metadata
+  useEffect(() => {
+    // FIX: Hardcode 10 minutes (600000ms) if duration is 0, per user request for testing seeking
+    const chapterDuration = currentChapter?.duration || 0;
+    setDuration(chapterDuration > 0 ? chapterDuration : 600000);
+  }, [currentChapter]);
 
   // Check if can navigate
   const canGoNext = useMemo(() => {
@@ -106,167 +109,131 @@ export default function BookAudioStickyPlayer() {
     return currentChapterIndex > 0;
   }, [currentChapterIndex]);
 
-  const cleanupAudio = useCallback(() => {
-    isActiveRef.current = false;
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
+  // Fetch and load audio from backend API
+  useEffect(() => {
+    if (!currentChapter?.id || !currentTrack) {
+      setElapsed(0);
+      setIsLoadingAudio(false);
+      setAudioError(null);
+      isSeeking.current = false; // Reset seeking state
+      return;
     }
-    if (oscillatorRef.current) {
-      try {
-        oscillatorRef.current.stop();
-        oscillatorRef.current.disconnect();
-      } catch (e) {
-        // Ignore errors during cleanup
-      }
-      oscillatorRef.current = null;
-    }
-    if (gainRef.current) {
-      try {
-        gainRef.current.disconnect();
-      } catch (e) {
-        // Ignore errors during cleanup
-      }
-      gainRef.current = null;
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close().catch(() => {});
-      audioContextRef.current = null;
-    }
-    pausedElapsedRef.current = 0;
-  }, []);
 
-  const tick = useCallback(() => {
-    if (!durationMs || !isActiveRef.current) return;
-    
-    const now = performance.now();
-    const realTimeDelta = now - lastTickTimeRef.current;
-    lastTickTimeRef.current = now;
-    
-    // Apply playback speed to elapsed time
-    const speedAdjustedDelta = realTimeDelta * playbackSpeedRef.current;
-    const newElapsed = Math.min(latestElapsedRef.current + speedAdjustedDelta, durationMs);
-    
-    latestElapsedRef.current = newElapsed;
-    setElapsed(newElapsed);
+    setIsLoadingAudio(true);
+    setAudioError(null);
+    setElapsed(0);
+    isSeeking.current = false; // Reset seeking state
 
-    if (newElapsed >= durationMs) {
-      isActiveRef.current = false;
-      // Use getNextChapterIndex which respects shuffle/repeat
+    getChapterAudio(currentChapter.id)
+      .then((response) => {
+        if (audioRef.current) {
+          audioRef.current.src = response.url;
+          audioRef.current.playbackRate = playbackSpeed;
+          audioRef.current.volume = volume / 100;
+          audioUrlRef.current = response.url;
+          
+          // Auto-play if isPlaying is true
+          if (isPlaying) {
+            audioRef.current.play().catch((err) => {
+              console.error("Auto-play error:", err);
+              pauseTrack();
+            });
+          }
+        }
+      })
+      .catch((error) => {
+        setAudioError("Không thể tải audio");
+        console.error("Audio fetch error:", error);
+        pauseTrack();
+      })
+      .finally(() => {
+        setIsLoadingAudio(false);
+      });
+  }, [currentChapter?.id, playRequestId]);
+
+  // Handle play/pause state changes
+  useEffect(() => {
+    if (!audioRef.current || !currentTrack) return;
+
+    if (isPlaying) {
+      audioRef.current.play().catch((err) => {
+        console.error("Play error:", err);
+        pauseTrack();
+      });
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying, currentTrack, pauseTrack]);
+
+  // Update volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+    }
+  }, [volume]);
+
+  // Update playback speed
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed]);
+
+  // Ref to track if user is currently seeking (dragging the slider)
+  const isSeeking = useRef<boolean>(false);
+
+  // Setup audio event listeners
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => {
+      // Only update state if NOT seeking, to prevent slider jitter/fighting
+      if (!isSeeking.current) {
+         setElapsed((audio.currentTime || 0) * 1000);
+      }
+    };
+
+    const handleEnded = () => {
       const nextIndex = getNextChapterIndex();
       if (nextIndex !== null) {
         playChapter(nextIndex);
       } else {
         stopTrack();
       }
-      return;
-    }
-    rafRef.current = requestAnimationFrame(tick);
-  }, [durationMs, stopTrack, getNextChapterIndex, playChapter]);
+    };
 
-  useEffect(() => {
-    if (!currentTrack || !currentChapter) {
-      setElapsed(0);
-      cleanupAudio();
-      return;
-    }
+    const handleError = () => {
+      setAudioError("Lỗi khi phát audio");
+      pauseTrack();
+    };
 
-    cleanupAudio();
-    pausedElapsedRef.current = 0;
+    const handleMetadata = () => {
+        if (audio.duration && !isNaN(audio.duration) && audio.duration !== Infinity) {
+            setDuration(audio.duration * 1000);
+        }
+    };
 
-    const AudioContextCtor =
-      typeof window !== "undefined"
-        ? window.AudioContext ||
-          (
-            window as typeof window & {
-              webkitAudioContext?: typeof AudioContext;
-            }
-          ).webkitAudioContext
-        : undefined;
-
-    if (!AudioContextCtor) {
-      stopTrack();
-      return;
-    }
-
-    const context = new AudioContextCtor();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 420;
-    gain.gain.value = 0.15 * (volume / 100);
-    oscillator.connect(gain).connect(context.destination);
-
-    audioContextRef.current = context;
-    oscillatorRef.current = oscillator;
-    gainRef.current = gain;
-
-    oscillator.start();
-    startTimeRef.current = performance.now();
-    lastTickTimeRef.current = performance.now();
-    latestElapsedRef.current = 0;
-    setElapsed(0);
-    isActiveRef.current = true;
-    rafRef.current = requestAnimationFrame(tick);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('loadedmetadata', handleMetadata);
+    audio.addEventListener('durationchange', handleMetadata);
 
     return () => {
-      cleanupAudio();
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('loadedmetadata', handleMetadata);
+      audio.removeEventListener('durationchange', handleMetadata);
     };
-  }, [
-    cleanupAudio,
-    currentTrack?.id,
-    currentChapterIndex,
-    playRequestId,
-    stopTrack,
-    tick,
-    currentChapter,
-  ]);
-  // Note: 'volume' is intentionally excluded to prevent audio restart when adjusting volume
+  }, [getNextChapterIndex, playChapter, stopTrack, pauseTrack]);
 
-  useEffect(() => {
-    const context = audioContextRef.current;
-    if (!context || !currentTrack || !durationMs) return;
-
-    if (isPlaying) {
-      context.resume().catch(() => {});
-      lastTickTimeRef.current = performance.now();
-      startTimeRef.current = performance.now() - pausedElapsedRef.current;
-      pausedElapsedRef.current = 0;
-      isActiveRef.current = true;
-      rafRef.current = requestAnimationFrame(tick);
-    } else {
-      isActiveRef.current = false;
-      context.suspend().catch(() => {});
-      pausedElapsedRef.current = latestElapsedRef.current;
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    }
-  }, [currentTrack?.id, currentChapterIndex, durationMs, isPlaying, tick]);
-
-  useEffect(() => {
-    if (gainRef.current) {
-      gainRef.current.gain.value = 0.15 * (volume / 100);
-    }
-  }, [volume]);
-
-  // Sync playback speed ref with state
-  useEffect(() => {
-    playbackSpeedRef.current = playbackSpeed;
-  }, [playbackSpeed]);
-
-  useEffect(
-    () => () => {
-      cleanupAudio();
-    },
-    [cleanupAudio]
-  );
 
   const progressPercent = useMemo(() => {
-    if (!durationMs) return 0;
-    return Math.min((elapsed / durationMs) * 100, 100);
-  }, [durationMs, elapsed]);
+    if (!duration) return 0;
+    return Math.min((elapsed / duration) * 100, 100);
+  }, [duration, elapsed]);
 
   const formatTime = (timeMs: number): string => {
     const totalSeconds = Math.max(0, Math.floor(timeMs / 1000));
@@ -284,10 +251,13 @@ export default function BookAudioStickyPlayer() {
   }, [isPlaying, pauseTrack, resumeTrack]);
 
   const handleClose = useCallback(() => {
-    cleanupAudio();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
     stopTrack();
     setIsChapterListOpen(false);
-  }, [cleanupAudio, stopTrack]);
+  }, [stopTrack]);
 
   const handleVolumeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,28 +272,47 @@ export default function BookAudioStickyPlayer() {
 
   const handleNextChapter = useCallback(() => {
     if (canGoNext) {
-      cleanupAudio();
       playNextChapter();
     }
-  }, [canGoNext, cleanupAudio, playNextChapter]);
+  }, [canGoNext, playNextChapter]);
 
   const handlePreviousChapter = useCallback(() => {
     if (canGoPrevious) {
-      cleanupAudio();
       playPreviousChapter();
     }
-  }, [canGoPrevious, cleanupAudio, playPreviousChapter]);
+  }, [canGoPrevious, playPreviousChapter]);
+
+  const handleSeekStart = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
+     e.currentTarget.setPointerCapture(e.pointerId);
+     isSeeking.current = true;
+  }, []);
+
+  const handleSeekEnd = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
+     isSeeking.current = false;
+     e.currentTarget.releasePointerCapture(e.pointerId);
+  }, []);
 
   const handleSeek = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!audioRef.current) return;
+      
       const newPercent = Number(e.target.value);
-      const newElapsed = (newPercent / 100) * durationMs;
-      setElapsed(newElapsed);
-      latestElapsedRef.current = newElapsed;
-      pausedElapsedRef.current = newElapsed;
-      startTimeRef.current = performance.now() - newElapsed;
+      // Use state 'duration' (which includes fallback) instead of audio.duration
+      // This ensures we can seek even if audio hasn't fully loaded duration metadata
+      const validDuration = duration > 0 ? duration : 600000;
+      
+      const newTimeSec = (newPercent / 100) * (validDuration / 1000); 
+      
+      // Update visual immediately
+      setElapsed(newTimeSec * 1000);
+      
+      // Update audio
+      // Check for finite to avoid errors
+      if (Number.isFinite(newTimeSec)) {
+          audioRef.current.currentTime = newTimeSec;
+      }
     },
-    [durationMs]
+    [duration]
   );
 
   if (!currentTrack || !currentChapter || (!isVisible && !isPlaying)) {
@@ -332,6 +321,9 @@ export default function BookAudioStickyPlayer() {
 
   return (
     <>
+      {/* Hidden Audio Element */}
+      <audio ref={audioRef} preload="auto" />
+
       {/* Chapter List Panel */}
       <BookAudioChapterList
         isOpen={isChapterListOpen}
@@ -356,7 +348,16 @@ export default function BookAudioStickyPlayer() {
                 {currentTrack.title}
               </p>
               <p className="truncate text-[10px] sm:text-xs xl:text-sm text-muted-foreground">
-                Chương {currentChapterIndex + 1}: {currentChapter.title}
+                {isLoadingAudio ? (
+                  <span className="flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Đang tải...
+                  </span>
+                ) : audioError ? (
+                  <span className="text-rose-500">{audioError}</span>
+                ) : (
+                  <>Chương {currentChapterIndex + 1}: {currentChapter.title}</>
+                )}
               </p>
             </div>
           </div>
@@ -507,17 +508,20 @@ export default function BookAudioStickyPlayer() {
                   style={{ left: `${progressPercent}%`, marginLeft: "-7px" }}
                 />
                 {/* Invisible range input on top */}
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={progressPercent}
-                  onChange={handleSeek}
-                  className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-transparent [&::-moz-range-thumb]:cursor-pointer"
-                />
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={progressPercent}
+                    onChange={handleSeek}
+                    onPointerDown={handleSeekStart}
+                    onPointerUp={handleSeekEnd}
+                    onPointerCancel={handleSeekEnd}
+                    className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-transparent [&::-moz-range-thumb]:cursor-pointer"
+                  />
               </div>
               <span className="min-w-[32px] sm:min-w-[40px] text-[10px] sm:text-xs xl:text-sm tabular-nums text-muted-foreground">
-                {formatTime(durationMs)}
+                {formatTime(duration)}
               </span>
             </div>
           </div>

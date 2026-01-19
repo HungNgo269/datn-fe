@@ -29,16 +29,31 @@ export function useBookSubmit() {
       }
 
       setStatusMessage("Đang lưu thông tin sách...");
+      const accessType = data.accessType ?? "FREE";
+      
+      // Ensure price is always a number, never null/undefined
+      let price: number;
+      if (accessType === "PURCHASE") {
+        // For PURCHASE, price must be > 0
+        price = data.price ?? 0;
+        if (price < 1) {
+          throw new Error("Sách trả phí phải có giá lớn hơn 0 VND");
+        }
+      } else {
+        // For FREE and MEMBERSHIP, always 0
+        price = 0;
+      }
+      
       const bookPayload: CreateBookDto = {
         title: data.title,
         slug: data.slug,
-        accessType: data.accessType ?? "FREE",
+        accessType: accessType,
         sourceKey: sourceKey,
         coverImage: coverImageKey,
         authorIds: data.authorIds,
         categoryIds: data.categoryIds,
         description: data.description ?? "",
-        price: data.price ?? 0,
+        price: price,
         freeChapters: data.freeChapters ?? 0,
       };
 

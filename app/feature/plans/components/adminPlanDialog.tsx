@@ -63,6 +63,7 @@ export function PlanDialog({
     reset,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<PlanFormInput>({
     resolver: zodResolver(PlanSchema),
@@ -79,17 +80,25 @@ export function PlanDialog({
     },
   });
 
+  const selectedInterval = watch("interval");
+
   useEffect(() => {
     if (!open) return;
 
     if (planToEdit) {
+      console.log("Plan to edit:", planToEdit);
+      
+      // Normalize interval value to match enum (backend might return lowercase)
+      const normalizedInterval = planToEdit.interval?.toUpperCase() as BillingInterval || BillingInterval.MONTH;
+      const normalizedPlan = planToEdit.plan?.toUpperCase() as SubscriptionPlan || SubscriptionPlan.PREMIUM;
+      
       reset({
-        plan: planToEdit.plan,
+        plan: normalizedPlan,
         name: planToEdit.name,
         description: planToEdit.description || "",
         price: planToEdit.price,
         currency: planToEdit.currency || "vnd",
-        interval: planToEdit.interval,
+        interval: normalizedInterval,
         intervalCount: planToEdit.intervalCount || 1,
         isActive: planToEdit.isActive ?? true,
       });
@@ -130,9 +139,14 @@ export function PlanDialog({
     },
     onError: (error: any) => {
       // Error message is already parsed by handleApiRequest
-      const errorMessage = error instanceof Error 
+      let errorMessage = error instanceof Error 
         ? error.message 
         : "Có lỗi xảy ra";
+      
+      // Improve duplicate error message
+      if (errorMessage.includes("already exist") || errorMessage.includes("duplicate")) {
+        errorMessage = "Gói với loại và thời hạn này đã tồn tại. Vui lòng chọn thời hạn khác hoặc chỉnh sửa gói hiện có.";
+      }
       
       toast.error(errorMessage);
     },
@@ -269,10 +283,11 @@ export function PlanDialog({
               </Label>
               <Input
                 id="currency"
-                {...register("currency")}
-                placeholder="vnd"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                value="vnd"
+                disabled
+                className="h-11 rounded-xl border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed"
               />
+              <p className="text-xs text-slate-500">Đơn vị tiền tệ cố định là vnd</p>
             </div>
           </div>
 
@@ -315,16 +330,24 @@ export function PlanDialog({
                       <SelectValue placeholder="Chọn thời hạn" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="6">6</SelectItem>
-                      <SelectItem value="12">12</SelectItem>
+                      {selectedInterval === BillingInterval.MONTH ? (
+                        <>
+                          <SelectItem value="1">1 tháng</SelectItem>
+                          <SelectItem value="3">3 tháng</SelectItem>
+                          <SelectItem value="6">6 tháng</SelectItem>
+                          <SelectItem value="12">12 tháng</SelectItem>
+                        </>
+                      ) : (
+                        <SelectItem value="1">1 năm</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 )}
               />
               <p className="text-xs text-slate-500">
-                Kết hợp với chu kỳ (VD: 3 tháng, 1 năm)
+                {selectedInterval === BillingInterval.MONTH 
+                  ? "Chọn số tháng cho gói đăng ký" 
+                  : "Gói năm chỉ có thời hạn 1 năm"}
               </p>
             </div>
           </div>
@@ -380,26 +403,28 @@ export function PlanDialog({
               <Eye className="h-4 w-4 text-slate-400" />
               Trạng thái
             </Label>
-            <div className="flex items-center gap-3 h-11 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 transition-all hover:border-slate-300">
-              <Controller
-                control={control}
-                name="isActive"
-                render={({ field }) => (
+            <Controller
+              control={control}
+              name="isActive"
+              render={({ field }) => (
+                <div className="flex items-center gap-3 h-11 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 transition-all hover:border-slate-300">
                   <Checkbox
                     id="isActive"
                     checked={field.value}
                     onCheckedChange={field.onChange}
                     className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
-                )}
-              />
-              <Label
-                htmlFor="isActive"
-                className="cursor-pointer text-sm text-slate-600 flex-1"
-              >
-                Kích hoạt gói này
-              </Label>
-            </div>
+                  <Label
+                    htmlFor="isActive"
+                    className="cursor-pointer text-sm flex-1"
+                  >
+                    <span className={field.value ? "text-green-700 font-medium" : "text-slate-500"}>
+                      {field.value ? "Hoạt động" : "Tạm dừng"}
+                    </span>
+                  </Label>
+                </div>
+              )}
+            />
           </div>
 
           {mutation.isError && (

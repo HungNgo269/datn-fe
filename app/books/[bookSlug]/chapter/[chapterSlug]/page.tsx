@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import { Suspense } from "react";
 import {
   getChaptersContent,
   getChaptersDetails,
@@ -78,18 +79,20 @@ export default async function ChapterPage({ params }: PageProps) {
       accessType={book?.accessType}
     >
       <div className="h-screen w-screen bg-background">
-        <IframeBookReader
-          initialHtml={chapterContent}
-          title={response.title}
-          bookSlug={bookSlug}
-          chapterSlug={chapterSlug}
-          chapters={chapters}
-          currentChapterOrder={currentChapter?.order || response.order}
-          nextChapterSlug={nextChapter?.slug || null}
-          bookTitle={book?.title ?? response.title}
-          bookCoverImage={book?.coverImage ?? null}
-          bookId={book?.id ?? null}
-        />
+        <Suspense fallback={<div className="h-screen w-screen bg-background" />}>
+          <IframeBookReader
+            initialHtml={chapterContent}
+            title={response.title}
+            bookSlug={bookSlug}
+            chapterSlug={chapterSlug}
+            chapters={chapters}
+            currentChapterOrder={currentChapter?.order || response.order}
+            nextChapterSlug={nextChapter?.slug || null}
+            bookTitle={book?.title ?? response.title}
+            bookCoverImage={book?.coverImage ?? null}
+            bookId={book?.id ?? null}
+          />
+        </Suspense>
       </div>
     </ChapterAccessGuard>
   );

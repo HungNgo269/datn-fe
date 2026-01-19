@@ -32,7 +32,6 @@ export function BookResultCard({ book, query }: BookResultCardProps) {
           fill
           sizes="100px"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
-          unoptimized
         />
         
         {/* Add badge */}

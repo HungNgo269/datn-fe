@@ -39,7 +39,6 @@ export default function AuthorProfile({
               fill
               sizes="160px"
               priority={false}
-              unoptimized
               className="object-cover"
             />
           </div>

@@ -1,14 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState, useEffect } from "react";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
 import { Book } from "../../books/types/books.type";
+import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
 interface NewBookCardProps {
   book: Book;
 }
 
 export default function NewBookCard({ book }: NewBookCardProps) {
+  // Memoize sanitized HTML to ensure consistency between server and client
+  const sanitizedDescription = useMemo(
+    () => book.description ? sanitizeRichHtml(book.description) : "",
+    [book.description]
+  );
+
+  // Use client-side only rendering for categories to avoid hydration mismatch
+  const [isMounted, setIsMounted] = useState(false);
+  const displayCategories = useMemo(
+    () => book.categories?.slice(0, 2) || [],
+    [book.categories]
+  );
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <div className="flex flex-col  rounded-xl overflow-hidden  h-full">
       {/* Image */}
@@ -48,16 +67,17 @@ export default function NewBookCard({ book }: NewBookCardProps) {
           ))}
         </div>
 
-        {book.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 flex-1">
-            {book.description}
-          </p>
-        )}
+{sanitizedDescription && (
+  <div 
+    className="text-xs text-muted-foreground line-clamp-4 flex-1"
+    dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+  />
+)}
 
         {/* Category tags */}
-        {book.categories && book.categories.length > 0 && (
+        {isMounted && displayCategories.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-auto pt-2">
-            {book.categories.slice(0, 2).map((catEntry) => (
+            {displayCategories.map((catEntry) => (
               <Link
                 key={catEntry.category.id}
                 href={`/books?category=${catEntry.category.slug}`}

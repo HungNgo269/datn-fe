@@ -56,13 +56,19 @@ export function BookAudioPlayButton({
       return;
     }
 
+    // Fix: Ensure all chapters have a fallback duration of 10 mins (600000) if 0
+    const chaptersWithDuration = bookChapters.map(c => ({
+      ...c,
+      duration: c.duration > 0 ? c.duration : 600000
+    }));
+
     // Start playing chapter 1 (index 0)
     startPlayback(
       {
         id: bookSlug,
         title: bookTitle,
         coverImage,
-        chapters: bookChapters,
+        chapters: chaptersWithDuration,
         accessType,
         isPurchased,
         isSubscribed,
