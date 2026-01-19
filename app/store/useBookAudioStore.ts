@@ -125,6 +125,24 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
   playChapter: (index) => {
     const { currentTrack } = get();
     if (!currentTrack || index < 0 || index >= currentTrack.chapters.length) return;
+    
+    // Validate access to the chapter
+    const chapter = currentTrack.chapters[index];
+    const isFree = chapter.isFree ?? false;
+    const isPurchased = currentTrack.isPurchased ?? false;
+    const isSubscribed = currentTrack.isSubscribed ?? false;
+    const accessType = currentTrack.accessType;
+    
+    const isUnlocked = isFree || isPurchased || (isSubscribed && accessType === 'membership');
+    
+    if (!isUnlocked) {
+      const message = accessType === 'membership' 
+        ? 'Bạn cần đăng ký hội viên để nghe chương này' 
+        : 'Bạn cần mua sách để nghe chương này';
+      alert(message);
+      return;
+    }
+    
     set((state) => ({
       currentChapterIndex: index,
       isPlaying: true,
@@ -135,27 +153,64 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
   playNextChapter: () => {
     const { currentTrack, currentChapterIndex } = get();
     if (!currentTrack) return;
-    const nextIndex = currentChapterIndex + 1;
-    if (nextIndex < currentTrack.chapters.length) {
-      set((state) => ({
-        currentChapterIndex: nextIndex,
-        isPlaying: true,
-        playRequestId: state.playRequestId + 1,
-      }));
+    
+    const isPurchased = currentTrack.isPurchased ?? false;
+    const isSubscribed = currentTrack.isSubscribed ?? false;
+    const accessType = currentTrack.accessType;
+    
+    // Find next unlocked chapter
+    let nextIndex = currentChapterIndex + 1;
+    while (nextIndex < currentTrack.chapters.length) {
+      const chapter = currentTrack.chapters[nextIndex];
+      const isFree = chapter.isFree ?? false;
+      const isUnlocked = isFree || isPurchased || (isSubscribed && accessType === 'membership');
+      
+      if (isUnlocked) {
+        set((state) => ({
+          currentChapterIndex: nextIndex,
+          isPlaying: true,
+          playRequestId: state.playRequestId + 1,
+        }));
+        return;
+      }
+      nextIndex++;
     }
+    
+    // All remaining chapters are locked
+    const message = accessType === 'membership' 
+      ? 'Các chương tiếp theo yêu cầu hội viên' 
+      : 'Các chương tiếp theo yêu cầu mua sách';
+    alert(message);
   },
 
   playPreviousChapter: () => {
     const { currentTrack, currentChapterIndex } = get();
     if (!currentTrack) return;
-    const prevIndex = currentChapterIndex - 1;
-    if (prevIndex >= 0) {
-      set((state) => ({
-        currentChapterIndex: prevIndex,
-        isPlaying: true,
-        playRequestId: state.playRequestId + 1,
-      }));
+    
+    const isPurchased = currentTrack.isPurchased ?? false;
+    const isSubscribed = currentTrack.isSubscribed ?? false;
+    const accessType = currentTrack.accessType;
+    
+    // Find previous unlocked chapter
+    let prevIndex = currentChapterIndex - 1;
+    while (prevIndex >= 0) {
+      const chapter = currentTrack.chapters[prevIndex];
+      const isFree = chapter.isFree ?? false;
+      const isUnlocked = isFree || isPurchased || (isSubscribed && accessType === 'membership');
+      
+      if (isUnlocked) {
+        set((state) => ({
+          currentChapterIndex: prevIndex,
+          isPlaying: true,
+          playRequestId: state.playRequestId + 1,
+        }));
+        return;
+      }
+      prevIndex--;
     }
+    
+    // All previous chapters are locked (shouldn't happen often, but handle it)
+    alert('Không có chương trước đó có thể phát');
   },
 
   pauseTrack: () => {

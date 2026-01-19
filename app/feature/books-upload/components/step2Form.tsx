@@ -106,6 +106,11 @@ export function Step2Form({
         form.setValue("price", undefined as any);
       }
     }
+    
+    // For FREE books, always set freeChapters to 0
+    if (accessType === "FREE") {
+      form.setValue("freeChapters", 0);
+    }
   }, [accessType, form]);
 
   const handleCreateAuthor = useCallback(

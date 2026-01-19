@@ -54,8 +54,11 @@ export function useBookSubmit() {
         categoryIds: data.categoryIds,
         description: data.description ?? "",
         price: price,
-        freeChapters: data.freeChapters ?? 0,
+        // Only include freeChapters for MEMBERSHIP and PURCHASE types
+        freeChapters: accessType === "FREE" ? 0 : (data.freeChapters ?? 0),
       };
+
+      console.log("📤 Book Payload being sent:", JSON.stringify(bookPayload, null, 2));
 
       let result;
       if (mode === "create") {

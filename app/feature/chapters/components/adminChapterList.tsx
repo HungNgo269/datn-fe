@@ -2,13 +2,12 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
 import {
-  MoreHorizontal,
   Pencil,
   Trash2,
   AudioLines,
   Loader2,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -21,13 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -82,6 +74,7 @@ export function AdminChapterList({
       setGeneratingId(chapterId);
       await generateAudio(chapterId);
       toast.success("Yêu cầu tạo audio đã được gửi thành công!");
+      router.refresh();
     } catch (error) {
       toast.error("Tạo audio thất bại. Vui lòng thử lại.");
       console.error(error);
@@ -92,70 +85,103 @@ export function AdminChapterList({
 
   return (
     <>
-      <div className="rounded-md border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-slate-50/80">
             <TableRow>
-              <TableHead className="w-[100px] text-slate-700 font-semibold text-center">Thứ tự</TableHead>
-              <TableHead className="text-slate-700 font-semibold">Tên chương</TableHead>
-              <TableHead className="w-[100px] text-center text-slate-700 font-semibold">Thao tác</TableHead>
+              <TableHead className="w-[80px] text-slate-700 font-semibold text-center">
+                STT
+              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">
+                Tên chương
+              </TableHead>
+              <TableHead className="w-[200px] text-slate-700 font-semibold">
+                Slug
+              </TableHead>
+              <TableHead className="w-[280px] text-center text-slate-700 font-semibold">
+                Thao tác
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {chapters.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell colSpan={4} className="h-24 text-center text-slate-500">
                   Không có chương truyện nào.
                 </TableCell>
               </TableRow>
             ) : (
-              chapters.map((chapter) => (
-                <TableRow key={chapter.id}>
-                  <TableCell className="font-medium text-center">{chapter.order}</TableCell>
-                  <TableCell>{chapter.title}</TableCell>
-                  <TableCell className="text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
+              chapters.map((chapter) => {
+                const hasAudio = chapter.hasAudio || !!chapter.audio;
+                const isGenerating = generatingId === chapter.id;
+                
+                return (
+                  <TableRow key={chapter.id} className="hover:bg-slate-50/50">
+                    <TableCell className="font-medium text-center text-slate-700">
+                      {chapter.order}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {chapter.title}
+                    </TableCell>
+                    <TableCell className="text-slate-600 text-sm font-mono">
+                      {chapter.slug}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          asChild
+                        >
+                          <Link
+                            href={`/books-admin/${bookSlug}/chapters/${chapter.slug}/edit`}
+                          >
+                            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                            Sửa
+                          </Link>
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <Link
-                          href={`/books-admin/${bookSlug}/chapters/${chapter.slug}/edit`}
-                        >
-                          <DropdownMenuItem className="cursor-pointer">
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Chỉnh sửa
-                          </DropdownMenuItem>
-                        </Link>
-                        <DropdownMenuItem
-                          className="cursor-pointer"
+
+                        <Button
+                          variant={hasAudio ? "secondary" : "default"}
+                          size="sm"
+                          className="h-8"
                           onClick={() => handleGenerateAudio(chapter.id)}
-                          disabled={generatingId === chapter.id}
+                          disabled={hasAudio || isGenerating}
                         >
-                          {generatingId === chapter.id ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                              Đang tạo...
+                            </>
+                          ) : hasAudio ? (
+                            <>
+                              <Check className="mr-1.5 h-3.5 w-3.5" />
+                              Đã có audio
+                            </>
                           ) : (
-                            <AudioLines className="mr-2 h-4 w-4" />
+                            <>
+                              <AudioLines className="mr-1.5 h-3.5 w-3.5" />
+                              Thêm audio
+                            </>
                           )}
-                          Tạo Audio
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="cursor-pointer text-rose-600 focus:text-rose-600"
+                        </Button>
+
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-8"
                           onClick={() => handleDeleteClick(chapter.slug)}
                           disabled={isDeleting}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa chương
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+                          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                          Xóa
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

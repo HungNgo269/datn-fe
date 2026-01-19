@@ -27,7 +27,7 @@ export const Step2Schema = z.object({
         .min(1, "Phải chọn ít nhất một thể loại"),
     description: z.string().optional(),
     price: z.number().min(0),
-    freeChapters: z.number().min(0),
+    freeChapters: z.number().min(0).optional(),
 }).refine(
     (data) => {
         // For PURCHASE books, price must be > 0

@@ -42,7 +42,16 @@ export function BookAudioChapterList({
   const totalChapters = chaptersWithAudio.length;
 
   const handleChapterClick = useCallback(
-    (originalIndex: number) => {
+    (originalIndex: number, isLocked: boolean, accessType?: string) => {
+      // Validate access before any action
+      if (isLocked) {
+        const message = accessType === 'membership' 
+          ? 'Bạn cần đăng ký hội viên để nghe chương này' 
+          : 'Bạn cần mua sách để nghe chương này';
+        alert(message);
+        return;
+      }
+
       if (originalIndex === currentChapterIndex) {
         // Toggle play/pause for current chapter
         if (isPlaying) {
@@ -173,7 +182,7 @@ export function BookAudioChapterList({
                 <button
                   type="button"
                   disabled={isLocked}
-                  onClick={() => !isLocked && handleChapterClick(originalIndex)}
+                  onClick={() => handleChapterClick(originalIndex, isLocked, accessType)}
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-full transition-all shrink-0",
                     isCurrentChapter
