@@ -12,7 +12,7 @@ export async function getChaptersOfBook(slug: string) {
 
 export async function getChaptersDetails(
   bookSlug: string,
-  chapterSlug: string
+  chapterSlug: string,
 ) {
   const accessToken = (await cookies()).get("accessToken")?.value;
   return handleActionRequest<ChapterContent>(
@@ -24,7 +24,7 @@ export async function getChaptersDetails(
             Authorization: `Bearer ${accessToken}`,
           }
         : undefined,
-    }
+    },
   );
 }
 
@@ -48,7 +48,11 @@ export async function createChapter(slug: string, data: any) {
   });
 }
 
-export async function updateChapter(slug: string, chapterSlug: string, data: any) {
+export async function updateChapter(
+  slug: string,
+  chapterSlug: string,
+  data: any,
+) {
   const accessToken = (await cookies()).get("accessToken")?.value;
   return handleActionRequest(`/books/${slug}/chapters/${chapterSlug}`, {
     method: "PUT",
