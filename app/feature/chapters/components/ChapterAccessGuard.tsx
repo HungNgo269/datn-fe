@@ -7,22 +7,26 @@ import { useRouter } from "next/navigation";
 
 interface ChapterAccessGuardProps {
   hasAccess: boolean;
+  bookId?: number;
   bookTitle: string;
   bookCoverImage: string;
   bookSlug: string;
   chapterTitle: string;
   chapterOrder: number;
+  chapterPrice?: number;
   accessType?: string;
   children: ReactNode;
 }
 
 export function ChapterAccessGuard({
   hasAccess,
+  bookId,
   bookTitle,
   bookCoverImage,
   bookSlug,
   chapterTitle,
   chapterOrder,
+  chapterPrice,
   accessType,
   children,
 }: ChapterAccessGuardProps) {
@@ -51,34 +55,35 @@ export function ChapterAccessGuard({
     router.push(`/books/${bookSlug}`);
   };
 
-  // If user has access, render the chapter content
-  if (hasAccess) {
-    return <>{children}</>;
-  }
-
-  // If user doesn't have access, render empty div with modals
   return (
-    <div className="h-screen w-screen bg-background flex items-center justify-center">
-      <PurchaseChapterWarningModal
-        open={showPurchaseModal}
-        onOpenChange={(open) => {
-          if (!open) handleModalClose('purchase');
-        }}
-        bookTitle={bookTitle}
-        bookCoverImage={bookCoverImage}
-        bookSlug={bookSlug}
-        chapterTitle={chapterTitle}
-        chapterOrder={chapterOrder}
-      />
+    <>
+      {children}
+      {!hasAccess && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+             <PurchaseChapterWarningModal
+               open={showPurchaseModal}
+               onOpenChange={(open) => {
+                 if (!open) handleModalClose('purchase');
+               }}
+               bookId={bookId}
+               bookTitle={bookTitle}
+               bookCoverImage={bookCoverImage}
+               bookSlug={bookSlug}
+               chapterTitle={chapterTitle}
+               chapterOrder={chapterOrder}
+               chapterPrice={chapterPrice}
+             />
 
-      <SubscriptionWarningModal
-        open={showSubscriptionModal}
-        onOpenChange={(open) => {
-          if (!open) handleModalClose('subscription');
-        }}
-        bookTitle={bookTitle}
-        bookCoverImage={bookCoverImage}
-      />
-    </div>
+             <SubscriptionWarningModal
+               open={showSubscriptionModal}
+               onOpenChange={(open) => {
+                 if (!open) handleModalClose('subscription');
+               }}
+               bookTitle={bookTitle}
+               bookCoverImage={bookCoverImage}
+             />
+           </div>
+      )}
+    </>
   );
 }

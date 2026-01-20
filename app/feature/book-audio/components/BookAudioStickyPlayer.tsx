@@ -110,6 +110,7 @@ export default function BookAudioStickyPlayer() {
     return currentChapterIndex > 0;
   }, [currentChapterIndex]);
 
+  // Handle audio loading with AudioStreamService
   useEffect(() => {
     if (!currentChapter?.id || !currentTrack) {
       setIsLoadingAudio(false);
@@ -117,51 +118,64 @@ export default function BookAudioStickyPlayer() {
       return;
     }
 
+    let isMounted = true;
     setIsLoadingAudio(true);
     setAudioError(null);
     
+    // Pause current audio before loading new one
     if (audioRef.current) {
         audioRef.current.pause();
     }
 
-    getChapterAudio(currentChapter.id)
-      .then((response) => {
-        if (audioRef.current) {
-          audioRef.current.src = response.url;
-          audioRef.current.playbackRate = playbackSpeed;
-          audioRef.current.volume = volume / 100;
+    const loadAudio = async () => {
+        try {
+            const { audioStreamService } = await import("../services/AudioStreamService");
+            const source = await audioStreamService.getAudioSource(currentChapter.id);
+            
+            if (!isMounted) return;
 
-          
-          // Set duration from API response (convert seconds to milliseconds)
-          if (response.duration && response.duration > 0) {
-            const durationMs = response.duration * 1000;
-            setDuration(durationMs);
-            // Update store so playlist shows correct duration
-            if (currentChapter.id) {
-                updateChapterDuration(currentChapter.id, durationMs);
+            if (audioRef.current) {
+                audioRef.current.src = source.url;
+                audioRef.current.playbackRate = playbackSpeed;
+                audioRef.current.volume = volume / 100;
+                
+                // Set duration if available from service (network source)
+                // If from cache, duration might not be in the metadata immediately until loadedmetadata fires
+                if (source.duration && source.duration > 0) {
+                    setDuration(source.duration);
+                    if (currentChapter.id) {
+                        updateChapterDuration(currentChapter.id, source.duration);
+                    }
+                }
+                
+                if (isPlaying) {
+                    try {
+                        await audioRef.current.play();
+                    } catch (err) {
+                        console.error("Auto-play error:", err);
+                        // Auto-play policy might block this if no user interaction
+                    }
+                }
             }
-          }
-          
-          // Auto-play if isPlaying is true
-          if (isPlaying) {
-            const playPromise = audioRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise.catch((err) => {
-                  console.error("Auto-play error:", err);
-                  // Don't auto-pause here, let the user try again
-                });
+        } catch (error: any) {
+            console.error("Audio load error:", error);
+            if (isMounted) {
+                // If 403, it might be expired URL (though service handles refresh, maybe it failed)
+                setAudioError("Không thể tải audio. Vui lòng thử lại.");
+                pauseTrack();
             }
-          }
+        } finally {
+            if (isMounted) {
+                setIsLoadingAudio(false);
+            }
         }
-      })
-      .catch((error) => {
-        setAudioError("Không thể tải audio");
-        console.error("Audio fetch error:", error);
-        pauseTrack();
-      })
-      .finally(() => {
-        setIsLoadingAudio(false);
-      });
+    };
+
+    loadAudio();
+
+    return () => {
+        isMounted = false;
+    };
   }, [currentChapter?.id, playRequestId]);
 
   // Handle play/pause state changes
@@ -224,14 +238,52 @@ export default function BookAudioStickyPlayer() {
     }
   }, []);
 
+  // Retry logic state
+  const [retryCount, setRetryCount] = useState(0);
+
   const handleError = useCallback((e: React.SyntheticEvent<HTMLAudioElement>) => {
     console.error('🔴 Audio error:', e);
-    // Only show error if we have a src and it failed
-    if (e.currentTarget.src) {
-      setAudioError("Lỗi khi phát audio");
-      useBookAudioStore.getState().pauseTrack();
+    
+    // Only try to recover if we have a source and haven't retried too many times
+    if (e.currentTarget.src && retryCount < 1) {
+       console.log("Attempting to recover audio...");
+       setRetryCount(prev => prev + 1);
+       
+       // Force reload with fresh URL
+       const reloadAudio = async () => {
+         try {
+           setIsLoadingAudio(true);
+           const { audioStreamService } = await import("../services/AudioStreamService");
+           if (currentChapter?.id) {
+             const source = await audioStreamService.getAudioSource(currentChapter.id, true); // Force network
+             if (audioRef.current) {
+                audioRef.current.src = source.url;
+                audioRef.current.load();
+                if (isPlaying) audioRef.current.play();
+             }
+           }
+         } catch (err) {
+            console.error("Recovery failed:", err);
+            setAudioError("Lỗi khi phát audio");
+            useBookAudioStore.getState().pauseTrack();
+         } finally {
+            setIsLoadingAudio(false);
+         }
+       };
+       reloadAudio();
+    } else {
+      // If already retried or no src, just fail
+      if (e.currentTarget.src) {
+        setAudioError("Lỗi khi phát audio");
+        useBookAudioStore.getState().pauseTrack();
+      }
     }
-  }, []);
+  }, [retryCount, currentChapter, isPlaying]);
+
+  // Reset retry count when chapter changes
+  useEffect(() => {
+    setRetryCount(0);
+  }, [currentChapter?.id]);
 
   const handlePlaySignal = useCallback(() => {
        // Sync store playing state if needed

@@ -54,10 +54,8 @@ export default async function ChapterPage({ params }: PageProps) {
     getBookBySlugAction(bookSlug),
   ]);
 
-  // Fetch content only if user has access
-  const chapterContent = response.hasAccess && response.contentUrl
-    ? await getChaptersContent(response.contentUrl)
-    : "";
+  // Pass contentUrl to client for streaming
+  const contentUrl = response.hasAccess ? response.contentUrl : null;
 
   const currentChapterIndex = chapters.findIndex(
     (ch) => ch.slug === chapterSlug
@@ -77,11 +75,14 @@ export default async function ChapterPage({ params }: PageProps) {
       chapterTitle={response.title}
       chapterOrder={currentChapter?.order || response.order}
       accessType={book?.accessType}
+      bookId={book?.id}
+      chapterPrice={book?.price}
     >
       <div className="h-screen w-screen bg-background">
         <Suspense fallback={<div className="h-screen w-screen bg-background" />}>
           <IframeBookReader
-            initialHtml={chapterContent}
+            initialHtml=""
+            contentUrl={contentUrl}
             title={response.title}
             bookSlug={bookSlug}
             chapterSlug={chapterSlug}
@@ -91,8 +92,10 @@ export default async function ChapterPage({ params }: PageProps) {
             bookTitle={book?.title ?? response.title}
             bookCoverImage={book?.coverImage ?? null}
             bookId={book?.id ?? null}
+            isLocked={!response.hasAccess}
           />
         </Suspense>
+
       </div>
     </ChapterAccessGuard>
   );

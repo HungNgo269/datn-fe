@@ -21,7 +21,7 @@ export function useReaderHtml({
     FONTS.find((f) => f.id === fontId)?.value || "sans-serif";
 
   const processedHtml = useMemo(() => {
-    let fixedHtml = initialHtml.replace(/\.\.\/fonts\//g, "/fonts/");
+    let fixedHtml = (initialHtml || "").replace(/\.\.\/fonts\//g, "/fonts/");
     const isPaged = readMode === "paged";
     const spacerHtml = '<div id="force-new-page-spacer"></div>';
 

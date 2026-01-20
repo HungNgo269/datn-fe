@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   HoverCard,
   HoverCardContent,
@@ -191,9 +192,31 @@ export function AdminBookList({
                   {book.createdAt ? `${formatDate(book.createdAt)}` : "--"}
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="inline-flex items-center text-xs font-medium">
-                    {book.accessType === "FREE" ? "Miễn phí" : "Trả phí hoặc hội viên"}
-                  </span>
+                  {book.accessType === "FREE" && (
+                    <Badge
+                      variant="outline"
+                      className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                    >
+                      Miễn phí
+                    </Badge>
+                  )}
+                  {book.accessType === "PURCHASE" && (
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-50"
+                    >
+                      Trả phí
+                    </Badge>
+                  )}
+                  {book.accessType === "MEMBERSHIP" && (
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50"
+                    >
+                      Hội viên
+                    </Badge>
+                  )}
+                  {!book.accessType && <span className="text-slate-500">--</span>}
                 </TableCell>
                 <TableCell className="text-slate-600 text-center">
                   {book.price ? `${book.price} VND` : "--"}

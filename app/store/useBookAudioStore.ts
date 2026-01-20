@@ -99,19 +99,30 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
     const { currentTrack, currentChapterIndex, isShuffleOn, repeatMode } = get();
     if (!currentTrack) return null;
     
+    // Safety check for empty chapters
+    if (!currentTrack.chapters || currentTrack.chapters.length === 0) return null;
+    
     const totalChapters = currentTrack.chapters.length;
     
-    // Repeat One - stay on same chapter
+    // Repeat One - return SAME index (handled in component to replay)
+    // But for the purpose of "Next" button in UI, typically "Next" means "Next Track"
+    // However, if the player auto-calls this on ended, we want it to replay.
+    // The player component handles the logic: if nextIndex === currentIndex, it replay.
     if (repeatMode === 2) {
       return currentChapterIndex;
     }
     
-    // Shuffle mode - pick random different chapter
+    // Shuffle mode
     if (isShuffleOn && totalChapters > 1) {
+      // Simple random for now. For better shuffle, we'd need a played history.
       let randomIndex: number;
+      // Try to find a different chapter
+      let attempts = 0;
       do {
         randomIndex = Math.floor(Math.random() * totalChapters);
-      } while (randomIndex === currentChapterIndex);
+        attempts++;
+      } while (randomIndex === currentChapterIndex && attempts < 5);
+      
       return randomIndex;
     }
     
@@ -121,7 +132,7 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
       return nextIndex;
     }
     
-    // At end - check repeat mode
+    // At end - check repeat all
     if (repeatMode === 1) {
       return 0; // Loop back to first
     }

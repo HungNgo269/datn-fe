@@ -5,7 +5,7 @@ import { THEMES } from "./readerSetting";
 
 interface ReaderFrameProps {
   iframeRef: RefObject<HTMLIFrameElement | null>;
-  content: string;
+  srcDoc?: string | null;
   onLoad: () => void;
   isReady: boolean;
   themeId: string;
@@ -14,7 +14,7 @@ interface ReaderFrameProps {
 
 export default function ReaderFrame({
   iframeRef,
-  content,
+  srcDoc,
   onLoad,
   isReady,
   themeId,
@@ -67,7 +67,7 @@ export default function ReaderFrame({
 
       <iframe
         ref={iframeRef}
-        srcDoc={content}
+        srcDoc={srcDoc ?? undefined}
         onLoad={handleIframeLoad}
         className="w-full h-full border-none block transition-opacity duration-200"
         sandbox="allow-scripts allow-same-origin"

@@ -11,10 +11,13 @@ import ReaderSettings, { THEMES } from "./readerSetting";
 import ReaderTopBar from "./ReaderTopBar";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useReaderDataStore } from "@/app/store/useReaderDataStore";
+import { LoadingBar } from "@/app/share/components/ui/loading-bar";
 import type { NoteColor } from "@/app/types/book.types";
 import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
 import { useReaderHtml } from "../hook/useReaderHTML";
 import { useReaderPagination } from "../hook/useReaderPagination";
+import { useChapterStream } from "../hook/useChapterStream";
+import { useChapterPrefetch } from "../hook/useChapterPrefetch";
 
 const NOTE_HIGHLIGHT_COLORS: Record<NoteColor, string> = {
   yellow: "rgba(253, 224, 71, 0.6)",
@@ -35,6 +38,8 @@ interface Props {
   bookTitle?: string;
   bookCoverImage?: string | null;
   bookId?: number | null;
+  contentUrl?: string | null;
+  isLocked?: boolean;
 }
 
 export default function IframeBookReader({
@@ -46,7 +51,10 @@ export default function IframeBookReader({
   nextChapterSlug,
   bookTitle,
   bookCoverImage,
+
   bookId,
+  contentUrl,
+  isLocked = false,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -85,10 +93,75 @@ export default function IframeBookReader({
   const setThemeId = useReaderDataStore((state) => state.setThemeId);
   const setReadMode = useReaderDataStore((state) => state.setReadMode);
   const [containerBg, setContainerBg] = useState<string>("");
+  const streamBufferRef = useRef("");
+  const headerInjectedRef = useRef(false);
   const fontsSnapshotRef = useRef({ fontId, fontSize, readMode });
   const hasCalculatedLayoutRef = useRef(false);
+
+  // Reset streaming state when URL changes
+  useEffect(() => {
+    streamBufferRef.current = "";
+    headerInjectedRef.current = false;
+  }, [contentUrl]);
+
+  // Pre-calculate empty styles for streaming initialization
+  const emptyStyles = useReaderHtml({
+    initialHtml: "",
+    fontSize,
+    fontId,
+    themeId,
+    readMode,
+  });
+
+  const {
+    content: streamedContent,
+    isLoading: isStreaming,
+    progress: downloadProgress,
+  } = useChapterStream({
+    contentUrl,
+    chapterSlug,
+    bookSlug,
+    onChunk: (chunk) => {
+      const doc = iframeRef.current?.contentDocument;
+      if (!doc || !iframeRef.current) return;
+
+      const safeChunk = chunk.replace(/\.\.\/fonts\//g, "/fonts/");
+
+      if (headerInjectedRef.current) {
+        doc.write(safeChunk);
+        return;
+      }
+
+      streamBufferRef.current += safeChunk;
+      
+      if (streamBufferRef.current.includes("</head>")) {
+         doc.open();
+         // Inject styles before </head>
+         const injectedBuffer = streamBufferRef.current.replace("</head>", `${emptyStyles}</head>`);
+         doc.write(injectedBuffer);
+         headerInjectedRef.current = true;
+         streamBufferRef.current = ""; 
+      }
+    },
+    onFinish: () => {
+      const doc = iframeRef.current?.contentDocument;
+      if (doc) {
+        if (!headerInjectedRef.current && streamBufferRef.current) {
+             doc.open();
+             doc.write(emptyStyles + streamBufferRef.current);
+        }
+        doc.close();
+      }
+    },
+  });
+
+
+
+  const contentToDisplay = contentUrl ? (isStreaming ? null : streamedContent) : initialHtml;
+
+  // Only process HTML if we are NOT streaming (i.e. static content or cache hit)
   const processedHtml = useReaderHtml({
-    initialHtml,
+    initialHtml: contentToDisplay || "",
     fontSize,
     fontId,
     themeId,
@@ -578,6 +651,12 @@ export default function IframeBookReader({
     userId,
   ]);
 
+  // Prefetch next chapter
+  useChapterPrefetch({
+    bookSlug,
+    nextChapterSlug: resolvedNextChapterSlug,
+  });
+
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-muted transition-colors duration-300">
       <ReaderTopBar
@@ -599,14 +678,27 @@ export default function IframeBookReader({
       />
 
       <div className="relative h-full w-full flex-1 overflow-hidden">
-        <ReaderFrame
-          iframeRef={iframeRef}
-          content={processedHtml}
-          onLoad={handleIframeLoad}
-          isReady={isPositionRestored}
-          themeId={themeId}
-          bgStyle={containerBg}
-        />
+        {isStreaming && (
+          <LoadingBar 
+            progress={downloadProgress} 
+            className="absolute top-0 left-0 right-0 z-50 h-1" 
+          />
+        )}
+        
+        <div className={isLocked ? "filter blur-sm select-none pointer-events-none" : ""}>
+            <ReaderFrame
+            iframeRef={iframeRef}
+            srcDoc={isStreaming ? undefined : processedHtml}
+            onLoad={handleIframeLoad}
+            isReady={isPositionRestored}
+            themeId={themeId}
+            bgStyle={containerBg}
+            />
+        </div>
+        
+        {isLocked && (
+            <div className="absolute inset-0 z-10 bg-transparent" />
+        )}
 
         {readMode === "paged" && (
           <ReaderPageNavigation
