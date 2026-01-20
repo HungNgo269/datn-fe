@@ -11,25 +11,29 @@ import ReaderSettings, { THEMES } from "./readerSetting";
 import ReaderTopBar from "./ReaderTopBar";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useReaderDataStore } from "@/app/store/useReaderDataStore";
-import { LoadingBar } from "@/app/share/components/ui/loading-bar";
 import type { NoteColor } from "@/app/types/book.types";
 import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
 import { useReaderHtml } from "../hook/useReaderHTML";
 import { useReaderPagination } from "../hook/useReaderPagination";
 import { useChapterStream } from "../hook/useChapterStream";
 import { useChapterPrefetch } from "../hook/useChapterPrefetch";
+import {
+  applyNoteHighlights as applyReaderNoteHighlights,
+  highlightSelection as highlightReaderSelection,
+} from "../utils/readerHighlights";
+import {
+  ReaderBlockingOverlay,
+  ReaderStreamError,
+  ReaderStreamProgress,
+  ReaderStreamSkeleton,
+} from "./ReaderStreamOverlays";
 
-const NOTE_HIGHLIGHT_COLORS: Record<NoteColor, string> = {
-  yellow: "rgba(253, 224, 71, 0.6)",
-  green: "rgba(134, 239, 172, 0.6)",
-  blue: "rgba(147, 197, 253, 0.6)",
-  pink: "rgba(249, 168, 212, 0.6)",
-  purple: "rgba(196, 181, 253, 0.6)",
-};
+const READER_ROOT_ID = "reader-content-root";
 
 interface Props {
   initialHtml: string;
   title: string;
+  contentUrl?: string | null;
   bookSlug?: string;
   chapterSlug?: string;
   chapters?: ChapterCardProps[];
@@ -38,22 +42,20 @@ interface Props {
   bookTitle?: string;
   bookCoverImage?: string | null;
   bookId?: number | null;
-  contentUrl?: string | null;
   isLocked?: boolean;
 }
 
 export default function IframeBookReader({
   initialHtml,
   title,
+  contentUrl,
   bookSlug,
   chapterSlug,
   chapters = [],
   nextChapterSlug,
   bookTitle,
   bookCoverImage,
-
   bookId,
-  contentUrl,
   isLocked = false,
 }: Props) {
   const router = useRouter();
@@ -73,16 +75,16 @@ export default function IframeBookReader({
   const toggleBookmark = useReaderDataStore((state) => state.toggleBookmark);
   const addNoteToStore = useReaderDataStore((state) => state.addNote);
   const removeBookmarkFromStore = useReaderDataStore(
-    (state) => state.removeBookmark
+    (state) => state.removeBookmark,
   );
   const removeNoteFromStore = useReaderDataStore((state) => state.removeNote);
   const updateContinueReading = useReaderDataStore(
-    (state) => state.updateContinueReading
+    (state) => state.updateContinueReading,
   );
 
   const [ready, setReady] = useState(false);
   const [openPanel, setOpenPanel] = useState<"settings" | "chapters" | null>(
-    null
+    null,
   );
   const fontSize = useReaderDataStore((state) => state.fontSize);
   const fontId = useReaderDataStore((state) => state.fontId);
@@ -93,75 +95,31 @@ export default function IframeBookReader({
   const setThemeId = useReaderDataStore((state) => state.setThemeId);
   const setReadMode = useReaderDataStore((state) => state.setReadMode);
   const [containerBg, setContainerBg] = useState<string>("");
-  const streamBufferRef = useRef("");
-  const headerInjectedRef = useRef(false);
   const fontsSnapshotRef = useRef({ fontId, fontSize, readMode });
   const hasCalculatedLayoutRef = useRef(false);
+  const [retryToken, setRetryToken] = useState(0);
+  const [hasStreamedContent, setHasStreamedContent] = useState(
+    Boolean(initialHtml),
+  );
+  const hasStreamedContentRef = useRef(Boolean(initialHtml));
+  const streamedBodyRef = useRef(initialHtml);
+  const streamedHeadRef = useRef("");
+  const headNodesRef = useRef<Node[]>([]);
+  const recalcTimerRef = useRef<number | null>(null);
+  const restoreTargetRef = useRef<number | null>(null);
+  const readerShellHtml = useMemo(
+    () =>
+      '<!doctype html><html><head></head><body><div id="reader-content-root"></div></body></html>',
+    [],
+  );
 
-  // Reset streaming state when URL changes
-  useEffect(() => {
-    streamBufferRef.current = "";
-    headerInjectedRef.current = false;
-  }, [contentUrl]);
-
-  // Pre-calculate empty styles for streaming initialization
-  const emptyStyles = useReaderHtml({
-    initialHtml: "",
-    fontSize,
-    fontId,
-    themeId,
-    readMode,
-  });
-
-  const {
-    content: streamedContent,
-    isLoading: isStreaming,
-    progress: downloadProgress,
-  } = useChapterStream({
-    contentUrl,
-    chapterSlug,
+  useChapterPrefetch({
     bookSlug,
-    onChunk: (chunk) => {
-      const doc = iframeRef.current?.contentDocument;
-      if (!doc || !iframeRef.current) return;
-
-      const safeChunk = chunk.replace(/\.\.\/fonts\//g, "/fonts/");
-
-      if (headerInjectedRef.current) {
-        doc.write(safeChunk);
-        return;
-      }
-
-      streamBufferRef.current += safeChunk;
-      
-      if (streamBufferRef.current.includes("</head>")) {
-         doc.open();
-         // Inject styles before </head>
-         const injectedBuffer = streamBufferRef.current.replace("</head>", `${emptyStyles}</head>`);
-         doc.write(injectedBuffer);
-         headerInjectedRef.current = true;
-         streamBufferRef.current = ""; 
-      }
-    },
-    onFinish: () => {
-      const doc = iframeRef.current?.contentDocument;
-      if (doc) {
-        if (!headerInjectedRef.current && streamBufferRef.current) {
-             doc.open();
-             doc.write(emptyStyles + streamBufferRef.current);
-        }
-        doc.close();
-      }
-    },
+    nextChapterSlug,
   });
 
-
-
-  const contentToDisplay = contentUrl ? (isStreaming ? null : streamedContent) : initialHtml;
-
-  // Only process HTML if we are NOT streaming (i.e. static content or cache hit)
   const processedHtml = useReaderHtml({
-    initialHtml: contentToDisplay || "",
+    initialHtml: readerShellHtml,
     fontSize,
     fontId,
     themeId,
@@ -169,6 +127,8 @@ export default function IframeBookReader({
   });
 
   const positionKeyBase = `reading-pos-${bookSlug}-${chapterSlug}`;
+  const storageKey =
+    readMode === "paged" ? positionKeyBase : `${positionKeyBase}-scroll`;
   const {
     currentPage,
     totalPages,
@@ -179,11 +139,111 @@ export default function IframeBookReader({
     calculateTotalPages,
   } = useReaderPagination({
     iframeRef,
-    storageKey:
-      readMode === "paged" ? positionKeyBase : `${positionKeyBase}-scroll`,
+    storageKey,
     ready,
     readMode,
     initialPage: initialPageFromUrl,
+  });
+
+  const scheduleRecalc = useCallback(() => {
+    if (recalcTimerRef.current !== null) return;
+    recalcTimerRef.current = window.setTimeout(() => {
+      recalcTimerRef.current = null;
+      calculateTotalPages();
+    }, 200);
+  }, [calculateTotalPages]);
+
+  const markContentReady = useCallback(() => {
+    if (hasStreamedContentRef.current) return;
+    hasStreamedContentRef.current = true;
+    setHasStreamedContent(true);
+  }, []);
+
+  const ensureRoot = useCallback((doc: Document) => {
+    let root = doc.getElementById(READER_ROOT_ID);
+    if (!root) {
+      root = doc.createElement("div");
+      root.id = READER_ROOT_ID;
+      doc.body.appendChild(root);
+    }
+    return root;
+  }, []);
+
+  const applyHeadHtml = useCallback(
+    (headHtml: string) => {
+      streamedHeadRef.current = headHtml;
+      const doc = iframeRef.current?.contentDocument;
+      if (!doc?.head) return;
+
+      headNodesRef.current.forEach((node) =>
+        node.parentNode?.removeChild(node),
+      );
+      headNodesRef.current = [];
+
+      if (!headHtml) return;
+
+      const template = doc.createElement("template");
+      template.innerHTML = headHtml;
+      const nodes = Array.from(template.content.childNodes);
+      nodes.forEach((node) => doc.head.appendChild(node));
+      headNodesRef.current = nodes;
+    },
+    [iframeRef],
+  );
+
+  const appendChunk = useCallback(
+    (chunk: string) => {
+      if (!chunk) return;
+      streamedBodyRef.current += chunk;
+      markContentReady();
+
+      const doc = iframeRef.current?.contentDocument;
+      if (!doc) return;
+
+      const root = ensureRoot(doc);
+      root.insertAdjacentHTML("beforeend", chunk);
+      scheduleRecalc();
+    },
+    [ensureRoot, iframeRef, markContentReady, scheduleRecalc],
+  );
+
+  const resetStreamState = useCallback(() => {
+    streamedBodyRef.current = initialHtml || "";
+    streamedHeadRef.current = "";
+    headNodesRef.current.forEach((node) => node.parentNode?.removeChild(node));
+    headNodesRef.current = [];
+    hasCalculatedLayoutRef.current = false;
+    hasStreamedContentRef.current = Boolean(initialHtml);
+    setHasStreamedContent(Boolean(initialHtml));
+
+    const doc = iframeRef.current?.contentDocument;
+    if (doc) {
+      const root = ensureRoot(doc);
+      root.innerHTML = streamedBodyRef.current;
+    }
+  }, [ensureRoot, iframeRef, initialHtml]);
+
+  useEffect(() => {
+    resetStreamState();
+  }, [bookSlug, chapterSlug, resetStreamState, retryToken]);
+
+  const shouldStream = Boolean(
+    !isLocked && (contentUrl || (bookSlug && chapterSlug)),
+  );
+
+  const {
+    isLoading: isStreamLoading,
+    progress: streamProgress,
+    error: streamError,
+  } = useChapterStream({
+    contentUrl,
+    bookSlug,
+    chapterSlug,
+    enabled: shouldStream,
+    refreshKey: retryToken,
+    onHead: applyHeadHtml,
+    onChunk: appendChunk,
+    onFinish: scheduleRecalc,
   });
 
   const [selectedText, setSelectedText] = useState("");
@@ -191,177 +251,34 @@ export default function IframeBookReader({
   const bookBookmarks = useMemo(() => {
     if (!bookSlug) return [];
     return bookmarksStore.filter(
-      (bookmark) => bookmark.bookSlug === bookSlug && bookmark.userId === userId
+      (bookmark) =>
+        bookmark.bookSlug === bookSlug && bookmark.userId === userId,
     );
   }, [bookSlug, bookmarksStore, userId]);
 
   const bookNotes = useMemo(() => {
     if (!bookSlug) return [];
     return notesStore.filter(
-      (note) => note.bookSlug === bookSlug && note.userId === userId
+      (note) => note.bookSlug === bookSlug && note.userId === userId,
     );
   }, [bookSlug, notesStore, userId]);
 
   const applyNoteHighlights = useCallback(
     (doc: Document, notes: typeof bookNotes) => {
-      const body = doc.body;
-      if (!body) return;
-
-      const existing = doc.querySelectorAll("mark[data-note-highlight]");
-      existing.forEach((node) => {
-        const parent = node.parentNode;
-        if (!parent) return;
-        const fragment = doc.createDocumentFragment();
-        while (node.firstChild) {
-          fragment.appendChild(node.firstChild);
-        }
-        parent.replaceChild(fragment, node);
-        parent.normalize();
-      });
-
-      const highlightNote = (note: (typeof notes)[number]) => {
-        const text = note.selectedText?.trim();
-        if (!text) return;
-
-        const textNodes: { node: Text; start: number; end: number }[] = [];
-        let fullText = "";
-        const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
-          acceptNode(node) {
-            if (!node.nodeValue || !node.nodeValue.trim()) {
-              return NodeFilter.FILTER_REJECT;
-            }
-            const parent = (node as Text).parentElement;
-            if (!parent) return NodeFilter.FILTER_REJECT;
-            if (parent.closest("mark[data-note-highlight]")) {
-              return NodeFilter.FILTER_REJECT;
-            }
-            const tag = parent.tagName;
-            if (tag === "SCRIPT" || tag === "STYLE") {
-              return NodeFilter.FILTER_REJECT;
-            }
-            return NodeFilter.FILTER_ACCEPT;
-          },
-        });
-
-        while (walker.nextNode()) {
-          const node = walker.currentNode as Text;
-          const start = fullText.length;
-          fullText += node.nodeValue ?? "";
-          textNodes.push({ node, start, end: fullText.length });
-        }
-
-        const matchIndex = fullText.indexOf(text);
-        if (matchIndex === -1) return;
-        const matchEnd = matchIndex + text.length;
-
-        const startNode = textNodes.find((entry) => entry.end > matchIndex);
-        const endNode = textNodes.find((entry) => entry.end >= matchEnd);
-        if (!startNode || !endNode) return;
-
-        const range = doc.createRange();
-        range.setStart(startNode.node, matchIndex - startNode.start);
-        range.setEnd(endNode.node, matchEnd - endNode.start);
-
-        const mark = doc.createElement("mark");
-        mark.setAttribute("data-note-highlight", "true");
-        const color = note.color ?? "yellow";
-        mark.setAttribute("data-color", color);
-        mark.style.cssText = [
-          `background-color: ${NOTE_HIGHLIGHT_COLORS[color]} !important`,
-          "color: inherit",
-          "padding: 0 2px",
-          "border-radius: 2px",
-        ].join("; ");
-
-        try {
-          mark.appendChild(range.extractContents());
-          range.insertNode(mark);
-        } catch {
-          // Ignore highlight errors for complex ranges.
-        }
-      };
-
-      notes.forEach(highlightNote);
+      applyReaderNoteHighlights(doc, notes);
     },
-    []
+    [],
   );
 
-  const highlightSelection = useCallback(
-    (doc: Document, color: NoteColor) => {
-      const selection = doc.getSelection();
-      if (!selection || selection.rangeCount === 0) return;
-      const range = selection.getRangeAt(0);
-      if (range.collapsed) return;
-
-      const textNodes: Text[] = [];
-      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-          if (!node.nodeValue || !node.nodeValue.trim()) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          const parent = (node as Text).parentElement;
-          if (!parent) return NodeFilter.FILTER_REJECT;
-          if (parent.closest("mark[data-note-highlight]")) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          const tag = parent.tagName;
-          if (tag === "SCRIPT" || tag === "STYLE") {
-            return NodeFilter.FILTER_REJECT;
-          }
-          return range.intersectsNode(node)
-            ? NodeFilter.FILTER_ACCEPT
-            : NodeFilter.FILTER_REJECT;
-        },
-      });
-
-      try {
-        while (walker.nextNode()) {
-          textNodes.push(walker.currentNode as Text);
-        }
-
-        textNodes.forEach((node) => {
-          let startOffset = 0;
-          let endOffset = node.nodeValue?.length ?? 0;
-
-          if (node === range.startContainer) {
-            startOffset = range.startOffset;
-          }
-          if (node === range.endContainer) {
-            endOffset = range.endOffset;
-          }
-
-          if (startOffset >= endOffset) return;
-
-          const endSplit = node.splitText(endOffset);
-          const midSplit = node.splitText(startOffset);
-
-          const mark = doc.createElement("mark");
-          mark.setAttribute("data-note-highlight", "true");
-          mark.setAttribute("data-color", color);
-          mark.style.cssText = [
-            `background-color: ${NOTE_HIGHLIGHT_COLORS[color]} !important`,
-            "color: inherit",
-            "padding: 0 2px",
-            "border-radius: 2px",
-          ].join("; ");
-          mark.textContent = midSplit.nodeValue ?? "";
-          midSplit.parentNode?.replaceChild(mark, midSplit);
-          if (endSplit) {
-            endSplit.parentNode?.normalize();
-          }
-        });
-        selection.removeAllRanges();
-      } catch {
-        // Fall back to text matching on next render.
-      }
-    },
-    []
-  );
+  const highlightSelection = useCallback((doc: Document, color: NoteColor) => {
+    highlightReaderSelection(doc, color);
+  }, []);
 
   useEffect(() => {
-    if (!ready || !iframeRef.current?.contentDocument) return;
+    if (!ready || isStreamLoading || !iframeRef.current?.contentDocument)
+      return;
     applyNoteHighlights(iframeRef.current.contentDocument, bookNotes);
-  }, [applyNoteHighlights, bookNotes, ready]);
+  }, [applyNoteHighlights, bookNotes, isStreamLoading, ready]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -371,6 +288,37 @@ export default function IframeBookReader({
       .trim();
     setContainerBg(bgColor || "transparent");
   }, [themeId]);
+
+  useEffect(() => {
+    restoreTargetRef.current = null;
+  }, [bookSlug, chapterSlug, initialPageFromUrl, readMode]);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (restoreTargetRef.current !== null) return;
+
+    let targetPage = initialPageFromUrl;
+    if (!targetPage && typeof window !== "undefined") {
+      const savedPage = localStorage.getItem(storageKey);
+      if (savedPage) {
+        const parsed = parseInt(savedPage, 10);
+        if (!isNaN(parsed)) {
+          targetPage = parsed;
+        }
+      }
+    }
+
+    restoreTargetRef.current = targetPage ?? 1;
+  }, [initialPageFromUrl, ready, storageKey]);
+
+  useEffect(() => {
+    const target = restoreTargetRef.current;
+    if (!target || target <= 1) return;
+    if (currentPage !== 1) return;
+    if (totalPages >= target) {
+      goToPage(target);
+    }
+  }, [currentPage, goToPage, totalPages]);
 
   const currentChapter = useMemo(() => {
     return chapters.find((chapter) => chapter.slug === chapterSlug);
@@ -407,7 +355,7 @@ export default function IframeBookReader({
         router.push(`/books/${bookSlug}`);
       }
     },
-    [bookSlug, router]
+    [bookSlug, router],
   );
 
   const goToNextChapter = useCallback(() => {
@@ -513,7 +461,21 @@ export default function IframeBookReader({
     readMode,
   ]);
 
-  const handleIframeLoad = useCallback(() => setReady(true), []);
+  const handleIframeLoad = useCallback(() => {
+    setReady(true);
+    const doc = iframeRef.current?.contentDocument;
+    if (!doc) return;
+
+    const root = ensureRoot(doc);
+    root.innerHTML = streamedBodyRef.current;
+
+    if (streamedBodyRef.current) {
+      markContentReady();
+    }
+
+    applyHeadHtml(streamedHeadRef.current);
+    scheduleRecalc();
+  }, [applyHeadHtml, ensureRoot, markContentReady, scheduleRecalc]);
 
   const handleBookmark = useCallback(() => {
     if (!bookSlug) {
@@ -578,7 +540,7 @@ export default function IframeBookReader({
       selectedText,
       title,
       userId,
-    ]
+    ],
   );
 
   const handleNoteClick = useCallback(() => {
@@ -598,13 +560,17 @@ export default function IframeBookReader({
         router.push(`/books/${bookSlug}/chapter/${slug}`);
       }
     },
-    [bookSlug, router]
+    [bookSlug, router],
   );
 
   const handleNoteDialogClose = useCallback(() => {
     setShowNoteDialog(false);
     setSelectedText("");
     iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    setRetryToken((prev) => prev + 1);
   }, []);
 
   const isSettingsOpen = openPanel === "settings";
@@ -616,12 +582,15 @@ export default function IframeBookReader({
 
   const closePanels = useCallback(() => setOpenPanel(null), []);
 
-  const showBlockingOverlay = !ready || !isPositionRestored;
+  const showBlockingOverlay = !ready;
+  const showStreamProgress = shouldStream && isStreamLoading;
+  const showStreamSkeleton = showStreamProgress && !hasStreamedContent;
+  const showStreamError = Boolean(streamError);
 
   const isBookmarked = bookBookmarks.some(
     (bookmark) =>
       bookmark.page === currentPage &&
-      bookmark.chapterSlug === (chapterSlug || null)
+      bookmark.chapterSlug === (chapterSlug || null),
   );
 
   useEffect(() => {
@@ -651,12 +620,6 @@ export default function IframeBookReader({
     userId,
   ]);
 
-  // Prefetch next chapter
-  useChapterPrefetch({
-    bookSlug,
-    nextChapterSlug: resolvedNextChapterSlug,
-  });
-
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-muted transition-colors duration-300">
       <ReaderTopBar
@@ -678,27 +641,22 @@ export default function IframeBookReader({
       />
 
       <div className="relative h-full w-full flex-1 overflow-hidden">
-        {isStreaming && (
-          <LoadingBar 
-            progress={downloadProgress} 
-            className="absolute top-0 left-0 right-0 z-50 h-1" 
-          />
-        )}
-        
-        <div className={isLocked ? "filter blur-sm select-none pointer-events-none" : ""}>
-            <ReaderFrame
-            iframeRef={iframeRef}
-            srcDoc={isStreaming ? undefined : processedHtml}
-            onLoad={handleIframeLoad}
-            isReady={isPositionRestored}
-            themeId={themeId}
-            bgStyle={containerBg}
-            />
-        </div>
-        
-        {isLocked && (
-            <div className="absolute inset-0 z-10 bg-transparent" />
-        )}
+        {showStreamProgress ? (
+          <ReaderStreamProgress progress={streamProgress} />
+        ) : null}
+
+        <ReaderFrame
+          iframeRef={iframeRef}
+          srcDoc={processedHtml}
+          onLoad={handleIframeLoad}
+          isReady={ready}
+          themeId={themeId}
+          bgStyle={containerBg}
+        />
+
+        {showStreamSkeleton ? <ReaderStreamSkeleton /> : null}
+
+        {showStreamError ? <ReaderStreamError onRetry={handleRetry} /> : null}
 
         {readMode === "paged" && (
           <ReaderPageNavigation
@@ -711,11 +669,7 @@ export default function IframeBookReader({
           />
         )}
 
-        {showBlockingOverlay && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-green-500" />
-          </div>
-        )}
+        {showBlockingOverlay && <ReaderBlockingOverlay />}
       </div>
 
       <ReaderSettings
@@ -745,7 +699,7 @@ export default function IframeBookReader({
               // Navigate to the correct chapter first, then the page
               if (bookSlug) {
                 router.push(
-                  `/books/${bookSlug}/chapter/${bookmark.chapterSlug}?page=${bookmark.page}`
+                  `/books/${bookSlug}/chapter/${bookmark.chapterSlug}?page=${bookmark.page}`,
                 );
               }
             } else {
@@ -757,7 +711,7 @@ export default function IframeBookReader({
               // Navigate to the correct chapter first, then the page
               if (bookSlug) {
                 router.push(
-                  `/books/${bookSlug}/chapter/${note.chapterSlug}?page=${note.page}`
+                  `/books/${bookSlug}/chapter/${note.chapterSlug}?page=${note.page}`,
                 );
               }
             } else {

@@ -1,7 +1,6 @@
 ﻿import type { Metadata } from "next";
 import { Suspense } from "react";
 import {
-  getChaptersContent,
   getChaptersDetails,
   getChaptersOfBook,
 } from "@/app/feature/chapters/actions/chapters.actions";
@@ -15,13 +14,13 @@ type PageProps = {
     chapterSlug: string;
   }>;
 };
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ bookSlug: string; chapterSlug: string }>;
 }): Promise<Metadata> {
   const { bookSlug, chapterSlug } = await params;
+
   try {
     const [book, chapter] = await Promise.all([
       getBookBySlugAction(bookSlug),
@@ -31,7 +30,7 @@ export async function generateMetadata({
     const chapterTitle = chapter?.title;
 
     if (chapterTitle && bookTitle) {
-      return { title: `${chapterTitle} ƒ?" ${bookTitle} | NextBook` };
+      return { title: `${chapterTitle} - ${bookTitle} | NextBook` };
     }
     if (chapterTitle) {
       return { title: `${chapterTitle} | NextBook` };
@@ -54,11 +53,8 @@ export default async function ChapterPage({ params }: PageProps) {
     getBookBySlugAction(bookSlug),
   ]);
 
-  // Pass contentUrl to client for streaming
-  const contentUrl = response.hasAccess ? response.contentUrl : null;
-
   const currentChapterIndex = chapters.findIndex(
-    (ch) => ch.slug === chapterSlug
+    (ch) => ch.slug === chapterSlug,
   );
   const currentChapter = chapters[currentChapterIndex];
   const nextChapter =
@@ -79,11 +75,13 @@ export default async function ChapterPage({ params }: PageProps) {
       chapterPrice={book?.price}
     >
       <div className="h-screen w-screen bg-background">
-        <Suspense fallback={<div className="h-screen w-screen bg-background" />}>
+        <Suspense
+          fallback={<div className="h-screen w-screen bg-background" />}
+        >
           <IframeBookReader
             initialHtml=""
-            contentUrl={contentUrl}
             title={response.title}
+            contentUrl={response.contentUrl}
             bookSlug={bookSlug}
             chapterSlug={chapterSlug}
             chapters={chapters}
@@ -95,7 +93,6 @@ export default async function ChapterPage({ params }: PageProps) {
             isLocked={!response.hasAccess}
           />
         </Suspense>
-
       </div>
     </ChapterAccessGuard>
   );
