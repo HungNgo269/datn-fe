@@ -82,7 +82,7 @@ export default function BookCard({
             </h3>
           </Link>
 
-          <div className="truncate text-xs text-muted-foreground italic">
+          <div className="truncate text-xs text-muted-foreground ">
             {book.authors?.map((author, index) => (
               <span key={author.author.id}>
                 <Link

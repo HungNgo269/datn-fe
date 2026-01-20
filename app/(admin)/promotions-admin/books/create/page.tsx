@@ -278,12 +278,10 @@ export default function CreateBookPromotionPage() {
             {!applyToAllBooks && (
               <div className="space-y-3">
                 <Label>Chọn sách áp dụng *</Label>
-                <div className="rounded-lg border border-slate-200">
-                   <BookSelectionTable
-                    selectedIds={selectedIds}
-                    onSelectionChange={setSelectedIds}
-                  />
-                </div>
+                <BookSelectionTable
+                  selectedIds={selectedIds}
+                  onSelectionChange={setSelectedIds}
+                />
               </div>
             )}
           </section>

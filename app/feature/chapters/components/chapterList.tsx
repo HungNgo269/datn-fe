@@ -39,12 +39,10 @@ export function ChapterList({
   const [chapterOrder, setChapterOrder] = useState<"DESC" | "ASC">("DESC");
   const pathName = usePathname();
   
-  // Auth check
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const accessToken = Cookies.get("accessToken");
   const isUserAuthenticated = isAuthenticated || Boolean(accessToken);
 
-  // Modal state
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<ChapterCardProps | null>(null);
@@ -89,7 +87,6 @@ export function ChapterList({
 
   return (
     <div className="flex w-full flex-col">
-      {/* Header */}
       <div className="flex w-full flex-row items-center justify-between py-3 px-1">
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold text-foreground">
@@ -122,7 +119,6 @@ export function ChapterList({
         </div>
       </div>
 
-      {/* Chapter List Container */}
       <div className="relative rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="divide-y-0">
           {visibleChapters.map((chapter) => (
@@ -174,7 +170,6 @@ export function ChapterList({
           </button>
         </div>
       )}
-      {/* Purchase warning modal */}
       <PurchaseChapterWarningModal
         open={showPurchaseModal}
         onOpenChange={setShowPurchaseModal}
@@ -186,7 +181,6 @@ export function ChapterList({
         accessType={accessType}
       />
 
-      {/* Subscription warning modal */}
       <SubscriptionWarningModal
         open={showSubscriptionModal}
         onOpenChange={setShowSubscriptionModal}

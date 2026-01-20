@@ -192,7 +192,7 @@ export function AdminBookList({
                 </TableCell>
                 <TableCell className="text-center">
                   <span className="inline-flex items-center text-xs font-medium">
-                    {book.accessType === "FREE" ? "Miễn phí" : "Trả phí"}
+                    {book.accessType === "FREE" ? "Miễn phí" : "Trả phí hoặc hội viên"}
                   </span>
                 </TableCell>
                 <TableCell className="text-slate-600 text-center">

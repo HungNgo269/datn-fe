@@ -92,10 +92,6 @@ export function BookForm({
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const { submitAuthor } = useAuthorSubmit();
 
-  // Initialize options for AsyncCreatableSelect if in edit mode
-  const [defaultAuthorOptions, setDefaultAuthorOptions] = useState<Option[]>([]);
-  const [defaultCategoryOptions, setDefaultCategoryOptions] = useState<Option[]>([]);
-
   const defaultValues: BookFormData = useMemo(
     () => ({
       title: initialData?.title || "",
@@ -118,22 +114,8 @@ export function BookForm({
     mode: "onChange",
   });
 
-  // Watch for changes that affect other fields
   const accessType = useWatch({ control: form.control, name: "accessType" });
   const watchedFile = useWatch({ control: form.control, name: "file" });
-
-  // Load initial options for select components
-  useEffect(() => {
-    // This is a bit of a hack since we don't have the full author/category objects passed in,
-    // only IDs. In a real app we might want to pass options or fetch them.
-    // However, given the current setup, we might rely on the parent to pass options
-    // OR we assume that AsyncCreatableSelect can handle IDs if we provide initial options.
-    // For now, let's assume the parent might need to pass options if we want to show labels correctly on load.
-    // BUT looking at previous code, `Step2Form` received `authorOptions` prop.
-    // I should add `authorOptions` and `categoryOptions` props or fetch them.
-    // Since `EditBookPage` fetched them, I should pass them down.
-    // Refactoring props to include options.
-  }, []);
 
   // Initialize cover preview
   useEffect(() => {
@@ -145,8 +127,6 @@ export function BookForm({
     } else if (typeof cover === "string" && cover) {
       setCoverPreview(cover);
     } else if (initialData?.currentCoverKey) {
-        // If we have a key but no direct URL string in 'cover', we might show placeholder or fetch.
-        // But usually 'cover' field holds the string URL if existing.
     }
   }, [defaultValues.cover, initialData]);
 
@@ -179,15 +159,9 @@ export function BookForm({
     setCoverPreview(null);
   }, [form, coverPreview]);
 
-  // Handle Price/FreeChapter logic
   useEffect(() => {
     if (accessType === "FREE" || accessType === "MEMBERSHIP") {
       form.setValue("price", 0);
-    } else if (accessType === "PURCHASE") {
-       const currentPrice = form.getValues("price");
-       if (currentPrice === 0) {
-           // We might want to clear it or just let validation handle it
-       }
     }
     if (accessType === "FREE") {
       form.setValue("freeChapters", 0);
@@ -225,22 +199,16 @@ export function BookForm({
       return [];
     }
   }, []);
-  
-  // Need to handle passing initial options or fetching them for display
-  // For simplicty, I will accept them as props, updated interface below.
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="w-full space-y-8">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-8">
-          
-          {/* Basic Info Section */}
           <section className="space-y-6">
             <h3 className="text-lg font-semibold text-slate-800 border-b pb-2">Thông tin cơ bản</h3>
             
             <div className="space-y-6">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   {/* File Upload - Prominent */}
                     <div className="space-y-3">
                         <Label className="text-sm font-medium text-slate-700">File sách <span className="text-rose-500">*</span></Label>
                         <div 
@@ -263,7 +231,6 @@ export function BookForm({
                         {form.formState.errors.file && <p className="text-sm text-rose-500">{form.formState.errors.file.message as string}</p>}
                     </div>
 
-                   {/* Title */}
                    <div className="space-y-3">
                     <Label htmlFor="title" className="text-sm font-medium text-slate-700">
                       Tên sách <span className="text-rose-500">*</span>
@@ -284,7 +251,6 @@ export function BookForm({
                   </div>
                </div>
 
-               {/* Slug */}
               <div className="space-y-3">
                 <Label htmlFor="slug" className="text-sm font-medium text-slate-700">Slug (URL)</Label>
                 <Input
@@ -295,7 +261,6 @@ export function BookForm({
                 />
               </div>
 
-               {/* Description */}
                <div className="space-y-3">
                 <Label className="text-sm font-medium text-slate-700">Mô tả</Label>
                 <Controller
@@ -320,10 +285,8 @@ export function BookForm({
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            {/* Left Column - Classification & Access */}
             <div className="lg:col-span-8 space-y-10">
                 
-                {/* Classification Section */}
                 <section className="space-y-6">
                     <h3 className="text-lg font-semibold text-slate-800 border-b pb-2">Phân loại</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -374,7 +337,6 @@ export function BookForm({
                     </div>
                 </section>
 
-                {/* Access Settings Section */}
                 <section className="space-y-6">
                     <h3 className="text-lg font-semibold text-slate-800 border-b pb-2">Truy cập & Giá</h3>
 
@@ -433,7 +395,6 @@ export function BookForm({
                 </section>
             </div>
 
-            {/* Right Column - Media */}
             <div className="lg:col-span-4 space-y-10">
                 <section className="space-y-6">
                      <h3 className="text-lg font-semibold text-slate-800 border-b pb-2">Ảnh bìa</h3>
@@ -474,7 +435,6 @@ export function BookForm({
         </div>
       </div>
 
-       {/* Floating Action Bar */}
       <div className="sticky bottom-6 z-50 mx-auto max-w-fit">
           <div className="bg-white/90 backdrop-blur-sm border shadow-lg rounded-full px-6 py-3 flex items-center gap-3">
                <Button variant="ghost" type="button" onClick={onCancel} disabled={isSubmitting} className="rounded-full">

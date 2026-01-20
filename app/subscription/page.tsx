@@ -65,7 +65,27 @@ function SubscriptionPageContent() {
     const fetchPlans = async () => {
       try {
         const activePlans = await getActivePlans();
-        setPlans(activePlans);
+        
+        // Sort plans: BASIC first, then PREMIUM. Within each tier, sort by duration ascending.
+        const sortedPlans = activePlans.sort((a, b) => {
+          // 1. Sort by Plan Type
+          if (a.plan !== b.plan) {
+             // "BASIC" comes before "PREMIUM"
+             return a.plan.localeCompare(b.plan); 
+          }
+          
+          // 2. Sort by Duration
+          const getDurationInMonths = (interval: string, count: number) => {
+            return interval === "YEAR" ? count * 12 : count;
+          };
+          
+          const durationA = getDurationInMonths(a.interval, a.intervalCount);
+          const durationB = getDurationInMonths(b.interval, b.intervalCount);
+          
+          return durationA - durationB;
+        });
+
+        setPlans(sortedPlans);
         // Select first plan by default
         if (activePlans.length > 0) {
           setSelectedPlanId(activePlans[0].id);

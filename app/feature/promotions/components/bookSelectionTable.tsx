@@ -89,14 +89,14 @@ function _BookSelectionTable({
             setSearchQuery(e.target.value);
             setPage(1);
           }}
-          className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="h-10 w-full rounded-sm border border-slate-200 bg-white pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       </div>
 
       {/* Selection summary */}
       {selectedIds.length > 0 && (
-        <div className="flex items-center gap-2 text-sm text-primary">
+        <div className="flex items-center gap-2 text-sm text-primary pl-1">
           <Check className="h-4 w-4" />
           <span>
             Đã chọn <strong>{selectedIds.length}</strong> sách
@@ -105,7 +105,7 @@ function _BookSelectionTable({
       )}
 
       {/* Table */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-sm border border-slate-200 bg-white overflow-hidden">
         <Table>
           <TableHeader className="bg-slate-50/80">
             <TableRow>
@@ -153,7 +153,7 @@ function _BookSelectionTable({
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="relative w-10 h-14 overflow-hidden rounded-md border border-slate-200 bg-slate-100">
+                    <div className="relative w-10 h-14 overflow-hidden rounded-sm border border-slate-200 bg-slate-100">
                       <Image
                         src={book.coverImage || "/placeholder-book.png"}
                         width={40}
@@ -166,14 +166,14 @@ function _BookSelectionTable({
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-slate-900">
+                  <TableCell className="font-medium text-slate-900 max-w-[200px] truncate" title={book.title}>
                     {book.title}
                   </TableCell>
-                  <TableCell className="text-slate-600 text-sm">
+                  <TableCell className="text-slate-600 text-sm max-w-[150px] truncate" title={book.authors?.map((a) => a.author.name).join(", ")}>
                     {book.authors?.map((a) => a.author.name).join(", ") || "—"}
                   </TableCell>
                   <TableCell className="text-right font-medium text-slate-600">
-                    {book.price?.toLocaleString("vi-VN")}₫
+                    {(book.price || 0).toLocaleString("vi-VN")}₫
                   </TableCell>
                 </TableRow>
               ))

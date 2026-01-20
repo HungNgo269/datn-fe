@@ -50,7 +50,6 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${inter.className} antialiased font-normal `}
       >
-        {/* <CronInitializer />  */}
         <ClientProvider>{children}</ClientProvider>
         <Toaster />
       </body>

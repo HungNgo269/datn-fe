@@ -80,8 +80,9 @@ export default function NewBookCard({ book }: NewBookCardProps) {
             {displayCategories.map((catEntry) => (
               <Link
                 key={catEntry.category.id}
-                href={`/books?category=${catEntry.category.slug}`}
-                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                href={catEntry.category.slug ? `/books?category=${catEntry.category.slug}&page=1` : "#"}
+                className="rounded-md bg-muted/80 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+                prefetch={false}
               >
                 #{catEntry.category.name}
               </Link>

@@ -114,6 +114,7 @@ export default function AdminLayout({
       await queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Đã đăng xuất tài khoản quản trị.");
       router.push("/login");
+      window.location.reload();
     },
     onError: () => {
       toast.error("Không thể đăng xuất. Thử lại sau.");

@@ -3,12 +3,14 @@ import type { NextRequest } from "next/server";
 import { parseJwt } from "./lib/helper";
 
 const adminRoutes = [
-  "/analytics-admin",
+  "/analitics-admin",
   "/authors-admin",
   "/banners-admin",
   "/books-admin",
   "/categories-admin",
   "/users-admin",
+  "/plans-admin",
+  "/promotions-admin",
 ];
 
 const userRoutes = [
@@ -27,19 +29,19 @@ export async function proxy(request: NextRequest) {
   const isUserRoute = userRoutes.some((route) => pathname.startsWith(route));
 
   if (isAdminRoute || isUserRoute) {
-    console.log("reI?", request);
+    if (pathname === "/login") {
+      return NextResponse.next();
+    }
+
     const token = request.cookies.get("accessToken")?.value;
-    console.log("checktoken", token);
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
     if (isAdminRoute) {
       const decodedToken = parseJwt(token);
       const userRoles = decodedToken?.roles || [];
-      console.log("decodedToken", userRoles);
       if (!userRoles.includes("admin")) {
         return NextResponse.next();
-        //   return NextResponse.redirect(new URL("/", request.url));
       }
     }
   }

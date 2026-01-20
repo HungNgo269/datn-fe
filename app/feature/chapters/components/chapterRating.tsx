@@ -96,7 +96,7 @@ export function ChapterRating({ bookId }: ChapterRatingProps) {
 
   return (
     <div className="space-y-8 py-4">
-      <div className="flex flex-col items-center gap-8 rounded-xl bg-muted/20 p-6 md:flex-row md:items-start">
+      <div className="flex flex-col items-center gap-8 rounded-sm border shadow-xs p-6 md:flex-row md:items-start">
         <div className="min-w-[200px] space-y-2 text-center">
           <div className="text-5xl font-bold text-primary">
             {averageRating.toFixed(1)}

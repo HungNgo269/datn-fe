@@ -52,7 +52,6 @@ export default function BookAudioStickyPlayer() {
   const toggleRepeat = useBookAudioStore((state) => state.toggleRepeat);
   const updateChapterDuration = useBookAudioStore((state) => state.updateChapterDuration);
 
-  // Removed 'elapsed' state from here!
   const [duration, setDuration] = useState<number>(0);
   const [volume, setVolume] = useState<number>(80);
   const [isChapterListOpen, setIsChapterListOpen] = useState<boolean>(false);
@@ -111,10 +110,8 @@ export default function BookAudioStickyPlayer() {
     return currentChapterIndex > 0;
   }, [currentChapterIndex]);
 
-  // Fetch and load audio from backend API
   useEffect(() => {
     if (!currentChapter?.id || !currentTrack) {
-      // setElapsed(0); // Removed
       setIsLoadingAudio(false);
       setAudioError(null);
       return;
@@ -122,9 +119,7 @@ export default function BookAudioStickyPlayer() {
 
     setIsLoadingAudio(true);
     setAudioError(null);
-    // setElapsed(0); // Removed
     
-    // Pause current audio before loading new one
     if (audioRef.current) {
         audioRef.current.pause();
     }
@@ -299,14 +294,11 @@ export default function BookAudioStickyPlayer() {
         onError={handleError}
         onPlay={handlePlaySignal}
       />
-
-      {/* Chapter List Panel */}
       <BookAudioChapterList
         isOpen={isChapterListOpen}
         onClose={() => setIsChapterListOpen(false)}
       />
 
-      {/* Sticky Player */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/80 backdrop-blur-[5px] py-2 md:py-3 lg:py-4 xl:py-5 shadow-2xl">
         <div className="relative mx-auto flex h-16 sm:h-[72px] xl:h-20 items-center px-2 sm:px-4 xl:px-6">
           {/* Left Section - Track Info */}
@@ -339,12 +331,8 @@ export default function BookAudioStickyPlayer() {
               </p>
             </div>
           </div>
-
-          {/* Center Section - Player Controls (Absolutely Centered) */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex w-[280px] sm:w-[400px] md:w-[500px] lg:w-[600px] xl:w-[700px] flex-col items-center gap-0.5 sm:gap-1">
-            {/* Control Buttons */}
             <div className="flex items-center gap-2 sm:gap-4 xl:gap-5">
-              {/* Playback Speed Button with Popover */}
               <Popover open={isSpeedPopoverOpen} onOpenChange={setIsSpeedPopoverOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -468,12 +456,8 @@ export default function BookAudioStickyPlayer() {
 
             {/* Progress Bar Component */}
             <PlayerProgressBar audioRef={audioRef} duration={duration} />
-            
           </div>
-
-          {/* Right Section - Additional Controls */}
           <div className="ml-auto flex w-[100px] sm:w-[200px] lg:w-[280px] xl:w-[320px] shrink-0 items-center justify-end gap-1 sm:gap-2">
-            {/* Chapter List Button */}
             <button
               type="button"
               onClick={toggleChapterList}
@@ -487,7 +471,6 @@ export default function BookAudioStickyPlayer() {
               <ListMusic className="h-3.5 w-3.5 sm:h-4 sm:w-4 xl:h-5 xl:w-5" />
             </button>
 
-            {/* Volume Control */}
             <div className="hidden sm:flex items-center gap-1 sm:gap-2">
               <button
                 type="button"
@@ -497,15 +480,12 @@ export default function BookAudioStickyPlayer() {
                 <Volume2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 xl:h-5 xl:w-5" />
               </button>
               <div className="relative hidden w-24 h-4 sm:flex items-center">
-                {/* Visual track background */}
                 <div className="absolute left-0 right-0 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600">
-                  {/* Filled portion */}
                   <div 
                     className="absolute left-0 top-0 h-full rounded-full bg-primary"
                     style={{ width: `${volume}%` }}
                   />
                 </div>
-                {/* Invisible range input on top */}
                 <input
                   type="range"
                   min="0"
@@ -517,7 +497,6 @@ export default function BookAudioStickyPlayer() {
               </div>
             </div>
 
-            {/* Close Button */}
             <Button
               size="icon"
               variant="ghost"

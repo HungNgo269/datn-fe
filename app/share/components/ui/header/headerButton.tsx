@@ -66,7 +66,6 @@ export function HeaderButton() {
                 <span>Trang quản trị</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
           </>
         )}
 

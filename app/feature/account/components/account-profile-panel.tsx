@@ -8,11 +8,16 @@ import { useAuthStore } from "@/app/store/useAuthStore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const formatDate = (value?: string) => {
-  if (!value) return null;
-  const timestamp = new Date(value).getTime();
-  if (Number.isNaN(timestamp)) return null;
-  return format(timestamp, "dd/MM/yyyy");
+const formatDate = (value?: string | Date | null) => {
+  try {
+    if (!value) return null;
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return null;
+    return format(date, "dd/MM/yyyy");
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return null;
+  }
 };
 
 export function AccountProfilePanel() {

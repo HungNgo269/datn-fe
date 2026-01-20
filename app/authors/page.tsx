@@ -12,7 +12,7 @@ import { getAuthorsAction } from "@/app/feature/author/actions/authors.actions";
 import TrendingBook from "@/app/feature/books-trending/components/trendingBook";
 import PopularBook from "@/app/feature/books-popular/components/popularBook";
 
-const AUTHORS_PER_PAGE = 12;
+const AUTHORS_PER_PAGE = 15;
 
 export const metadata: Metadata = {
   title: { absolute: "Danh sách tác giả | NextBook" },
@@ -35,52 +35,57 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
   const { data: authors, meta } = await getAuthorsAction({ page, limit });
 
   return (
-    <div className="overflow-x-hidden">
-      <header className="w-full mx-auto">
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <Header />
       </header>
 
-      <div className="w-full mx-auto mt-20 md:w-[700px] lg:w-[950px] xl:w-[1190px] p-2 lg:p-0">
-        <div className="flex justify-between mt-10 flex-col lg:flex-row lg:gap-3 xl:gap-10">
-          <div className="flex flex-col gap-5 md:w-[700px] lg:w-[800px] xl:w-[850px]">
-            <div className="w-full flex flex-col gap-6  p-4 md:p-6">
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-semibold uppercase tracking-wide text-primary/80">
-                  Tìm tác giả yêu thích
-                </p>
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                  Tác giả
-                </h1>
-                <p className="text-muted-foreground text-sm md:text-base max-w-3xl">
-                  Duyệt qua những cây bút đang được yêu thích nhất, khám phá tác
-                  phẩm tiêu biểu, và theo dõi những tác giả mà bạn quan tâm.
-                </p>
-              </div>
-
-              <Suspense fallback={<BookListSkeleton />}>
-                <AuthorGrid authors={authors} />
-              </Suspense>
-
-              {meta.totalPages > 1 && (
-                <div className="mt-4 flex justify-center">
-                  <Pagination meta={meta} />
-                </div>
-              )}
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+        <div className="flex flex-col lg:flex-row gap-12 xl:gap-16">
+          
+          {/* Main Content */}
+          <section className="flex-1 flex flex-col gap-10">
+            {/* Page Header */}
+            <div className="flex flex-col gap-3">
+              <span className="text-sm font-bold uppercase tracking-widest text-primary">
+                Discover Creators
+              </span>
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+                Tác giả
+              </h1>
+              <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed">
+                Những cây bút tài năng đang định hình thế giới văn học tại NextBook.
+                Khám phá hành trình và tác phẩm tiêu biểu của họ.
+              </p>
             </div>
-          </div>
 
-          <aside className="flex flex-col gap-5 w-full lg:w-[250px] xl:w-[300px] mt-10 lg:mt-0">
-            <Suspense fallback={<TrendingBookSkeleton />}>
-              <TrendingBook period="month" />
+            <Suspense fallback={<BookListSkeleton />}>
+              <AuthorGrid authors={authors} />
             </Suspense>
-            <Suspense fallback={<TrendingBookSkeleton />}>
-              <PopularBook />
-            </Suspense>
+
+            {meta.totalPages > 1 && (
+              <div className="mt-8 flex justify-center border-t border-border/40 pt-8">
+                <Pagination meta={meta} />
+              </div>
+            )}
+          </section>
+
+          {/* Sidebar */}
+          <aside className="w-full lg:w-[320px] shrink-0 flex flex-col gap-10">
+             {/* Sticky container for sidebar content if needed later */}
+             <div className="flex flex-col gap-10 sticky top-[100px]">
+              <Suspense fallback={<TrendingBookSkeleton />}>
+                <TrendingBook period="month" />
+              </Suspense>
+              <Suspense fallback={<TrendingBookSkeleton />}>
+                <PopularBook />
+              </Suspense>
+             </div>
           </aside>
         </div>
-      </div>
+      </main>
 
-      <div className="w-full">
+      <div className="mt-auto border-t">
         <FooterComponent />
       </div>
     </div>

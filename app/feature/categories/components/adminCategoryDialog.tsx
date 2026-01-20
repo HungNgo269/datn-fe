@@ -95,7 +95,7 @@ export function CategoryDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast.success(
-        isEditMode ? "Cập nhật thành công!" : "Tạo danh mục thành công!"
+        isEditMode ? "Cập nhật thành công!" : "Tạo thể loại thành công!"
       );
       onOpenChange(false);
     },
@@ -121,7 +121,7 @@ export function CategoryDialog({
               <div className="p-2 rounded-lg bg-primary/10">
                 <Tag className="h-5 w-5 text-primary" />
               </div>
-              {isEditMode ? "Cập nhật danh mục" : "Thêm danh mục mới"}
+              {isEditMode ? "Cập nhật thể loại" : "Thêm thể loại mới"}
             </DialogTitle>
           </DialogHeader>
         </div>
@@ -131,7 +131,7 @@ export function CategoryDialog({
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
               <Tag className="h-4 w-4 text-slate-400" />
-              Tên danh mục <span className="text-rose-500">*</span>
+              Tên thể loại <span className="text-rose-500">*</span>
             </Label>
             <Input
               id="name"
@@ -201,7 +201,7 @@ export function CategoryDialog({
             <div className="space-y-2">
               <Label htmlFor="parentId" className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <FolderTree className="h-4 w-4 text-slate-400" />
-                Danh mục cha (ID)
+                Thể loại cha (ID)
               </Label>
               <Input
                 id="parentId"
@@ -241,7 +241,7 @@ export function CategoryDialog({
                   htmlFor="isActive"
                   className="cursor-pointer text-sm text-slate-600 flex-1"
                 >
-                  Hiển thị danh mục
+                  Hiển thị thể loại
                 </Label>
               </div>
             </div>
@@ -253,7 +253,7 @@ export function CategoryDialog({
               <p className="text-sm">
                 {mutation.error instanceof Error
                   ? mutation.error.message
-                  : "Không thể lưu danh mục. Thử lại sau."}
+                  : "Không thể lưu thể loại. Thử lại sau."}
               </p>
             </div>
           )}

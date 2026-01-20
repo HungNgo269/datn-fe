@@ -11,10 +11,8 @@ interface BadgeInfo {
  */
 function formatPrice(price: number | string | null | undefined): string {
   const numericPrice = toNumericPrice(price);
-  if (numericPrice === 0) return "Miễn phí"; // Changed to handle 0 explicitly if needed, or keep empty if standard behavior
+  if (numericPrice === 0) return "Miễn phí";
   
-  // Format with thousands separator, removing the symbol to manually control position if needed, 
-  // but for now keeping standard format
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
@@ -42,7 +40,6 @@ export function getBookBadge(
   if (isMembership) {
     label = "HỘI VIÊN";
   } else if (requiresPayment) {
-    // Show formatted price instead of "SÁCH BÁN"
     label = formatPrice(price);
   }
 
@@ -61,7 +58,6 @@ interface BookBadgeProps {
  * Reusable badge component for book cards
  */
 export function BookBadge({ accessType, price, size = "lg", isOnPromotion, discountPercent }: BookBadgeProps) {
-  // 1. Handle Promotion Case
   if (isOnPromotion && discountPercent && discountPercent > 0) {
     const originalPrice = toNumericPrice(price);
     const finalPrice = originalPrice * (1 - discountPercent / 100);
@@ -72,12 +68,10 @@ export function BookBadge({ accessType, price, size = "lg", isOnPromotion, disco
 
     return (
       <div className="absolute top-0 right-0 z-10 flex shadow-md rounded-bl-xl overflow-hidden font-sans">
-        {/* Discount Percent (Green) */}
         <div className={`bg-[#a3e635] text-[#1a2e05] font-black flex items-center justify-center tracking-tighter ${percentSize}`}>
           -{discountPercent}%
         </div>
         
-        {/* Prices (Dark) */}
         <div className="bg-[#374151]/95 backdrop-blur-sm px-2 py-0.5 flex flex-col items-end justify-center leading-none min-w-[60px]">
           <span className={`${priceSize} text-gray-400 line-through decoration-gray-400/80 decoration-1 opacity-80`}>
             {formatPrice(originalPrice)}
@@ -90,7 +84,6 @@ export function BookBadge({ accessType, price, size = "lg", isOnPromotion, disco
     );
   }
 
-  // 2. Handle Standard Case (Membership / Standard Price)
   const { label, isMembership } = getBookBadge(accessType, price);
 
   if (!label) return null;

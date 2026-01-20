@@ -163,33 +163,42 @@ export default async function BookPage({ params }: PageProps) {
                     />
                   )}
                   <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-                    {chapters && chapters.some((c) => c.audio || c.hasAudio) && (
-                      <BookAudioPlayButton
-                        bookSlug={book.slug}
-                        bookTitle={book.title}
-                        coverImage={book.coverImage}
-                        chapters={chapters?.map((chapter) => ({
-                          id: chapter.id.toString(),
-                          title: chapter.title,
-                          duration: chapter.audio?.duration ?? 0,
-                          date: chapter.createdAt
-                            ? new Date(chapter.createdAt).toLocaleDateString(
-                                "vi-VN"
-                              )
-                            : undefined,
-                          isFree:
-                            (book.freeChapters === undefined ||
-                              chapter.order <= book.freeChapters) ??
-                            true,
-                        }))}
-                        accessType={book.accessType}
-                        isPurchased={purchaseStatus?.purchased || false}
-                        isSubscribed={
-                          subscription?.status === "ACTIVE" ||
-                          subscription?.status === "TRIALING"
-                        }
-                      />
-                    )}
+                    {(() => {
+                      const audioChapters = chapters
+                        ?.filter((c) => c.audio || c.hasAudio)
+                        .sort((a, b) => a.order - b.order);
+
+                      if (!audioChapters || audioChapters.length === 0)
+                        return null;
+
+                      return (
+                        <BookAudioPlayButton
+                          bookSlug={book.slug}
+                          bookTitle={book.title}
+                          coverImage={book.coverImage}
+                          chapters={audioChapters.map((chapter) => ({
+                            id: chapter.id.toString(),
+                            title: chapter.title,
+                            duration: chapter.audio?.duration ?? 0,
+                            date: chapter.createdAt
+                              ? new Date(chapter.createdAt).toLocaleDateString(
+                                  "vi-VN"
+                                )
+                              : undefined,
+                            isFree:
+                              (book.freeChapters === undefined ||
+                                chapter.order <= book.freeChapters) ??
+                              true,
+                          }))}
+                          accessType={book.accessType}
+                          isPurchased={purchaseStatus?.purchased || false}
+                          isSubscribed={
+                            subscription?.status === "ACTIVE" ||
+                            subscription?.status === "TRIALING"
+                          }
+                        />
+                      );
+                    })()}
                   </div>
 
 

@@ -11,7 +11,7 @@ export default function FooterComponent() {
               <span className="text-xl font-bold">NextBook</span>
             </div>
             <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-xs">
-              Your gateway to unlimited reading adventures.
+              Cánh cửa dẫn đến những cuộc phiêu lưu đọc sách không giới hạn.
             </p>
             <div className="flex items-center gap-3 sm:gap-4">
               <a
@@ -36,78 +36,78 @@ export default function FooterComponent() {
           </div>
 
           <div className="mt-6 sm:mt-0">
-            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Library</h4>
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Thư viện</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Browse Books
+                  Duyệt sách
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  New Releases
+                  Sách mới
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Bestsellers
+                  Sách bán chạy
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Free Books
+                  Sách miễn phí
                 </a>
               </li>
             </ul>
           </div>
 
           <div className="mt-6 sm:mt-0">
-            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Community</h4>
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Cộng đồng</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Book Clubs
+                  Câu lạc bộ sách
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Reviews
+                  Đánh giá
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Author Events
+                  Sự kiện tác giả
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Reading Challenges
+                  Thử thách đọc sách
                 </a>
               </li>
             </ul>
           </div>
 
           <div className="mt-6 sm:mt-0">
-            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Support</h4>
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Hỗ trợ</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Help Center
+                  Trung tâm trợ giúp
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Contact Us
+                  Liên hệ
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Privacy Policy
+                  Chính sách bảo mật
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-foreground transition-colors">
-                  Terms of Service
+                  Điều khoản dịch vụ
                 </a>
               </li>
             </ul>
@@ -115,7 +115,7 @@ export default function FooterComponent() {
         </div>
 
         <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground">
-          <p>&copy; 2025 NextBook. All rights reserved.</p>
+          <p>&copy; 2025 NextBook. Đã đăng ký bản quyền.</p>
         </div>
       </div>
     </footer>

@@ -69,6 +69,7 @@ export function AccountSidebar({ className }: { className?: string }) {
       Cookies.remove("accessToken", { path: "/" });
       await queryClient.invalidateQueries({ queryKey: ["user"] });
       queryClient.clear();
+      window.location.reload();
       toast.success("Đăng xuất thành công!");
     },
   });
@@ -109,13 +110,7 @@ export function AccountSidebar({ className }: { className?: string }) {
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <Button
-            size="sm"
-            variant="default"
-            className="w-full text-xs h-9 shadow-none font-medium"
-          >
-            <Wallet className="w-3.5 h-3.5 mr-1.5" /> Nạp xu
-          </Button>
+  
           {user?.subscriptionPlan === "FREE" ? (
             <Button
               size="sm"

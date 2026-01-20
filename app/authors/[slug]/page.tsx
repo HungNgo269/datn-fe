@@ -63,38 +63,37 @@ export default async function AuthorDetailPage({
   });
 
   return (
-    <div className="overflow-x-hidden">
-      <header className="mx-auto w-full">
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <Header />
       </header>
 
-      <main className="mx-auto mt-20 flex w-full flex-col gap-10 px-3 md:w-[700px] lg:w-[950px] xl:w-[1190px] lg:px-0">
-        <AuthorProfile author={author} bookCount={meta.total} />
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+        <div className="mx-auto max-w-5xl flex flex-col gap-16">
+          <AuthorProfile author={author} bookCount={meta.total} />
 
-        <section id="books" className="flex flex-col gap-6 rounded-2xl mb-10">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-xl font-semibold md:text-2xl">
-              Tác phẩm nổi bật
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Có tổng cộng{" "}
-              <strong className="text-foreground">{meta.total}</strong>{" "}
-              {meta.total === 1 ? "đầu sách" : "đầu sách"} được xuất bản bởi{" "}
-              <span className="font-medium text-foreground">{author.name}</span>
-            </p>
-          </div>
-
-          <BookList books={books} />
-
-          {meta.totalPages > 1 && (
-            <div className="mt-6">
-              <Pagination meta={meta} hashUrl="books" />
+          <section id="books" className="flex flex-col gap-8">
+            <div className="flex flex-col gap-2 border-b border-border/40 pb-4">
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+                Tác phẩm tiêu biểu
+              </h2>
+              <p className="text-base text-muted-foreground">
+                Danh sách các đầu sách được xuất bản bởi {author.name}
+              </p>
             </div>
-          )}
-        </section>
+
+            <BookList books={books} />
+
+            {meta.totalPages > 1 && (
+              <div className="mt-8 flex justify-center border-t border-border/40 pt-8">
+                <Pagination meta={meta} hashUrl="books" />
+              </div>
+            )}
+          </section>
+        </div>
       </main>
 
-      <div className="w-full">
+      <div className="mt-auto border-t">
         <FooterComponent />
       </div>
     </div>
