@@ -1,4 +1,4 @@
-import { useRef } from "react";
+﻿import { useCallback, useRef } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ interface FileUploadButtonProps {
   buttonText: string;
   required?: boolean;
   onChange: (file: File) => void;
-  selectedFile?: File;
+  selectedFile?: File | string;
   error?: string;
 }
 
@@ -24,23 +24,30 @@ export function UploadBookButton({
 }: FileUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) onChange(file);
-  };
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) onChange(file);
+    },
+    [onChange]
+  );
 
   return (
     <div className="space-y-2">
+      <div className="flex items-center gap-2 flex-row">
+
       <Label>{label}</Label>
+      <span className="text-rose-500">*</span>
+      </div>
       <div className="flex items-center gap-4">
         <Button
           type="button"
           variant="outline"
           onClick={() => inputRef.current?.click()}
-          className="w-full"
+          className="flex w-full flex-row gap-1"
         >
           <Upload className="mr-2 h-4 w-4" />
-          {buttonText}
+          <span className="w-full max-w-[300px] truncate">{buttonText}</span>
         </Button>
         <input
           ref={inputRef}
@@ -51,9 +58,11 @@ export function UploadBookButton({
         />
       </div>
       {selectedFile && (
-        <p className="text-sm text-success">✓ Đã chọn: {selectedFile.name}</p>
+        <div className="mt-1 text-sm text-muted-foreground">
+          Đã chọn: {selectedFile instanceof File ? selectedFile.name : selectedFile}
+        </div>
       )}
-      {error && <p className="text-sm text-warning-foreground">{error}</p>}
+      {error && <p className="text-sm text-destructive-foreground">{error}</p>}
     </div>
   );
 }

@@ -1,79 +1,102 @@
+﻿"use client";
+
+import { useMemo } from "react";
 import Link from "next/link";
-import { BookCardProps } from "../../books/types/books.type";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
+import { BookCardProps } from "../../books/types/books.type";
+import { BookBadge } from "./BookBadge";
 
 type Variant = "lg" | "sm";
+
 const MAP = {
   lg: {
-    card: "xl:w-[230px]  lg:w-[170px]  md:w-[130px] w-full h-fit",
+    card: "xl:w-[220px] lg:w-[160px] md:w-[130px] w-full h-fit",
     imgWrap:
-      "xl:w-[230px] xl:h-[300px] lg:w-[170px] lg:h-[221px] md:w-[130px] h-[207px]  w-full",
+      "xl:w-[220px] xl:h-[300px] lg:w-[160px] lg:h-[221px] md:w-[130px] h-[207px] w-full",
     title: "text-md",
-    author: "text-sm",
+    badge: "px-4 py-1.5 text-[13px]",
   },
   sm: {
-    card: "xl:w-[160px]  lg:w-[130px]  md:w-[130px]  h-fit w-full",
+    card: "xl:w-[160px] lg:w-[130px] md:w-[130px] h-fit w-full",
     imgWrap:
       "xl:w-[160px] xl:h-[207px] lg:w-[130px] lg:h-[182px] md:w-[130px] h-[207px] w-full",
-    title: "text-sm ",
-    author: "text-xs",
+    title: "text-sm",
+    badge: "px-2 py-1 text-[11px]",
   },
 } as const;
 
 export default function BookCard({
   book,
   variant = "lg",
+  ranking,
 }: {
   book: BookCardProps;
   variant?: Variant;
+  ranking?: number;
 }) {
-  const image = MAP[variant];
-  return (
-    <div className={`flex flex-col ${image.card}`}>
-      <Link
-        prefetch={true}
-        href={`/books/${book.slug}`}
-        aria-label={book.title}
-      >
-        <div
-          className={`relative overflow-hidden rounded-[8px] group ${image.imgWrap}`}
-        >
-          <ImageCard
-            bookImage={book.coverImage}
-            bookName={book.title}
-            key={book.id}
-          />
-        </div>
-      </Link>
+  const style = MAP[variant];
 
-      <div className="flex flex-col mt-3 h-fit justify-between">
+  return (
+    book && (
+      <div className={`flex flex-col group pt-2 ${style.card}`}>
         <Link
-          prefetch={true}
+          prefetch={false}
           href={`/books/${book.slug}`}
           aria-label={book.title}
         >
-          <span
-            className={`line-clamp-1  font-semibold cursor-pointer w-fit hover:underline hover:text-primary ${image.title}`}
+          <div
+            className={`relative rounded-xl shadow-sm transition-transform duration-300 group-hover:-translate-y-2 ${style.imgWrap}`}
           >
-            {book.title}
-          </span>
+            <div className="absolute inset-0 overflow-hidden rounded-xl">
+              <ImageCard
+                bookImage={book.coverImage}
+                bookName={book.title}
+                key={book.id}
+              />
+            </div>
+
+            {/* Badge using reusable component */}
+            <BookBadge 
+              accessType={book.accessType} 
+              price={book.price}
+              size={variant}
+              isOnPromotion={book.isOnPromotion}
+              discountPercent={book.discountPercent}
+            />
+
+            {/* Ranking number */}
+            {ranking && (
+              <div className="absolute -bottom-6 left-0 text-5xl md:text-6xl font-black text-foreground" style={{ WebkitTextStroke: '1px white' }}>
+                {ranking}
+              </div>
+            )}
+          </div>
         </Link>
 
-        <span
-          className={`line-clamp-1 font-medium text-muted-foreground cursor-pointer w-fit hover:underline ${image.author}`}
-        >
-          {book.authors}
-        </span>
-        {/* {book?.rating ? (
-          <span
-            className={`line-clamp-1 font-medium text-muted-foreground cursor-pointer w-fit ${image.author}`}
-          >
-            Rating: {book?.rating}
-          </span>
-        ) : (
-          ""
-        )} */}
+        <div className={`flex flex-col gap-1 ${ranking ? 'mt-6' : 'mt-3'}`}>
+          <Link prefetch={false} href={`/books/${book.slug}`}>
+            <h3
+              className={`font-bold line-clamp-1 transition-colors group-hover:text-primary ${style.title}`}
+            >
+              {book.title}
+            </h3>
+          </Link>
+
+          <div className="truncate text-xs text-muted-foreground ">
+            {book.authors?.map((author, index) => (
+              <span key={author.author.id}>
+                <Link
+                  href={`/authors/${author.author.slug}`}
+                  className="hover:underline"
+                >
+                  {author.author.name}
+                </Link>
+                {index < book.authors.length - 1 && ", "}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    )
   );
 }

@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import { useCallback, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
 interface BookDescProps {
   content?: string;
@@ -17,9 +17,12 @@ export default function BookDesc({
 }: BookDescProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const sanitizedContent = DOMPurify.sanitize(content);
-
   if (!content) return null;
+
+  const sanitizedContent = useMemo(() => sanitizeRichHtml(content), [content]);
+  const handleToggle = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   return (
     <div className={`flex flex-col items-start ${className}`}>
@@ -29,19 +32,25 @@ export default function BookDesc({
           maxHeight: isExpanded ? "none" : `${collapsedHeight}px`,
         }}
       >
-        <div
-          className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-        />
+        {sanitizedContent ? (
+          <div
+            className="prose prose-sm w-full max-w-none break-words text-justify text-foreground leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Chưa có mô tả cho sách này.
+          </p>
+        )}
 
         {!isExpanded && (
-          <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-background to-transparent" />
+          <div className="absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-background to-transparent" />
         )}
       </div>
 
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="mt-2 flex items-center gap-1 text-sm font-medium text-primary hover:underline focus:outline-none transition-colors"
+        onClick={handleToggle}
+        className="mt-2 flex cursor-pointer items-center gap-1 text-sm font-medium text-primary transition-colors hover:underline focus:outline-none"
       >
         {isExpanded ? (
           <>

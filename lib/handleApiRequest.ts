@@ -18,10 +18,22 @@ export class ApiError extends Error {
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
-    const serverError = error.response?.data as
-      | BackendResponse<unknown>
-      | undefined;
-    return serverError?.message || error.message || "Lỗi mạng hoặc hệ thống";
+    const serverError = error.response?.data as any;
+    
+    // Handle NestJS validation errors
+    if (serverError?.message) {
+      // If message is an array of validation errors
+      if (Array.isArray(serverError.message)) {
+        return serverError.message.join("; ");
+      }
+      // If message is a string
+      if (typeof serverError.message === "string") {
+        return serverError.message;
+      }
+    }
+    
+    // Fallback to axios error message
+    return error.message || "Lỗi mạng hoặc hệ thống";
   }
   if (error instanceof Error) {
     return error.message;
@@ -30,11 +42,17 @@ function getErrorMessage(error: unknown): string {
 }
 
 export async function handleRequest<T>(
-  requestFn: () => Promise<AxiosResponse<BackendResponse<T>>>
+  requestFn: () => Promise<AxiosResponse<BackendResponse<T> | unknown>>
 ): Promise<T> {
   try {
     const response = await requestFn();
-    const apiData = response.data;
+
+    if (response.status === 204) {
+      return null as unknown as T;
+    }
+
+    const apiData = response.data as BackendResponse<T>;
+
     if (!apiData.success) {
       throw new ApiError(
         apiData.message || "Thất bại khi lấy dữ liệu",
@@ -59,6 +77,11 @@ export async function handlePaginatedRequest<T>(
 ): Promise<PaginatedData<T>> {
   try {
     const response = await requestFn();
+
+    if (response.status === 204) {
+      throw new ApiError("Dữ liệu phân trang trống (204)", 204);
+    }
+
     const apiData = response.data;
 
     if (!apiData.success) {

@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, ThumbsUp, MessageSquare } from "lucide-react";
+import { MessageSquare, Send, ThumbsUp } from "lucide-react";
 
 // Dữ liệu giả
 const MOCK_COMMENTS = [
@@ -17,7 +17,7 @@ const MOCK_COMMENTS = [
   {
     id: 2,
     user: "Trần B",
-    content: "Main bá đạo thật, nhưng diễn biến hơi nhanh.",
+    content: "Main bị bạo thật, nhưng diễn biến hơi nhanh.",
     date: "5 giờ trước",
     likes: 5,
   },
@@ -33,49 +33,47 @@ const MOCK_COMMENTS = [
 export function ChapterComments() {
   return (
     <div className="space-y-6 py-4">
-      {/* Input Section */}
       <div className="flex gap-4">
         <Avatar>
           <AvatarFallback>ME</AvatarFallback>
         </Avatar>
-        <div className="flex-1 gap-2 flex flex-col">
+        <div className="flex flex-1 flex-col gap-2">
           <Textarea
             placeholder="Viết bình luận của bạn..."
             className="min-h-[80px]"
           />
           <div className="flex justify-end">
             <Button size="sm" className="gap-2">
-              <Send className="w-4 h-4" /> Gửi
+              <Send className="h-4 w-4" /> Gửi
             </Button>
           </div>
         </div>
       </div>
 
-      {/* List Comments */}
       <div className="space-y-4">
         {MOCK_COMMENTS.map((comment) => (
           <div
             key={comment.id}
-            className="flex gap-4 p-4 bg-muted/30 rounded-lg"
+            className="flex gap-4 rounded-lg bg-muted/30 p-4"
           >
-            <Avatar className="w-8 h-8">
-              <AvatarFallback>{comment.user[0]}</AvatarFallback>
+            <Avatar className="h-8 w-8">
+              <AvatarFallback>{comment.user.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm">{comment.user}</span>
+                <span className="text-sm font-semibold">{comment.user}</span>
                 <span className="text-xs text-muted-foreground">
                   {comment.date}
                 </span>
               </div>
               <p className="text-sm text-foreground/90">{comment.content}</p>
 
-              <div className="flex items-center gap-4 mt-2 pt-2">
-                <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-                  <ThumbsUp className="w-3 h-3" /> {comment.likes}
+              <div className="mt-2 flex items-center gap-4 pt-2">
+                <button className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-primary">
+                  <ThumbsUp className="h-3 w-3" /> {comment.likes}
                 </button>
-                <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-                  <MessageSquare className="w-3 h-3" /> Phản hồi
+                <button className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-primary">
+                  <MessageSquare className="h-3 w-3" /> Phản hồi
                 </button>
               </div>
             </div>

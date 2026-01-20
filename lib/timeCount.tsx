@@ -1,4 +1,25 @@
 export type TimeFrame = "week" | "month";
+export const DEFAULT_TIMEFRAME: TimeFrame = "month";
+
+export function isTimeFrame(value: unknown): value is TimeFrame {
+  return value === "week" || value === "month";
+}
+
+export function normalizeTimeFrame(
+  value: unknown,
+  fallback: TimeFrame = DEFAULT_TIMEFRAME
+): TimeFrame {
+  if (Array.isArray(value)) {
+    return normalizeTimeFrame(value[0], fallback);
+  }
+
+  if (typeof value === "string" && isTimeFrame(value)) {
+    return value;
+  }
+
+  return fallback;
+}
+
 export function getStartDate(timeframe: TimeFrame): Date {
   const now = new Date();
 
@@ -18,22 +39,21 @@ export function getStartDate(timeframe: TimeFrame): Date {
 }
 
 export const sortOptionsTime = [
-  //   {
-  //     id: 1,
-  //     name: "Today",
-  //   },
   {
     id: 2,
-    name: "week",
+    value: "week",
+    label: "Tuần",
   },
   {
     id: 3,
-    name: "month",
+    value: "month",
+    label: "Tháng",
   },
 ];
 export const sort_OPTIONS_time = [
   ...sortOptionsTime.map((options) => ({
     id: options.id,
-    name: options.name,
+    value: options.value,
+    label: options.label,
   })),
 ];

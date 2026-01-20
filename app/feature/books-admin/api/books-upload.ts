@@ -1,7 +1,7 @@
 import { handlePaginatedRequest, handleRequest } from "@/lib/handleApiRequest";
 
 import { axiosClient } from "@/lib/api";
-import { BookFields } from "@/app/schema/bookSchema";
+import { BookFields } from "@/app/feature/books/schema/bookSchema";
 import {
   Book,
   BookCardProps,
@@ -34,7 +34,6 @@ export async function deleteBook(id: number) {
 
 export async function getTrendingBooks(period: string, limit: number) {
   return handleRequest<BookCardProps[]>(() =>
-    // axiosClient.post(`/books/popular?period=${period}&limit=${limit}`)
-    axiosClient.get(`/books/trending?period=month&limit=5`)
+    axiosClient.get(`/books/trending?period=${period}&limit=${limit}`)
   );
 }

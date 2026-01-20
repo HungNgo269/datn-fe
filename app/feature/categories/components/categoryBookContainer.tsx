@@ -1,80 +1,104 @@
-"use client";
-import ViewMoreButton from "@/app/share/components/ui/button/viewMoreButton";
-import { useState, useMemo, useCallback, useEffect } from "react";
-import CategorySelector from "./categorySelector";
-import { Category } from "../types/listCategories";
-import BookCarousel from "../../books-carousel/components/bookCarousel";
-import { Book } from "../../books/types/books.type";
-import { mapBooksToCardProps } from "@/lib/mapBooktoBookCard";
-import { getBookByCategory } from "../../books/api/books.api";
+﻿"use client";
 
-interface BookCategoryContainerProps {
+import { useCallback, useMemo, useState, useTransition } from "react";
+import ViewMoreButton from "@/app/share/components/ui/button/viewMoreButton";
+import CategorySelector from "./categorySelector";
+import BookCarousel from "../../books-carousel/components/bookCarousel";
+import BookCard from "../../books-carousel/components/bookCard";
+import { Category } from "../types/listCategories";
+import { Book, BookSortBy, SortOrder } from "../../books/types/books.type";
+import { getBooksByQuery } from "../../books/api/books.api";
+
+interface BookCategoryClientProps {
   categories: Category[];
-  initialBooks: Book[];
+  booksIni: Book[];
 }
 
-export default function BookCategoryContainer({
+export default function BookCategoryClient({
   categories,
-  initialBooks,
-}: BookCategoryContainerProps) {
-  const defaultCategory = categories?.[0]?.id;
+  booksIni,
+}: BookCategoryClientProps) {
+  const defaultCategoryId = categories?.[0]?.id;
 
-  const [selectedCategory, setSelectedCategory] = useState(defaultCategory);
-  const [books, setBooks] = useState<Book[]>(initialBooks);
-  const mappedBooks = useMemo(() => {
-    return mapBooksToCardProps(books);
-  }, [books]);
-  const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(defaultCategoryId);
+  const [books, setBooks] = useState(booksIni);
 
-  const currentCategory = useMemo(
-    () => categories.find((cat) => cat.id === selectedCategory),
-    [categories, selectedCategory]
+  const [isPending, startTransition] = useTransition();
+  const categoriesById = useMemo(() => {
+    return new Map(categories.map((category) => [category.id, category]));
+  }, [categories]);
+
+  if (!categories || categories.length === 0) {
+    return null;
+  }
+
+  const resolvedCategoryId = selectedCategory ?? categories[0].id;
+  const currentCategory =
+    categoriesById.get(resolvedCategoryId) ?? categories[0];
+  const displayTitle =
+    currentCategory?.description || currentCategory?.name || "Categories";
+  const selectedCategorySlug = currentCategory?.slug || categories[0].slug || "";
+  const activeCategoryId = currentCategory?.id ?? categories[0].id;
+
+  const handleCategoryChange = useCallback(
+    (categoryId: number) => {
+      if (categoryId === activeCategoryId) return;
+
+      setSelectedCategory(categoryId);
+
+      startTransition(async () => {
+        setBooks([]);
+
+        const targetCategory = categoriesById.get(categoryId);
+        const newBooks = await getBooksByQuery({
+          page: 1,
+          limit: 10,
+          category: targetCategory?.slug || currentCategory?.slug,
+          sortBy: BookSortBy.VIEW_COUNT,
+          sortOrder: SortOrder.DESC,
+        });
+        setBooks(newBooks.data);
+      });
+    },
+    [activeCategoryId, categoriesById, currentCategory?.slug]
   );
 
-  const dynamicTitle = currentCategory?.description || "";
-  const selectedCategorySlug = currentCategory?.slug || "van-hoc-co-dien";
-
-  const handleCategoryChange = useCallback((categoryId: number) => {
-    setSelectedCategory(categoryId);
-  }, []);
-
-  useEffect(() => {
-    if (selectedCategory === defaultCategory && books === initialBooks) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await getBookByCategory(selectedCategory);
-        setBooks(res.data);
-        console.log("Fetching for:", selectedCategory);
-      } catch (error) {
-        console.error(error);
-        setBooks([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (selectedCategory) fetchData();
-  }, [selectedCategory, defaultCategory, initialBooks]);
-
   return (
-    <div className="mt-6 w-full">
-      <span className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 block">
-        {dynamicTitle}
+    <div className="mt-6 w-full space-y-4">
+      <span className="mb-1 block text-lg font-semibold sm:text-xl md:text-2xl">
+        {displayTitle}
       </span>
 
-      <div className="flex flex-col gap-4 w-full">
-        <div className="flex flex-row justify-between items-center w-full gap-2">
-          <CategorySelector
-            categories={categories}
-            selectedCategory={selectedCategory || 0}
-            onCategoryChange={handleCategoryChange}
+      <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-row items-start justify-between gap-4">
+          <div className="flex-1 overflow-x-auto scrollbar-hide">
+            <CategorySelector
+              categories={categories}
+              selectedCategory={activeCategoryId}
+              onCategoryChange={handleCategoryChange}
+            />
+          </div>
+          <ViewMoreButton
+            context="book"
+            url={`/books?category=${encodeURIComponent(
+              selectedCategorySlug
+            )}&page=1`}
           />
-          <ViewMoreButton url={`/book?tag=${selectedCategorySlug}&page=1`} />
         </div>
-
-        <BookCarousel books={mappedBooks} variant="lg" isLoading={loading} />
+        <div className="block w-full md:hidden">
+          <div className="grid grid-cols-3 gap-3">
+            {books.slice(0, 6).map((book) => (
+              <BookCard key={book.id} book={book} variant="sm" />
+            ))}
+          </div>
+        </div>
+        <div className="hidden w-full md:block mt-4">
+          <BookCarousel
+            books={books}
+            variant="lg"
+            isLoading={isPending || books.length === 0}
+          />
+        </div>
       </div>
     </div>
   );

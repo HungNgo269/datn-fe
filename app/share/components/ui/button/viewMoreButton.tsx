@@ -3,28 +3,28 @@ import Link from "next/link";
 
 interface ViewMoreButtonProps {
   url: string;
-  context?: string;
+  context: "chapter" | "book";
 }
 
-export default function ViewMoreButton({ url, context }: ViewMoreButtonProps) {
+const LABELS: Record<ViewMoreButtonProps["context"] | "book", string> = {
+  chapter: "Xem thêm chương",
+  book: "Xem thêm sách",
+};
+
+export default function ViewMoreButton({
+  url,
+  context = "book",
+}: ViewMoreButtonProps) {
+  const label = LABELS[context] ?? LABELS.book;
+
   return (
-    <Link prefetch={true} href={url} className=" ml-auto">
-      <button className="flex items-center text-foreground hover:text-primary transition-colors cursor-pointer">
-        {context === "chapter" ? (
-          <span className="flex flex-row text-foreground mr-1 line-clamp-1 w-fit hover:text-primary ">
-            <span className="hidden sm:flex">View</span>&nbsp;
-            <span className="block">More</span>&nbsp;
-            <span className="hidden sm:flex"> Chapter</span>
-          </span>
-        ) : (
-          <span className="flex flex-row text-foreground mr-1 line-clamp-1 w-fit hover:text-primary ">
-            <span className="hidden sm:flex">View</span>&nbsp;
-            <span className="block">More</span>&nbsp;
-            <span className="hidden sm:flex"> Books</span>
-          </span>
-        )}
-        <ChevronRight className="w-4 h-4" />
-      </button>
+    <Link
+      prefetch={true}
+      href={url}
+      className="ml-auto flex items-center text-foreground hover:text-primary transition-colors cursor-pointer text-sm font-medium"
+    >
+      <span className="mr-1 w-fit">{label}</span>
+      <ChevronRight className="w-4 h-4" />
     </Link>
   );
 }

@@ -9,14 +9,26 @@ import {
 
 import { Info, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export default function HeaderClientColor() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  const effectiveTheme = theme === "system" ? resolvedTheme : theme;
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" title="Theme" className="w-10 h-10">
-          {theme === "dark" ? (
+          {effectiveTheme === "dark" ? (
             <Moon className="w-5 h-5" />
           ) : (
             <Sun className="w-5 h-5" />
@@ -33,26 +45,26 @@ export default function HeaderClientColor() {
         <DropdownMenuItem
           onClick={() => setTheme("light")}
           className="cursor-pointer"
-          title="Light"
+          title="Sáng"
         >
           <Sun className="w-4 h-4 mr-2" />
-          Light
+          Sáng
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("dark")}
-          title="Dark"
+          title="Tối"
           className="cursor-pointer"
         >
           <Moon className="w-4 h-4 mr-2" />
-          Dark
+          Tối
         </DropdownMenuItem>
         <DropdownMenuItem
-          title="System"
+          title="Hệ Thống"
           onClick={() => setTheme("system")}
           className="cursor-pointer"
         >
           <Info className="w-4 h-4 mr-2" />
-          System
+          Hệ thống
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,238 +1,780 @@
-"use client";
+﻿"use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
-import ReaderSettings, { FONTS, THEMES } from "./readerSetting";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import ReaderChaptersList from "./ReaderChaptersList";
+import ReaderFrame from "./ReaderFrame";
+import ReaderNoteDialog from "./ReaderNoteDialog";
+import ReaderPageNavigation from "./ReaderPageNavigation";
+import ReaderSettings, { THEMES } from "./readerSetting";
+import ReaderTopBar from "./ReaderTopBar";
+import { useAuthStore } from "@/app/store/useAuthStore";
+import { useReaderDataStore } from "@/app/store/useReaderDataStore";
+import { LoadingBar } from "@/app/share/components/ui/loading-bar";
+import type { NoteColor } from "@/app/types/book.types";
+import { ChapterCardProps } from "@/app/feature/chapters/types/chapter.type";
+import { useReaderHtml } from "../hook/useReaderHTML";
+import { useReaderPagination } from "../hook/useReaderPagination";
+import { useChapterStream } from "../hook/useChapterStream";
+import { useChapterPrefetch } from "../hook/useChapterPrefetch";
+
+const NOTE_HIGHLIGHT_COLORS: Record<NoteColor, string> = {
+  yellow: "rgba(253, 224, 71, 0.6)",
+  green: "rgba(134, 239, 172, 0.6)",
+  blue: "rgba(147, 197, 253, 0.6)",
+  pink: "rgba(249, 168, 212, 0.6)",
+  purple: "rgba(196, 181, 253, 0.6)",
+};
 
 interface Props {
   initialHtml: string;
   title: string;
+  bookSlug?: string;
+  chapterSlug?: string;
+  chapters?: ChapterCardProps[];
+  currentChapterOrder?: number;
+  nextChapterSlug?: string | null;
+  bookTitle?: string;
+  bookCoverImage?: string | null;
+  bookId?: number | null;
+  contentUrl?: string | null;
+  isLocked?: boolean;
 }
 
-export default function IframeBookReader({ initialHtml, title }: Props) {
+export default function IframeBookReader({
+  initialHtml,
+  title,
+  bookSlug,
+  chapterSlug,
+  chapters = [],
+  nextChapterSlug,
+  bookTitle,
+  bookCoverImage,
+
+  bookId,
+  contentUrl,
+  isLocked = false,
+}: Props) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialPageFromUrl = useMemo(() => {
+    const pageParam = searchParams.get("page");
+    if (pageParam) {
+      const parsed = parseInt(pageParam, 10);
+      return isNaN(parsed) ? undefined : parsed;
+    }
+    return undefined;
+  }, [searchParams]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [ready, setReady] = useState(false);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-
-  const [showSettings, setShowSettings] = useState(false);
-  const [fontSize, setFontSize] = useState(18);
-  const [fontId, setFontId] = useState("sans");
-  const [themeId, setThemeId] = useState("light");
-
-  const PADDING_X_PX = 400;
-
-  const currentFontFamily =
-    FONTS.find((f: { id: string }) => f.id === fontId)?.value || "sans-serif";
-
-  const processHtml = useCallback(
-    (html: string) => {
-      let fixedHtml = html.replace(/\.\.\/fonts\//g, "/fonts/");
-      const spacerHtml = '<div id="force-new-page-spacer"></div>';
-
-      if (fixedHtml.includes("</body>")) {
-        fixedHtml = fixedHtml.replace("</body>", `${spacerHtml}</body>`);
-      } else {
-        fixedHtml += spacerHtml;
-      }
-
-      const injectionStyles = `
-        <style>
-          html {
-            height: 100vh;
-            width: 100%;
-            overflow: hidden !important;
-          }
-          
-          body {
-            margin: 0 !important;
-            height: 100vh !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-            padding: 40px ${PADDING_X_PX / 2}px !important;
-            
-            /* Column Logic chuẩn của bạn */
-            column-width: calc(100vw - ${PADDING_X_PX}px - 1px) !important;
-            column-gap: ${PADDING_X_PX}px !important;
-            column-fill: auto !important;
-            
-            /* Dynamic Styles */
-            font-size: ${fontSize}px !important;
-            font-family: ${currentFontFamily} !important;
-            line-height: 1.6 !important;
-            text-align: justify !important;
-            
-            /* Màu mặc định (sẽ bị JS override sau, nhưng cần để tránh FOUC) */
-            background-color: transparent; 
-            transition: background-color 0.3s, color 0.3s;
-          }
-
-          #force-new-page-spacer {
-            break-before: column !important;
-            -webkit-column-break-before: always !important;
-            width: 0px; height: 1px; margin: 0; padding: 0; visibility: hidden;
-          }
-
-          img, figure, table {
-            max-width: 100% !important;
-            break-inside: avoid !important;
-            display: block;
-            margin: 0 auto !important;
-          }
-          
-          ::-webkit-scrollbar { display: none; }
-        </style>
-      `;
-
-      if (fixedHtml.includes("</head>")) {
-        return fixedHtml.replace("</head>", `${injectionStyles}</head>`);
-      }
-      return injectionStyles + fixedHtml;
-    },
-    [fontSize, currentFontFamily]
+  const userId = useAuthStore((state) => state.user?.id ?? null);
+  const bookmarksStore = useReaderDataStore((state) => state.bookmarks);
+  const notesStore = useReaderDataStore((state) => state.notes);
+  const toggleBookmark = useReaderDataStore((state) => state.toggleBookmark);
+  const addNoteToStore = useReaderDataStore((state) => state.addNote);
+  const removeBookmarkFromStore = useReaderDataStore(
+    (state) => state.removeBookmark
+  );
+  const removeNoteFromStore = useReaderDataStore((state) => state.removeNote);
+  const updateContinueReading = useReaderDataStore(
+    (state) => state.updateContinueReading
   );
 
-  const calculatePagination = () => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentWindow) return;
+  const [ready, setReady] = useState(false);
+  const [openPanel, setOpenPanel] = useState<"settings" | "chapters" | null>(
+    null
+  );
+  const fontSize = useReaderDataStore((state) => state.fontSize);
+  const fontId = useReaderDataStore((state) => state.fontId);
+  const themeId = useReaderDataStore((state) => state.themeId);
+  const readMode = useReaderDataStore((state) => state.readMode);
+  const setFontSize = useReaderDataStore((state) => state.setFontSize);
+  const setFontId = useReaderDataStore((state) => state.setFontId);
+  const setThemeId = useReaderDataStore((state) => state.setThemeId);
+  const setReadMode = useReaderDataStore((state) => state.setReadMode);
+  const [containerBg, setContainerBg] = useState<string>("");
+  const streamBufferRef = useRef("");
+  const headerInjectedRef = useRef(false);
+  const fontsSnapshotRef = useRef({ fontId, fontSize, readMode });
+  const hasCalculatedLayoutRef = useRef(false);
 
-    const doc = iframe.contentWindow.document.documentElement;
-    const clientWidth = iframe.clientWidth;
+  // Reset streaming state when URL changes
+  useEffect(() => {
+    streamBufferRef.current = "";
+    headerInjectedRef.current = false;
+  }, [contentUrl]);
 
-    if (clientWidth > 0) {
-      const rawTotal = Math.ceil(doc.scrollWidth / clientWidth);
-      setTotalPages(Math.max(1, rawTotal - 1));
-    }
-  };
+  // Pre-calculate empty styles for streaming initialization
+  const emptyStyles = useReaderHtml({
+    initialHtml: "",
+    fontSize,
+    fontId,
+    themeId,
+    readMode,
+  });
+
+  const {
+    content: streamedContent,
+    isLoading: isStreaming,
+    progress: downloadProgress,
+  } = useChapterStream({
+    contentUrl,
+    chapterSlug,
+    bookSlug,
+    onChunk: (chunk) => {
+      const doc = iframeRef.current?.contentDocument;
+      if (!doc || !iframeRef.current) return;
+
+      const safeChunk = chunk.replace(/\.\.\/fonts\//g, "/fonts/");
+
+      if (headerInjectedRef.current) {
+        doc.write(safeChunk);
+        return;
+      }
+
+      streamBufferRef.current += safeChunk;
+      
+      if (streamBufferRef.current.includes("</head>")) {
+         doc.open();
+         // Inject styles before </head>
+         const injectedBuffer = streamBufferRef.current.replace("</head>", `${emptyStyles}</head>`);
+         doc.write(injectedBuffer);
+         headerInjectedRef.current = true;
+         streamBufferRef.current = ""; 
+      }
+    },
+    onFinish: () => {
+      const doc = iframeRef.current?.contentDocument;
+      if (doc) {
+        if (!headerInjectedRef.current && streamBufferRef.current) {
+             doc.open();
+             doc.write(emptyStyles + streamBufferRef.current);
+        }
+        doc.close();
+      }
+    },
+  });
+
+
+
+  const contentToDisplay = contentUrl ? (isStreaming ? null : streamedContent) : initialHtml;
+
+  // Only process HTML if we are NOT streaming (i.e. static content or cache hit)
+  const processedHtml = useReaderHtml({
+    initialHtml: contentToDisplay || "",
+    fontSize,
+    fontId,
+    themeId,
+    readMode,
+  });
+
+  const positionKeyBase = `reading-pos-${bookSlug}-${chapterSlug}`;
+  const {
+    currentPage,
+    totalPages,
+    isPositionRestored,
+    next,
+    prev,
+    goToPage,
+    calculateTotalPages,
+  } = useReaderPagination({
+    iframeRef,
+    storageKey:
+      readMode === "paged" ? positionKeyBase : `${positionKeyBase}-scroll`,
+    ready,
+    readMode,
+    initialPage: initialPageFromUrl,
+  });
+
+  const [selectedText, setSelectedText] = useState("");
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const bookBookmarks = useMemo(() => {
+    if (!bookSlug) return [];
+    return bookmarksStore.filter(
+      (bookmark) => bookmark.bookSlug === bookSlug && bookmark.userId === userId
+    );
+  }, [bookSlug, bookmarksStore, userId]);
+
+  const bookNotes = useMemo(() => {
+    if (!bookSlug) return [];
+    return notesStore.filter(
+      (note) => note.bookSlug === bookSlug && note.userId === userId
+    );
+  }, [bookSlug, notesStore, userId]);
+
+  const applyNoteHighlights = useCallback(
+    (doc: Document, notes: typeof bookNotes) => {
+      const body = doc.body;
+      if (!body) return;
+
+      const existing = doc.querySelectorAll("mark[data-note-highlight]");
+      existing.forEach((node) => {
+        const parent = node.parentNode;
+        if (!parent) return;
+        const fragment = doc.createDocumentFragment();
+        while (node.firstChild) {
+          fragment.appendChild(node.firstChild);
+        }
+        parent.replaceChild(fragment, node);
+        parent.normalize();
+      });
+
+      const highlightNote = (note: (typeof notes)[number]) => {
+        const text = note.selectedText?.trim();
+        if (!text) return;
+
+        const textNodes: { node: Text; start: number; end: number }[] = [];
+        let fullText = "";
+        const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            if (!node.nodeValue || !node.nodeValue.trim()) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            const parent = (node as Text).parentElement;
+            if (!parent) return NodeFilter.FILTER_REJECT;
+            if (parent.closest("mark[data-note-highlight]")) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            const tag = parent.tagName;
+            if (tag === "SCRIPT" || tag === "STYLE") {
+              return NodeFilter.FILTER_REJECT;
+            }
+            return NodeFilter.FILTER_ACCEPT;
+          },
+        });
+
+        while (walker.nextNode()) {
+          const node = walker.currentNode as Text;
+          const start = fullText.length;
+          fullText += node.nodeValue ?? "";
+          textNodes.push({ node, start, end: fullText.length });
+        }
+
+        const matchIndex = fullText.indexOf(text);
+        if (matchIndex === -1) return;
+        const matchEnd = matchIndex + text.length;
+
+        const startNode = textNodes.find((entry) => entry.end > matchIndex);
+        const endNode = textNodes.find((entry) => entry.end >= matchEnd);
+        if (!startNode || !endNode) return;
+
+        const range = doc.createRange();
+        range.setStart(startNode.node, matchIndex - startNode.start);
+        range.setEnd(endNode.node, matchEnd - endNode.start);
+
+        const mark = doc.createElement("mark");
+        mark.setAttribute("data-note-highlight", "true");
+        const color = note.color ?? "yellow";
+        mark.setAttribute("data-color", color);
+        mark.style.cssText = [
+          `background-color: ${NOTE_HIGHLIGHT_COLORS[color]} !important`,
+          "color: inherit",
+          "padding: 0 2px",
+          "border-radius: 2px",
+        ].join("; ");
+
+        try {
+          mark.appendChild(range.extractContents());
+          range.insertNode(mark);
+        } catch {
+          // Ignore highlight errors for complex ranges.
+        }
+      };
+
+      notes.forEach(highlightNote);
+    },
+    []
+  );
+
+  const highlightSelection = useCallback(
+    (doc: Document, color: NoteColor) => {
+      const selection = doc.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const range = selection.getRangeAt(0);
+      if (range.collapsed) return;
+
+      const textNodes: Text[] = [];
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          const parent = (node as Text).parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          if (parent.closest("mark[data-note-highlight]")) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          const tag = parent.tagName;
+          if (tag === "SCRIPT" || tag === "STYLE") {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return range.intersectsNode(node)
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT;
+        },
+      });
+
+      try {
+        while (walker.nextNode()) {
+          textNodes.push(walker.currentNode as Text);
+        }
+
+        textNodes.forEach((node) => {
+          let startOffset = 0;
+          let endOffset = node.nodeValue?.length ?? 0;
+
+          if (node === range.startContainer) {
+            startOffset = range.startOffset;
+          }
+          if (node === range.endContainer) {
+            endOffset = range.endOffset;
+          }
+
+          if (startOffset >= endOffset) return;
+
+          const endSplit = node.splitText(endOffset);
+          const midSplit = node.splitText(startOffset);
+
+          const mark = doc.createElement("mark");
+          mark.setAttribute("data-note-highlight", "true");
+          mark.setAttribute("data-color", color);
+          mark.style.cssText = [
+            `background-color: ${NOTE_HIGHLIGHT_COLORS[color]} !important`,
+            "color: inherit",
+            "padding: 0 2px",
+            "border-radius: 2px",
+          ].join("; ");
+          mark.textContent = midSplit.nodeValue ?? "";
+          midSplit.parentNode?.replaceChild(mark, midSplit);
+          if (endSplit) {
+            endSplit.parentNode?.normalize();
+          }
+        });
+        selection.removeAllRanges();
+      } catch {
+        // Fall back to text matching on next render.
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    if (ready && iframeRef.current?.contentWindow) {
-      const theme =
-        THEMES.find((t: { id: string }) => t.id === themeId) || THEMES[0];
-      const body = iframeRef.current.contentWindow.document.body;
+    if (!ready || !iframeRef.current?.contentDocument) return;
+    applyNoteHighlights(iframeRef.current.contentDocument, bookNotes);
+  }, [applyNoteHighlights, bookNotes, ready]);
 
-      body.style.backgroundColor = theme.bgClass;
-      body.style.color = theme.fgClass;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
+    const bgColor = getComputedStyle(document.documentElement)
+      .getPropertyValue(theme.bgVar)
+      .trim();
+    setContainerBg(bgColor || "transparent");
+  }, [themeId]);
+
+  const currentChapter = useMemo(() => {
+    return chapters.find((chapter) => chapter.slug === chapterSlug);
+  }, [chapters, chapterSlug]);
+  const currentChapterTitle = currentChapter?.title ?? null;
+
+  const currentChapterIndex = useMemo(() => {
+    if (!chapterSlug || !chapters.length) return -1;
+    return chapters.findIndex((chapter) => chapter.slug === chapterSlug);
+  }, [chapterSlug, chapters]);
+
+  const previousChapterSlug = useMemo(() => {
+    if (currentChapterIndex > 0) {
+      return chapters[currentChapterIndex - 1].slug;
     }
-  }, [themeId, ready]);
+    return null;
+  }, [chapters, currentChapterIndex]);
 
-  const handleIframeLoad = () => {
-    setReady(true);
-    const theme =
-      THEMES.find((t: { id: string }) => t.id === themeId) || THEMES[0];
-    if (iframeRef.current?.contentWindow) {
-      const body = iframeRef.current.contentWindow.document.body;
-      body.style.backgroundColor = theme.bgClass;
-      body.style.color = theme.fgClass;
+  const fallbackNextChapterSlug = useMemo(() => {
+    if (currentChapterIndex >= 0 && currentChapterIndex < chapters.length - 1) {
+      return chapters[currentChapterIndex + 1].slug;
     }
-    setTimeout(calculatePagination, 300);
-  };
+    return null;
+  }, [chapters, currentChapterIndex]);
 
-  const goToPage = (page: number) => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentWindow) return;
+  const resolvedNextChapterSlug = nextChapterSlug ?? fallbackNextChapterSlug;
 
-    const viewportWidth = iframe.clientWidth;
-    iframe.contentWindow.scrollTo({
-      left: (page - 1) * viewportWidth,
-      behavior: "instant",
-    });
-    setCurrentPage(page);
-  };
+  const navigateToChapter = useCallback(
+    (targetSlug: string | null | undefined) => {
+      if (!bookSlug) return;
+      if (targetSlug) {
+        router.push(`/books/${bookSlug}/chapter/${targetSlug}`);
+      } else {
+        router.push(`/books/${bookSlug}`);
+      }
+    },
+    [bookSlug, router]
+  );
 
-  const next = () => {
-    if (currentPage < totalPages) goToPage(currentPage + 1);
-  };
-  const prev = () => {
-    if (currentPage > 1) goToPage(currentPage - 1);
-  };
+  const goToNextChapter = useCallback(() => {
+    navigateToChapter(resolvedNextChapterSlug);
+  }, [navigateToChapter, resolvedNextChapterSlug]);
+
+  const goToPreviousChapter = useCallback(() => {
+    navigateToChapter(previousChapterSlug);
+  }, [navigateToChapter, previousChapterSlug]);
+
+  const handleNextPage = useCallback(() => {
+    const isLastPage = totalPages > 0 && currentPage >= totalPages;
+    if (isLastPage) {
+      goToNextChapter();
+    } else {
+      next();
+    }
+  }, [currentPage, goToNextChapter, next, totalPages]);
+
+  const handlePreviousPage = useCallback(() => {
+    const isFirstPage = currentPage <= 1;
+    if (isFirstPage) {
+      goToPreviousChapter();
+    } else {
+      prev();
+    }
+  }, [currentPage, goToPreviousChapter, prev]);
+
+  const canNavigateForward =
+    (totalPages > 0 && currentPage < totalPages) ||
+    Boolean(resolvedNextChapterSlug || bookSlug);
+
+  const canNavigateBackward =
+    currentPage > 1 || Boolean(previousChapterSlug || bookSlug);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
+      if (readMode !== "paged") return;
+      if (e.key === "ArrowRight") handleNextPage();
+      if (e.key === "ArrowLeft") handlePreviousPage();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [currentPage, totalPages]);
+  }, [handleNextPage, handlePreviousPage, readMode]);
+
+  useEffect(() => {
+    if (!ready || !iframeRef.current?.contentWindow) return;
+    const handleSelection = () => {
+      const selection = iframeRef.current?.contentWindow?.getSelection();
+      setSelectedText(selection?.toString().trim() || "");
+    };
+    const doc = iframeRef.current.contentWindow.document;
+    doc.addEventListener("mouseup", handleSelection);
+    doc.addEventListener("keyup", handleSelection);
+    return () => {
+      doc.removeEventListener("mouseup", handleSelection);
+      doc.removeEventListener("keyup", handleSelection);
+    };
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready || !isPositionRestored) return;
+
+    const fontsChanged =
+      fontsSnapshotRef.current.fontId !== fontId ||
+      fontsSnapshotRef.current.fontSize !== fontSize ||
+      fontsSnapshotRef.current.readMode !== readMode;
+
+    fontsSnapshotRef.current = { fontId, fontSize, readMode };
+
+    const shouldRecalculate = fontsChanged || !hasCalculatedLayoutRef.current;
+
+    if (!shouldRecalculate) return;
+
+    let cancelled = false;
+
+    const timer = setTimeout(() => {
+      const newTotal = calculateTotalPages();
+
+      let targetPage = currentPage;
+      if (targetPage > newTotal && newTotal > 0) {
+        targetPage = newTotal;
+      }
+
+      if (!cancelled) {
+        goToPage(targetPage);
+        hasCalculatedLayoutRef.current = true;
+      }
+    }, 150);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [
+    calculateTotalPages,
+    currentPage,
+    fontId,
+    fontSize,
+    goToPage,
+    isPositionRestored,
+    ready,
+    readMode,
+  ]);
+
+  const handleIframeLoad = useCallback(() => setReady(true), []);
+
+  const handleBookmark = useCallback(() => {
+    if (!bookSlug) {
+      return;
+    }
+    toggleBookmark({
+      userId,
+      bookId: bookId ?? null,
+      bookSlug,
+      bookTitle: bookTitle ?? title,
+      bookCoverImage: bookCoverImage ?? null,
+      chapterSlug: chapterSlug || null,
+      chapterTitle: currentChapter?.title ?? null,
+      page: currentPage,
+    });
+  }, [
+    bookCoverImage,
+    bookId,
+    bookSlug,
+    bookTitle,
+    chapterSlug,
+    currentChapter?.title,
+    currentPage,
+    title,
+    toggleBookmark,
+    userId,
+  ]);
+
+  const saveNote = useCallback(
+    (noteText: string, color: NoteColor) => {
+      if (!bookSlug || !selectedText || !noteText.trim()) {
+        return;
+      }
+      addNoteToStore({
+        userId,
+        bookSlug,
+        bookTitle: bookTitle ?? title,
+        chapterSlug: chapterSlug || null,
+        chapterTitle: currentChapter?.title ?? null,
+        page: currentPage,
+        selectedText,
+        note: noteText.trim(),
+        color,
+        bookId: null,
+      });
+      const doc = iframeRef.current?.contentDocument;
+      if (doc) {
+        highlightSelection(doc, color);
+      }
+      setSelectedText("");
+      setShowNoteDialog(false);
+      iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+    },
+    [
+      addNoteToStore,
+      bookSlug,
+      bookTitle,
+      chapterSlug,
+      currentChapter?.title,
+      currentPage,
+      highlightSelection,
+      selectedText,
+      title,
+      userId,
+    ]
+  );
+
+  const handleNoteClick = useCallback(() => {
+    if (selectedText) setShowNoteDialog(true);
+    else toast.error("Vui lòng bôi đen văn bản để tạo ghi chú");
+  }, [selectedText]);
+
+  const handleBackToBook = useCallback(() => {
+    if (bookSlug) {
+      router.push(`/books/${bookSlug}`);
+    }
+  }, [bookSlug, router]);
+
+  const handleChapterClick = useCallback(
+    (slug: string) => {
+      if (bookSlug) {
+        router.push(`/books/${bookSlug}/chapter/${slug}`);
+      }
+    },
+    [bookSlug, router]
+  );
+
+  const handleNoteDialogClose = useCallback(() => {
+    setShowNoteDialog(false);
+    setSelectedText("");
+    iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+  }, []);
+
+  const isSettingsOpen = openPanel === "settings";
+  const isChaptersOpen = openPanel === "chapters";
+
+  const togglePanel = useCallback((panel: "settings" | "chapters") => {
+    setOpenPanel((prev) => (prev === panel ? null : panel));
+  }, []);
+
+  const closePanels = useCallback(() => setOpenPanel(null), []);
+
+  const showBlockingOverlay = !ready || !isPositionRestored;
+
+  const isBookmarked = bookBookmarks.some(
+    (bookmark) =>
+      bookmark.page === currentPage &&
+      bookmark.chapterSlug === (chapterSlug || null)
+  );
+
+  useEffect(() => {
+    if (!bookSlug) {
+      return;
+    }
+
+    updateContinueReading({
+      userId,
+      bookId: bookId ?? null,
+      bookSlug,
+      bookTitle: bookTitle ?? title,
+      bookCoverImage: bookCoverImage ?? null,
+      chapterSlug: chapterSlug ?? null,
+      chapterTitle: currentChapterTitle,
+      page: currentPage,
+    });
+  }, [
+    bookCoverImage,
+    bookSlug,
+    bookTitle,
+    chapterSlug,
+    currentChapterTitle,
+    currentPage,
+    title,
+    updateContinueReading,
+    userId,
+  ]);
+
+  // Prefetch next chapter
+  useChapterPrefetch({
+    bookSlug,
+    nextChapterSlug: resolvedNextChapterSlug,
+  });
 
   return (
-    <div className="flex flex-col h-full w-full relative overflow-hidden bg-muted transition-colors duration-300">
-      <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 shadow-sm z-20 relative">
-        <button
-          onClick={prev}
-          disabled={currentPage === 1}
-          className="p-2 hover:bg-muted rounded text-foreground disabled:opacity-30 transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-muted transition-colors duration-300">
+      <ReaderTopBar
+        title={title}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        themeBg={containerBg}
+        isDarkTheme={themeId === "dark" || themeId === "gray"}
+        onBackToBook={handleBackToBook}
+        onNextChapter={goToNextChapter}
+        nextChapterSlug={resolvedNextChapterSlug}
+        onToggleSettings={() => togglePanel("settings")}
+        onToggleChapters={() => togglePanel("chapters")}
+        onToggleNotes={handleNoteClick}
+        isBookmarked={isBookmarked}
+        onToggleBookmark={handleBookmark}
+        isSettingsOpen={isSettingsOpen}
+        isChaptersOpen={isChaptersOpen}
+      />
 
-        <div className="text-center">
-          <h1 className="font-semibold text-foreground text-sm md:text-base line-clamp-1 max-w-[150px] md:max-w-md">
-            {title}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Trang {currentPage} / {totalPages || "--"}
-          </p>
+      <div className="relative h-full w-full flex-1 overflow-hidden">
+        {isStreaming && (
+          <LoadingBar 
+            progress={downloadProgress} 
+            className="absolute top-0 left-0 right-0 z-50 h-1" 
+          />
+        )}
+        
+        <div className={isLocked ? "filter blur-sm select-none pointer-events-none" : ""}>
+            <ReaderFrame
+            iframeRef={iframeRef}
+            srcDoc={isStreaming ? undefined : processedHtml}
+            onLoad={handleIframeLoad}
+            isReady={isPositionRestored}
+            themeId={themeId}
+            bgStyle={containerBg}
+            />
         </div>
+        
+        {isLocked && (
+            <div className="absolute inset-0 z-10 bg-transparent" />
+        )}
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className={`p-2 rounded transition-colors ${
-              showSettings ? "bg-muted" : "hover:bg-muted"
-            } text-foreground`}
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+        {readMode === "paged" && (
+          <ReaderPageNavigation
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrev={handlePreviousPage}
+            onNext={handleNextPage}
+            canGoPrev={canNavigateBackward}
+            canGoNext={canNavigateForward}
+          />
+        )}
 
-          <button
-            onClick={next}
-            disabled={currentPage === totalPages}
-            className="p-2 hover:bg-muted rounded text-foreground disabled:opacity-30 ml-2 transition-colors"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
-
-        <ReaderSettings
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          fontSize={fontSize}
-          setFontSize={setFontSize}
-          currentTheme={themeId}
-          setTheme={setThemeId}
-          currentFont={fontId}
-          setFont={setFontId}
-        />
-      </div>
-
-      <div className="flex-1 relative w-full h-full overflow-hidden">
-        <div
-          className="absolute inset-0 -z-10"
-          style={{
-            backgroundColor: THEMES.find(
-              (t: { id: string }) => t.id === themeId
-            )?.bgClass,
-          }}
-        />
-
-        <iframe
-          ref={iframeRef}
-          srcDoc={processHtml(initialHtml)}
-          onLoad={handleIframeLoad}
-          className="w-full h-full border-none block"
-          sandbox="allow-scripts allow-same-origin"
-          title="Reader"
-        />
-
-        {!ready && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-            <div className="w-8 h-8 border-4 border-muted border-t-success rounded-full animate-spin"></div>
+        {showBlockingOverlay && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-green-500" />
           </div>
         )}
       </div>
+
+      <ReaderSettings
+        isOpen={isSettingsOpen}
+        onClose={closePanels}
+        fontSize={fontSize}
+        setFontSize={setFontSize}
+        currentTheme={themeId}
+        setTheme={setThemeId}
+        currentFont={fontId}
+        setFont={setFontId}
+        readMode={readMode}
+        setReadMode={setReadMode}
+      />
+
+      {isChaptersOpen && (
+        <ReaderChaptersList
+          chapters={chapters}
+          currentChapterSlug={chapterSlug}
+          currentPage={currentPage}
+          onClose={closePanels}
+          onChapterClick={handleChapterClick}
+          bookmarks={bookBookmarks}
+          notes={bookNotes}
+          onBookmarkSelect={(bookmark) => {
+            if (bookmark.chapterSlug && bookmark.chapterSlug !== chapterSlug) {
+              // Navigate to the correct chapter first, then the page
+              if (bookSlug) {
+                router.push(
+                  `/books/${bookSlug}/chapter/${bookmark.chapterSlug}?page=${bookmark.page}`
+                );
+              }
+            } else {
+              goToPage(bookmark.page);
+            }
+          }}
+          onNoteSelect={(note) => {
+            if (note.chapterSlug && note.chapterSlug !== chapterSlug) {
+              // Navigate to the correct chapter first, then the page
+              if (bookSlug) {
+                router.push(
+                  `/books/${bookSlug}/chapter/${note.chapterSlug}?page=${note.page}`
+                );
+              }
+            } else {
+              goToPage(note.page);
+            }
+          }}
+          onRemoveBookmark={removeBookmarkFromStore}
+          onRemoveNote={removeNoteFromStore}
+        />
+      )}
+
+      <ReaderNoteDialog
+        isOpen={showNoteDialog}
+        selectedText={selectedText}
+        onClose={handleNoteDialogClose}
+        onSave={saveNote}
+      />
     </div>
   );
 }

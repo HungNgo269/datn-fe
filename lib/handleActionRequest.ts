@@ -1,4 +1,3 @@
-import { config } from "@/app/config/env.config";
 import {
   BackendResponse,
   BackendResponsePagination,
@@ -17,18 +16,18 @@ export class ApiError extends Error {
 }
 
 interface FetchOptions extends RequestInit {
-  params?: Record<string, string | number | boolean>;
+  params?: Record<string, string | number | boolean | undefined>;
   revalidate?: number | false;
 }
 
 async function baseFetch<T>(
   endpoint: string,
   options: FetchOptions = {}
-): Promise<T> {
+): Promise<T | null> {
   try {
     const { params, revalidate, ...fetchOptions } = options;
 
-    const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND_URL}${endpoint}`);
+    const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
@@ -47,14 +46,26 @@ async function baseFetch<T>(
       next: revalidate !== undefined ? { revalidate } : undefined,
     });
 
+    if (response.status === 204) {
+      return null;
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Backend error response:", errorText);
-      throw new ApiError(`HTTP Error: ${response.status}`, response.status);
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new ApiError(
+          errorJson.message || `HTTP Error: ${response.status}`,
+          response.status
+        );
+      } catch {
+        console.error("Backend error response:", errorText);
+        throw new ApiError(`HTTP Error: ${response.status}`, response.status);
+      }
     }
 
     const data = await response.json();
-    return data;
+    return data as T;
   } catch (error) {
     console.error("Fetch Error:", error);
 
@@ -76,6 +87,10 @@ export async function handleActionRequest<T>(
 ): Promise<T> {
   const response = await baseFetch<BackendResponse<T>>(endpoint, options);
 
+  if (response === null) {
+    return null as unknown as T;
+  }
+
   if (!response.success) {
     throw new ApiError(
       response.message || "Thất bại khi lấy dữ liệu",
@@ -94,6 +109,10 @@ export async function handleActionPaginatedRequest<T>(
     endpoint,
     options
   );
+
+  if (response === null) {
+    throw new ApiError("Dữ liệu phân trang trống (204)", 204);
+  }
 
   if (!response.success) {
     throw new ApiError(

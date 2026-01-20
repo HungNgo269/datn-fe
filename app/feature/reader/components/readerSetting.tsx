@@ -1,36 +1,45 @@
-"use client";
+﻿"use client";
 
-import React from "react";
 import { Check, Palette, X } from "lucide-react";
+import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
+import type { ReaderReadMode } from "@/app/types/book.types";
 
 export const THEMES = [
   {
     id: "light",
     bgClass: "bg-reader-light",
     fgClass: "text-reader-light-fg",
-    borderClass: "border-gray-200",
+    borderClass: "border-border",
     label: "Sáng",
+    bgVar: "--reader-light",
+    fgVar: "--reader-light-fg",
   },
   {
     id: "sepia",
     bgClass: "bg-reader-sepia",
     fgClass: "text-reader-sepia-fg",
-    borderClass: "border-amber-200/50",
+    borderClass: "border-border",
     label: "Vàng",
+    bgVar: "--reader-sepia",
+    fgVar: "--reader-sepia-fg",
   },
   {
     id: "gray",
     bgClass: "bg-reader-gray",
     fgClass: "text-reader-gray-fg",
-    borderClass: "border-gray-300",
+    borderClass: "border-border",
     label: "Xám",
+    bgVar: "--reader-gray",
+    fgVar: "--reader-gray-fg",
   },
   {
     id: "dark",
     bgClass: "bg-reader-dark",
     fgClass: "text-reader-dark-fg",
-    borderClass: "border-zinc-800",
+    borderClass: "border-border",
     label: "Tối",
+    bgVar: "--reader-dark",
+    fgVar: "--reader-dark-fg",
   },
 ];
 
@@ -49,6 +58,11 @@ export const FONTS = [
   },
 ];
 
+export const READ_MODES: Array<{ id: ReaderReadMode; label: string }> = [
+  { id: "paged", label: "Từng trang" },
+  { id: "scroll", label: "Cuộn dọc" },
+];
+
 interface ReaderSettingsProps {
   isOpen: boolean;
   onClose: () => void;
@@ -58,6 +72,8 @@ interface ReaderSettingsProps {
   setTheme: (themeId: string) => void;
   currentFont: string;
   setFont: (fontId: string) => void;
+  readMode: ReaderReadMode;
+  setReadMode: (mode: ReaderReadMode) => void;
 }
 
 export default function ReaderSettings({
@@ -69,25 +85,35 @@ export default function ReaderSettings({
   setTheme,
   currentFont,
   setFont,
+  readMode,
+  setReadMode,
 }: ReaderSettingsProps) {
+  const panelRef = useOutsideClick<HTMLDivElement>({
+    enabled: isOpen,
+    onOutside: onClose,
+  });
+
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-16 right-4 z-50 w-80 p-5 rounded-xl  border border-border bg-popover text-popover-foreground animate-in fade-in zoom-in-95 duration-200">
-      <div className="flex justify-between items-center mb-5 pb-3 border-b border-border">
-        <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-          <Palette className="w-4 h-4" /> Cấu hình đọc
+    <div
+      ref={panelRef}
+      className="absolute right-4 top-16 z-50 w-80 rounded-xl border border-border bg-popover p-5 text-popover-foreground animate-in fade-in zoom-in-95 duration-200"
+    >
+      <div className="mb-5 flex items-center justify-between border-b border-border pb-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <Palette className="h-4 w-4" /> Cấu hình đọc
         </h3>
         <button
           onClick={onClose}
-          className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-full p-1 transition-colors"
+          className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </button>
       </div>
 
       <div className="mb-6">
-        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Màu nền
         </p>
         <div className="grid grid-cols-4 gap-3">
@@ -96,22 +122,21 @@ export default function ReaderSettings({
               key={t.id}
               onClick={() => setTheme(t.id)}
               className={`
-                aspect-square rounded-full border-2 flex items-center justify-center transition-all shadow-sm
-                ${t.bgClass} 
+                flex aspect-square cursor-pointer items-center justify-center rounded-full border-2 shadow-sm transition-all
+                ${t.bgClass}
                 ${t.fgClass}
                 ${t.borderClass}
                 ${
                   currentTheme === t.id
-                    ? "ring-2 ring-ring ring-offset-2 ring-offset-popover scale-105"
+                    ? "scale-105 ring-2 ring-ring ring-offset-2 ring-offset-popover"
                     : "hover:scale-105 hover:shadow-md"
                 }
               `}
               title={t.label}
             >
-              {currentTheme === t.id && (
-                <Check className="w-5 h-5 drop-shadow-sm" strokeWidth={3} />
-              )}
-              {currentTheme !== t.id && (
+              {currentTheme === t.id ? (
+                <Check className="h-5 w-5 drop-shadow-sm" strokeWidth={3} />
+              ) : (
                 <span className="text-xs font-bold opacity-70">Aa</span>
               )}
             </button>
@@ -119,20 +144,40 @@ export default function ReaderSettings({
         </div>
       </div>
       <div className="mb-5">
-        <p className="text-xs font-medium text-muted-foreground mb-2">Cỡ chữ</p>
-        <div className="flex items-center gap-3 bg-muted p-1.5 rounded-lg">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">
+          Chế độ đọc
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {READ_MODES.map((mode) => (
+            <button
+              key={mode.id}
+              onClick={() => setReadMode(mode.id)}
+              className={`flex cursor-pointer items-center justify-center rounded px-3 py-2 text-sm transition-colors ${
+                readMode === mode.id
+                  ? "bg-success/10 font-medium text-success"
+                  : "hover:bg-muted"
+              }`}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mb-5">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">Cỡ chữ</p>
+        <div className="flex items-center gap-3 rounded-lg bg-muted p-1.5">
           <button
             onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-            className="flex-1 h-8 flex items-center justify-center hover:bg-background rounded shadow-sm text-sm transition-colors"
+            className="flex h-8 flex-1 cursor-pointer items-center justify-center rounded text-sm shadow-sm transition-colors hover:bg-background"
           >
             A-
           </button>
-          <span className="font-mono w-8 text-center text-sm font-semibold">
+          <span className="w-8 text-center font-mono text-sm font-semibold">
             {fontSize}
           </span>
           <button
             onClick={() => setFontSize(Math.min(32, fontSize + 2))}
-            className="flex-1 h-8 flex items-center justify-center hover:bg-background rounded shadow-sm text-lg transition-colors"
+            className="flex h-8 flex-1 cursor-pointer items-center justify-center rounded text-lg shadow-sm transition-colors hover:bg-background"
           >
             A+
           </button>
@@ -140,7 +185,7 @@ export default function ReaderSettings({
       </div>
 
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-2">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">
           Kiểu chữ
         </p>
         <div className="flex flex-col gap-1">
@@ -148,14 +193,14 @@ export default function ReaderSettings({
             <button
               key={font.id}
               onClick={() => setFont(font.id)}
-              className={`flex items-center justify-between px-3 py-2 rounded text-sm transition-colors ${
+              className={`flex cursor-pointer items-center justify-between rounded px-3 py-2 text-sm transition-colors ${
                 currentFont === font.id
-                  ? "bg-success/10 text-success font-medium"
+                  ? "bg-success/10 font-medium text-success"
                   : "hover:bg-muted"
               }`}
             >
               <span style={{ fontFamily: font.value }}>{font.name}</span>
-              {currentFont === font.id && <Check className="w-4 h-4" />}
+              {currentFont === font.id && <Check className="h-4 w-4" />}
             </button>
           ))}
         </div>

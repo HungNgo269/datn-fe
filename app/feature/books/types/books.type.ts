@@ -1,10 +1,13 @@
+import { AuthorInfo } from "../../author/types/authors.types";
+import { CategoryInfo } from "../../categories/types/listCategories";
+
 export interface Book {
   id: number;
   title: string;
   slug: string;
   totalChapters: number;
-  freeChapters: 0;
-  price?: number | null;
+  freeChapters: number;
+  price?: number | string | null;
   authors: AuthorsList[];
   categories: CategoriesList[];
   sourceKey: string;
@@ -12,25 +15,20 @@ export interface Book {
   // status: string;
   // isActive: boolean;
   viewCount: number;
+  requireLogin?: boolean;
+  accessType?: string;
   description?: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+  isOnPromotion?: boolean;
+  discountPercent?: number;
+  promotionEndDate?: string | Date | null;
 }
 export interface AuthorsList {
   bookId: number;
-  categoryId: 2;
+  categoryId: number;
   assignedAt: Date | string;
   author: AuthorInfo;
-}
-export interface AuthorInfo {
-  id: number;
-  name: string;
-  slug: string;
-  avatar?: null;
-  bio?: string;
-  isActive?: boolean;
-  createdAt: Date | string;
-  updatedAt: Date | string;
 }
 
 export interface CategoriesList {
@@ -38,22 +36,6 @@ export interface CategoriesList {
   categoryId: 2;
   assignedAt: Date | string;
   category: CategoryInfo;
-}
-
-export interface CategoryInfo {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  parentId?: number;
-  isActive: boolean;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
-
-export interface PresignedUrlResponse {
-  uploadUrl: string;
-  key: string;
 }
 
 export enum BookStatus {
@@ -68,8 +50,16 @@ export interface BookCardProps {
   slug: string;
   coverImage: string;
   viewCount?: number;
-  authors: string;
-  price?: number;
+  description?: string | null;
+  price?: number | string | null;
+  accessType?: string;
+  requireLogin?: boolean;
+  totalChapters?: number;
+  freeChapters?: number;
+  authors: AuthorsList[];
+  isOnPromotion?: boolean;
+  discountPercent?: number;
+  promotionEndDate?: string | Date | null;
 }
 export interface BookUploadData {
   file: File;
@@ -87,6 +77,7 @@ export interface BookUploadData {
 export interface CreateBookDto {
   title: string;
   slug: string;
+  accessType: "FREE" | "PURCHASE" | "MEMBERSHIP";
   sourceKey?: string;
   authorIds: number[];
   categoryIds: number[];
@@ -94,19 +85,34 @@ export interface CreateBookDto {
   description?: string;
   price?: number;
   freeChapters?: number;
-  // status: "DRAFT" | "PROCESSING" | "PUBLISHED" | "FAILED";
-  // isActive: boolean;
 }
 
-export interface PresignedUrlResponse {
-  key: string;
-  uploadUrl: string;
+export enum BookSortBy {
+  CREATED_AT = "createdAt",
+  UPDATED_AT = "updatedAt",
+  VIEW_COUNT = "viewCount",
 }
 
-export interface BookCardProps {
-  id: number;
-  title: string;
-  authors: string;
-  coverImage: string;
-  price?: number;
+export enum SortOrder {
+  ASC = "asc",
+  DESC = "desc",
+}
+
+export enum AccessType {
+  FREE = "free",
+  PURCHASE = "purchase",
+  MEMBERSHIP = "membership",
+}
+
+export interface GetBooksParams {
+  search?: string;
+  category?: string;
+  author?: string;
+  sortBy?: BookSortBy;
+  sortOrder?: SortOrder;
+  accessType?: AccessType;
+  minPrice?: number;
+  maxPrice?: number;
+  page?: number;
+  limit?: number;
 }

@@ -1,7 +1,13 @@
-import LoginForm from "@/app/feature/auth/login/form/loginForm";
+import type { Metadata } from "next";
 import RegisterForm from "@/app/feature/auth/register/registerForm";
-import { Suspense } from "react";
+import RegisterRedirectGuard from "@/app/feature/auth/register/registerRedirectGuard";
+
+export const metadata: Metadata = { title: "Register | NextBook" };
 
 export default function RegisterPage() {
-  return <RegisterForm />;
+  return (
+    <RegisterRedirectGuard>
+      <RegisterForm />
+    </RegisterRedirectGuard>
+  );
 }

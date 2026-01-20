@@ -6,13 +6,25 @@ export default function HeaderBackground() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    let rafId = 0;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        const nextValue = window.scrollY > 10;
+        setIsScrolled((prev) => (prev !== nextValue ? nextValue : prev));
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
   }, []);
 
   return (
@@ -21,7 +33,7 @@ export default function HeaderBackground() {
         absolute inset-0 w-full transition-all duration-500 ease-in-out
         ${
           isScrolled
-            ? "backdrop-blur-none bg-black opacity-60"
+            ? "backdrop-blur-none header-solid-overlay"
             : "   mask-[linear-gradient(#000_15%,#000000e0_50%,#0000)] backdrop-blur-2xl bg-[linear-gradient(#dde2ee66,#dde2ee00)]"
         }
       `}

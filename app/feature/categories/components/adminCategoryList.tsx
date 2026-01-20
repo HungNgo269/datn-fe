@@ -1,6 +1,13 @@
-import { Pencil, Trash2 } from "lucide-react";
-
+import { useState } from "react";
+import { Loader2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -27,6 +34,7 @@ interface CategoriesTableProps {
   onEdit: (category: Category) => void;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
+  isFetching?: boolean;
 }
 
 export function AdminCategoryList({
@@ -34,80 +42,114 @@ export function AdminCategoryList({
   onEdit,
   onDelete,
   isDeleting,
+  isFetching,
 }: CategoriesTableProps) {
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null
+  );
+
   return (
-    <div className="border rounded-md">
+    <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-[0_1px_1px_rgba(0,0,0,0.04)] overflow-hidden">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-slate-50/80">
           <TableRow>
-            <TableHead>Tên thể loại</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead>Mô tả</TableHead>
-            <TableHead className="text-right">Hành động</TableHead>
+            <TableHead className="text-slate-700">Thể loại</TableHead>
+            <TableHead className="text-slate-700">Slug</TableHead>
+            <TableHead className="text-slate-700">Mô tả</TableHead>
+            <TableHead className="text-right text-slate-700"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.length === 0 ? (
+          {isFetching ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center h-24">
-                Chưa có dữ liệu
+              <TableCell colSpan={4} className="h-24">
+                <div className="flex items-center justify-center">
+                  <Loader2 className="animate-spin text-slate-500" />
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : categories.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24 text-center">
+                Không tìm thấy thể loại
               </TableCell>
             </TableRow>
           ) : (
             categories.map((cat) => (
-              <TableRow key={cat.id}>
-                <TableCell className="font-medium">{cat.name}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {cat.slug}
+              <TableRow
+                key={cat.id}
+                className="hover:bg-slate-50/80 transition-colors"
+              >
+                <TableCell className="font-semibold text-slate-900">
+                  {cat.name}
                 </TableCell>
-                <TableCell>{cat.description || "--"}</TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(cat)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                <TableCell className="text-slate-500">{cat.slug}</TableCell>
+                <TableCell className="text-slate-600">
+                  {cat.description || "--"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-destructive hover:text-destructive"
+                        className="h-8 w-8 hover:bg-transparent"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem
+                        onSelect={() => onEdit(cat)}
+                        className="cursor-pointer"
+                      >
+                        Chỉnh sửa
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onSelect={() => setCategoryToDelete(cat)}
+                        className="cursor-pointer text-rose-600 focus:text-rose-600"
                         disabled={isDeleting}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Bạn có chắc chắn muốn xóa?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Hành động này không thể hoàn tác. Danh mục {cat.name}{" "}
-                          sẽ bị xóa vĩnh viễn.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => onDelete(cat.id)}
-                          className="bg-destructive hover:bg-destructive/90"
-                        >
-                          Xóa
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                        Xóa
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={!!categoryToDelete}
+        onOpenChange={(open) => !open && setCategoryToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa thể loại này ư</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác {categoryToDelete?.name} sẽ bị
+              xóa vĩnh viễn
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (categoryToDelete) {
+                  onDelete(categoryToDelete.id);
+                  setCategoryToDelete(null);
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

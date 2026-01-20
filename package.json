@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "pnpm generate:api && next build",
-    "start": "next start",
-    "lint": "eslint",
-    "generate:api": "orval"
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "start": "next start -p 3001",
+    "lint": "eslint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -23,6 +23,7 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
     "@tanstack/react-query": "^5.90.12",
     "axios": "^1.13.2",
@@ -31,7 +32,10 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "dompurify": "^3.3.1",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "isomorphic-dompurify": "^2.34.0",
+    "js-cookie": "^3.0.5",
     "jsdom": "^27.3.0",
     "lucide-react": "^0.555.0",
     "next": "16.0.10",
@@ -41,6 +45,7 @@
     "react-dom": "19.2.0",
     "react-hook-form": "^7.68.0",
     "react-quill-new": "^3.7.0",
+    "recharts": "^3.6.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
@@ -50,13 +55,13 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
+    "@types/js-cookie": "^3.0.6",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.6",
-    "orval": "^7.17.0",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5"

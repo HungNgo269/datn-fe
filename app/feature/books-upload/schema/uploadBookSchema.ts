@@ -1,21 +1,60 @@
 import { z } from "zod";
 
-export const Step1Schema = z.object({
+const BookBaseSchema = z.object({
   title: z.string().min(1, "Điền tên sách"),
   slug: z.string().min(1, "Điền slug"),
-  file: z.any().refine((file) => file instanceof File, "Chọn file sách"),
-  cover: z.any().refine((file) => file instanceof File, "Chọn file ảnh"),
-});
-
-export const Step2Schema = z.object({
+  accessType: z.enum(["FREE", "PURCHASE", "MEMBERSHIP"], {
+    message: "Vui lòng chọn loại truy cập",
+  }),
   authorIds: z.array(z.number().positive()).min(1, "Chọn/thêm tác giả"),
   categoryIds: z
     .array(z.number().positive())
     .min(1, "Phải chọn ít nhất một thể loại"),
   description: z.string().optional(),
   price: z.number().min(0),
-  freeChapters: z.number().min(0),
+  freeChapters: z.number().min(0).optional(),
 });
 
-export type Step1Data = z.infer<typeof Step1Schema>;
-export type Step2Data = z.infer<typeof Step2Schema>;
+export const BookCreateSchema = BookBaseSchema.extend({
+  file: z.instanceof(File, {
+    message: "Vui lòng chọn file sách (.epub, .pdf)",
+  }),
+  cover: z.instanceof(File, { message: "Vui lòng chọn ảnh bìa" }),
+}).refine(
+  (data) => {
+    // For PURCHASE books, price must be > 0
+    if (data.accessType === "PURCHASE" && data.price < 1) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Sách trả phí phải có giá lớn hơn 0 VND",
+    path: ["price"],
+  }
+);
+
+export const BookEditSchema = BookBaseSchema.extend({
+  file: z.union([z.instanceof(File), z.string()]).optional(),
+  cover: z.union([z.instanceof(File), z.string()]).optional(),
+}).refine(
+  (data) => {
+    // For PURCHASE books, price must be > 0
+    if (data.accessType === "PURCHASE" && data.price < 1) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Sách trả phí phải có giá lớn hơn 0 VND",
+    path: ["price"],
+  }
+);
+
+export type BookFormData = z.infer<typeof BookEditSchema>;
+
+export type BookFormState = BookFormData & {
+  currentSourceKey?: string;
+  currentCoverKey?: string;
+  id?: number;
+};

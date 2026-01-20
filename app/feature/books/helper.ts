@@ -2,9 +2,6 @@ export async function uploadFileToCloud(
   uploadUrl: string,
   file: File
 ): Promise<void> {
-  console.log("uploadUrl", uploadUrl);
-  console.log("file", file);
-
   const response = await fetch(uploadUrl, {
     method: "PUT",
     body: file,
@@ -12,7 +9,6 @@ export async function uploadFileToCloud(
       "Content-Type": file.type,
     },
   });
-  console.log("res", response);
   if (!response.ok) {
     throw new Error(`Upload failed: ${response.statusText}`);
   }

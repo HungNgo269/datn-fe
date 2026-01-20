@@ -1,10 +1,8 @@
 import { BookOpen, Facebook, Twitter } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 
 export default function FooterComponent() {
   return (
-    <footer className="bg-background border-t py-8 sm:py-12">
+    <footer className="bg-background border-t py-8 sm:py-12 mt-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
@@ -13,174 +11,111 @@ export default function FooterComponent() {
               <span className="text-xl font-bold">NextBook</span>
             </div>
             <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-xs">
-              Your gateway to unlimited reading adventures.
+              Cánh cửa dẫn đến những cuộc phiêu lưu đọc sách không giới hạn.
             </p>
             <div className="flex items-center gap-3 sm:gap-4">
-              <Link
-                prefetch={true}
+              <a
                 href="https://facebook.com"
                 aria-label="Facebook"
                 target="_blank"
                 className="text-muted-foreground hover:text-primary transition-colors p-1"
-                rel=""
+                rel="noreferrer noopener"
               >
                 <Facebook className="h-5 w-5" />
-              </Link>
-              <Link
-                prefetch={true}
+              </a>
+              <a
                 href="https://twitter.com"
                 aria-label="Twitter"
                 target="_blank"
                 className="text-muted-foreground hover:text-primary transition-colors p-1"
+                rel="noreferrer noopener"
               >
                 <Twitter className="h-5 w-5" />
-              </Link>
-              <Link
-                prefetch={true}
-                href="https://discord.com"
-                aria-label="Discord"
-                target="_blank"
-                className="text-muted-foreground hover:text-primary transition-colors p-1"
-              >
-                <Image
-                  src={"/discord.png"}
-                  alt="discord"
-                  width={20}
-                  height={20}
-                />
-              </Link>
+              </a>
             </div>
           </div>
 
           <div className="mt-6 sm:mt-0">
-            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Library</h4>
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Thư viện</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Browse Books
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Duyệt sách
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  New Releases
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Sách mới
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Bestsellers
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Sách bán chạy
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Free Books
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Sách miễn phí
+                </a>
               </li>
             </ul>
           </div>
 
           <div className="mt-6 sm:mt-0">
-            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Community</h4>
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Cộng đồng</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Book Clubs
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Câu lạc bộ sách
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Reviews
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Đánh giá
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Author Events
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Sự kiện tác giả
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Reading Challenges
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Thử thách đọc sách
+                </a>
               </li>
             </ul>
           </div>
 
           <div className="mt-6 sm:mt-0">
-            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Support</h4>
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base">Hỗ trợ</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Help Center
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Trung tâm trợ giúp
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Contact Us
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Liên hệ
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Privacy Policy
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Chính sách bảo mật
+                </a>
               </li>
               <li>
-                <Link
-                  prefetch={true}
-                  href="#"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Terms of Service
-                </Link>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  Điều khoản dịch vụ
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground">
-          <p>&copy; 2025 NextBook. All rights reserved.</p>
+          <p>&copy; 2025 NextBook. Đã đăng ký bản quyền.</p>
         </div>
       </div>
     </footer>

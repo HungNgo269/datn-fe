@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BannerControlsProps {
@@ -29,14 +29,17 @@ export default function BannerControls({
     onBannerChange((currentBanner - 1 + totalBanners) % totalBanners);
   }, [currentBanner, totalBanners, isTransitioning, onBannerChange]);
 
-  const goToBanner = (index: number) => {
-    if (isTransitioning || index === currentBanner) return;
-    onBannerChange(index);
-  };
+  const goToBanner = useCallback(
+    (index: number) => {
+      if (isTransitioning || index === currentBanner) return;
+      onBannerChange(index);
+    },
+    [currentBanner, isTransitioning, onBannerChange]
+  );
 
-  const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
+  const togglePlayPause = useCallback(() => {
+    setIsPlaying((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -53,7 +56,7 @@ export default function BannerControls({
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-24 bottom-10 bg-white/90 hover:bg-white border-gray-200 text-primary shadow-lg z-30 rounded-[50%] cursor-pointer"
+        className="absolute bottom-10 right-24 z-20 cursor-pointer rounded-[50%] border-border bg-background/90 text-primary shadow-lg hover:bg-background"
         onClick={prevBanner}
       >
         <ChevronLeft className="h-5 w-5" />
@@ -63,7 +66,7 @@ export default function BannerControls({
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-4  bottom-10 bg-white/90 hover:bg-white border-gray-200  text-primary shadow-lg z-30 rounded-[50%] cursor-pointer"
+        className="absolute bottom-10 right-4 z-20 cursor-pointer rounded-[50%] border-border bg-background/90 text-primary shadow-lg hover:bg-background"
         onClick={nextBanner}
       >
         <ChevronRight className="h-5 w-5" />
@@ -73,25 +76,21 @@ export default function BannerControls({
       <Button
         variant="outline"
         size="icon"
-        className="absolute bottom-10 right-14  bg-white/90 hover:bg-white border-gray-200  text-primary shadow-lg z-30 rounded-[50%] cursor-pointer"
+        className="absolute bottom-10 right-14 z-20 cursor-pointer rounded-[50%] border-border bg-background/90 text-primary shadow-lg hover:bg-background"
         onClick={togglePlayPause}
       >
-        {isPlaying ? (
-          <Pause className="h-4 w-4" />
-        ) : (
-          <Play className="h-4 w-4" />
-        )}
+        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         <span className="sr-only">{isPlaying ? "Pause" : "Play"} Banner</span>
       </Button>
 
-      <div className="flex justify-center items-center space-x-2 py-4 bg-transparent absolute z-10 bottom-0 left-0 right-0">
+      <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center space-x-2 bg-transparent py-4">
         {Array.from({ length: totalBanners }, (_, index) => (
           <button
             key={index}
-            className={`w-3 h-3 rounded-full transition-all cursor-pointer duration-200 ${
+            className={`h-3 w-3 cursor-pointer rounded-full transition-all duration-200 ${
               index === currentBanner
-                ? "bg-primary scale-110"
-                : "bg-gray-300 hover:bg-gray-400"
+                ? "scale-110 bg-primary"
+                : "bg-muted hover:bg-muted/80"
             }`}
             onClick={() => goToBanner(index)}
             disabled={isTransitioning}

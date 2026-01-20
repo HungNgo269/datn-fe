@@ -1,3 +1,5 @@
+import { BookCardProps } from "@/app/feature/books/types/books.type";
+
 export const getURL = (path: string = "") => {
   // Prefer explicit public base URL; fall back to Vercel-provided URL.
   // Note: VERCEL_URL does not include a scheme.
@@ -14,4 +16,44 @@ export const getURL = (path: string = "") => {
 
   // Concatenate the URL and the path.
   return path ? `${url}/${path}` : url;
+};
+export function parseJwt(token: string) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+export const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+export const toNumericPrice = (price?: BookCardProps["price"]) => {
+  if (typeof price === "number") {
+    return price;
+  }
+  if (typeof price === "string") {
+    const parsed = parseFloat(price);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+export const normalizeHtmlSpaces = (value?: string | null): string => {
+  if (!value) return value ?? "";
+  return value.replace(/&nbsp;/gi, " ");
 };

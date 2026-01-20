@@ -1,6 +1,9 @@
 import * as z from "zod";
 
 export const ForgotPasswordSchema = z.object({
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  email: z
+    .string()
+    .min(1, "Vui lòng nhập email")
+    .email("Email không hợp lệ"),
 });
 export type ForgotPasswordFields = z.infer<typeof ForgotPasswordSchema>;

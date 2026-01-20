@@ -3,21 +3,24 @@ import {
   handleActionRequest,
 } from "@/lib/handleActionRequest";
 import { Category } from "../types/listCategories";
-import { Book } from "../../books/types/books.type";
 
 export async function getCategories(page: number, limit: number) {
   return handleActionPaginatedRequest<Category>("/categories", {
     params: { page, limit },
-    revalidate: 15,
+    cache: "no-cache",
   });
 }
 
 export async function getCategoryById(id: number) {
   return handleActionRequest<Category>(`/categories/${id}`, {
-    revalidate: 60,
+    revalidate: 86400,
   });
 }
-
+export async function getCategoryBySlugAction(slug: string) {
+  return handleActionRequest<Category>(`/categories/slug/${slug}`, {
+    revalidate: 86400,
+  });
+}
 export async function createCategory(data: Partial<Category>) {
   return handleActionRequest<Category>("/categories", {
     method: "POST",

@@ -1,110 +1,192 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { ChapterCardProps } from "../types/chapter.type";
 import { ChapterItem } from "./chapterItem";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils"; // Giả sử bạn có hàm cn từ shadcn, nếu không có thể dùng string template
+import { BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { PurchaseChapterWarningModal } from "./PurchaseChapterWarningModal";
+import { SubscriptionWarningModal } from "./SubscriptionWarningModal";
+import { useAuthStore } from "@/app/store/useAuthStore";
+import Cookies from "js-cookie";
 
 interface ChapterListProps {
   chapters: ChapterCardProps[];
   totalChapters?: number;
+  freeChapters?: number;
+  accessType?: string;
   showMoreText?: string;
   initialVisibleChapters?: number;
+  isPurchased?: boolean;
+  isSubscribed?: boolean;
+  bookTitle: string;
+  bookCoverImage: string;
+  bookSlug: string;
 }
 
 export function ChapterList({
   chapters,
   totalChapters,
+  freeChapters = 0,
+  accessType,
   showMoreText = "Xem thêm",
   initialVisibleChapters = 5,
+  ...props
 }: ChapterListProps) {
   const [showAll, setShowAll] = useState(false);
   const [chapterOrder, setChapterOrder] = useState<"DESC" | "ASC">("DESC");
   const pathName = usePathname();
+  
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const accessToken = Cookies.get("accessToken");
+  const isUserAuthenticated = isAuthenticated || Boolean(accessToken);
 
-  const handleOrderDisplay = (order: "DESC" | "ASC") => {
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [selectedChapter, setSelectedChapter] = useState<ChapterCardProps | null>(null);
+
+  const handleRequireLogin = useCallback((type: "membership" | "purchase", chapter: ChapterCardProps) => {
+    setSelectedChapter(chapter);
+    if (type === "membership") {
+      setShowSubscriptionModal(true);
+    } else {
+      setShowPurchaseModal(true);
+    }
+  }, []);
+
+  const handleOrderDisplay = useCallback((order: "DESC" | "ASC") => {
     setChapterOrder(order);
-  };
+  }, []);
 
-  const sortedChapters =
-    chapterOrder === "ASC" ? [...chapters].reverse() : chapters;
+  const handleToggleShowAll = useCallback(() => {
+    setShowAll((prev) => !prev);
+  }, []);
 
-  const visibleChapters = showAll
-    ? sortedChapters
-    : sortedChapters.slice(0, initialVisibleChapters);
+  const sortedChapters = useMemo(() => {
+    return chapterOrder === "ASC" ? [...chapters].reverse() : chapters;
+  }, [chapterOrder, chapters]);
 
+  const visibleChapters = useMemo(
+    () =>
+      showAll
+        ? sortedChapters
+        : sortedChapters.slice(0, initialVisibleChapters),
+    [initialVisibleChapters, showAll, sortedChapters]
+  );
+
+  // Create a consistently sorted list (by order ASC) for the audio playlist
+  // regardless of how the user views the list (ASC or DESC)
+  const sortedPlaylistChapters = useMemo(() => {
+    return [...chapters].sort((a, b) => a.order - b.order);
+  }, [chapters]);
+
+  const displayedTotal = totalChapters ?? chapters.length;
   const hasMoreChapters = chapters.length > initialVisibleChapters;
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="flex flex-row justify-between items-center w-full text-md py-2 text-muted-foreground/70 font-semibold">
-        <p>Có tất cả {totalChapters} chương</p>
-        <div className="flex flex-row justify-center items-center gap-2 text-sm">
+    <div className="flex w-full flex-col">
+      <div className="flex w-full flex-row items-center justify-between py-3 px-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">
+            Có tất cả {displayedTotal} chương
+          </p>
+        </div>
+        <div className="flex flex-row items-center justify-center gap-2 text-xs">
           <span
             className={cn(
-              "cursor-pointer transition-colors",
-              chapterOrder === "DESC"
-                ? " font-semibold text-primary"
-                : "text-muted-foreground hover:text-primary"
-            )}
-            onClick={() => handleOrderDisplay("DESC")}
-          >
-            Từ chương mới nhất
-          </span>
-
-          <Separator orientation="vertical" className="h-1" />
-
-          <span
-            className={cn(
-              "cursor-pointer transition-colors",
+              "cursor-pointer transition-colors px-2 py-1 rounded-md",
               chapterOrder === "ASC"
-                ? " font-semibold text-primary"
+                ? "font-semibold text-primary"
                 : "text-muted-foreground hover:text-primary"
             )}
             onClick={() => handleOrderDisplay("ASC")}
           >
-            Từ chương 1
+            Mới nhất
+          </span>
+          <span
+            className={cn(
+              "cursor-pointer transition-colors px-2 py-1 rounded-md",
+              chapterOrder === "DESC"
+                ? "font-semibold text-primary"
+                : "text-muted-foreground hover:text-primary"
+            )}
+            onClick={() => handleOrderDisplay("DESC")}
+          >
+            Từ đầu
           </span>
         </div>
       </div>
-      <Separator className="mb-2" />
 
-      <div className="relative">
-        <div className="space-y-2">
+      <div className="relative rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="divide-y-0">
           {visibleChapters.map((chapter) => (
             <ChapterItem
               key={chapter.id}
               chapter={chapter}
               basePath={pathName}
+              freeChapters={freeChapters}
+              accessType={accessType}
+              isAuthenticated={isUserAuthenticated}
+              onRequireLogin={handleRequireLogin}
+              isPurchased={props.isPurchased}
+              isSubscribed={props.isSubscribed}
+              bookTitle={props.bookTitle}
+              bookCoverImage={props.bookCoverImage}
+              bookSlug={props.bookSlug}
+              allChapters={sortedPlaylistChapters}
             />
           ))}
         </div>
 
         {!showAll && hasMoreChapters && (
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent" />
         )}
       </div>
 
       {hasMoreChapters && (
-        <div className="mt-4 pt-2 text-center border-t border-border/50">
+        <div className="mt-4 text-center">
           <button
-            onClick={() => setShowAll(!showAll)}
-            className="mt-2 text-primary hover:text-primary/80 text-sm font-medium hover:underline transition-all"
+            onClick={handleToggleShowAll}
+            className={cn(
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer",
+              "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800"
+            )}
           >
-            {showAll
-              ? "Thu gọn"
-              : `${showMoreText} ${
-                  totalChapters
-                    ? `(${
-                        totalChapters - initialVisibleChapters
-                      } chương còn lại)`
-                    : `(${chapters.length - initialVisibleChapters} chương nữa)`
-                }`}
+            {showAll ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                Thu gọn
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                {showMoreText} ({totalChapters
+                  ? totalChapters - initialVisibleChapters
+                  : chapters.length - initialVisibleChapters} chương)
+              </>
+            )}
           </button>
         </div>
       )}
+      <PurchaseChapterWarningModal
+        open={showPurchaseModal}
+        onOpenChange={setShowPurchaseModal}
+        bookTitle={props.bookTitle}
+        bookCoverImage={props.bookCoverImage}
+        bookSlug={props.bookSlug}
+        chapterTitle={selectedChapter?.title || ""}
+        chapterOrder={selectedChapter?.order || 0}
+        accessType={accessType}
+      />
+
+      <SubscriptionWarningModal
+        open={showSubscriptionModal}
+        onOpenChange={setShowSubscriptionModal}
+        bookTitle={props.bookTitle}
+        bookCoverImage={props.bookCoverImage}
+      />
     </div>
   );
 }

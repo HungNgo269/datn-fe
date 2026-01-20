@@ -1,4 +1,4 @@
-enum BannerPosition {
+export enum BannerPosition {
   HOME_SLIDER = "HOME_SLIDER",
   SIDEBAR_LEFT = "SIDEBAR_LEFT",
   HEADER = "HEADER",
@@ -10,12 +10,14 @@ enum BannerPosition {
 export interface Banner {
   id: number;
   title: string;
-  description: string;
-  linkUrl: string;
-  position: BannerPosition | string;
+  description?: string | null;
+  linkUrl?: string | null;
+  position: BannerPosition;
   imageUrl: string;
-  startDate: string | Date;
-  endDate: string | Date;
+  startDate?: Date;
+  endDate?: Date;
   order: number;
   isActive: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 }

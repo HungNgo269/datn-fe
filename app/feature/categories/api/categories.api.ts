@@ -3,14 +3,26 @@ import { Category } from "../types/listCategories";
 import { axiosClient } from "@/lib/api";
 import { CategoryFields } from "@/app/schema/categorySchema";
 
-export async function getCategories(params: { page: number; limit: number }) {
+export async function getCategories(params: {
+  page: number;
+  limit: number;
+  q?: string;
+  endpoint?: string;
+}) {
+  const { endpoint = "/categories", ...query } = params;
   return handlePaginatedRequest<Category>(() =>
-    axiosClient.get("/categories", { params })
+    axiosClient.get(endpoint, { params: query })
   );
 }
 
 export async function getCategoryById(id: number) {
   return handleRequest<Category>(() => axiosClient.get(`/categories/${id}`));
+}
+
+export async function getCategoryBySlug(slug: string) {
+  return handleRequest<Category>(() =>
+    axiosClient.get(`/categories/slug/${slug}`)
+  );
 }
 
 export async function createCategory(payload: CategoryFields) {
@@ -26,4 +38,14 @@ export async function updateCategory(id: number, payload: CategoryFields) {
 
 export async function deleteCategory(id: number) {
   return handleRequest<boolean>(() => axiosClient.delete(`/categories/${id}`));
+}
+
+export async function getCategorySearch(params: {
+  page: number;
+  limit: number;
+  q: string;
+}) {
+  return handlePaginatedRequest<Category>(() =>
+    axiosClient.get("/categories/search", { params })
+  );
 }

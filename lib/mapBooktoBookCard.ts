@@ -12,8 +12,6 @@ export const mapBooksToCardProps = (books: Book[]): BookCardProps[] => {
     coverImage: book.coverImage,
     viewCount: book.viewCount,
     price: book.price ?? 0,
-    authors:
-      book.authors?.map((a: AuthorsList) => a.author.name).join(", ") ||
-      "Đang cập nhật",
+    authors: book.authors ?? ([] as AuthorsList[]),
   }));
 };

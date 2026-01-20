@@ -1,37 +1,47 @@
-import { getBookByCategoryAction } from "../../books/action/books.action";
-import { Book } from "../../books/types/books.type";
+﻿import { getBooksAction } from "../../books/action/books.action";
 import { getCategories } from "../actions/categories.action";
-import BookCategoryContainer from "./categoryBookContainer";
+import {
+  Book,
+  BookSortBy,
+  GetBooksParams,
+  SortOrder,
+} from "../../books/types/books.type";
+import BookCategoryClient from "./categoryBookContainer";
+import { Category } from "../types/listCategories";
 
 export default async function CategoryBookWrapper() {
-  const { data: categories } = await getCategories(1, 10);
+  let categories: Category[] = [];
+  let booksIni: Book[] = [];
 
-  const defaultCategoryId = categories?.[0]?.id;
-  let initialBooks: Book[] = [];
-
-  if (defaultCategoryId) {
-    try {
-      const res = await getBookByCategoryAction(
-        1,
-        10,
-        "",
-        defaultCategoryId,
-        ""
-      );
-      console.log("ers", res);
-      initialBooks = res.data;
-    } catch (e) {
-      console.error("Error fetching initial books", e);
-    }
+  try {
+    const { data: categoriesData } = await getCategories(1, 10);
+    categories = categoriesData ?? [];
+  } catch (error) {
+    console.error("CategoryBookWrapper: Failed to fetch categories", error);
+    categories = [];
   }
 
+  const defaultCategory = categories[0];
+
+  if (defaultCategory?.id) {
+    try {
+      const params: GetBooksParams = {
+        sortBy: BookSortBy.VIEW_COUNT,
+        category: defaultCategory.slug,
+        limit: 10,
+        page: 1,
+        sortOrder: SortOrder.DESC,
+      };
+      const res = await getBooksAction(params);
+      booksIni = res.data ?? [];
+    } catch (error) {
+      console.error("CategoryBookWrapper: Failed to fetch books", error);
+      booksIni = [];
+    }
+  }
   return (
-    <div className="flex flex-row justify-between lg:w-full w-full md:w-[700px]">
-      <BookCategoryContainer
-        key="category-container"
-        categories={categories}
-        initialBooks={initialBooks}
-      />
+    <div className="flex w-full flex-row justify-between md:w-[700px] lg:w-full">
+      <BookCategoryClient categories={categories} booksIni={booksIni} />
     </div>
   );
 }

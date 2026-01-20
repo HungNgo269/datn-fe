@@ -1,24 +1,26 @@
-"use client";
+﻿"use client";
 
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-
+import Cookies from "js-cookie";
 import { LoginFields, LoginSchema } from "@/app/schema/loginSchema";
 import { useAuthStore } from "@/app/store/useAuthStore";
-import { useTokenStore } from "@/app/store/useTokenStore";
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Login } from "../api/login.api";
 
-export default function LoginForm() {
+function LoginFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const isSecureContext =
+    typeof window !== "undefined" && window.location.protocol === "https:";
   const {
     register,
     handleSubmit,
@@ -34,20 +36,27 @@ export default function LoginForm() {
         throw new Error("Đăng nhập thất bại");
       }
       useAuthStore.getState().setUser(data.user);
-      useTokenStore.getState().setToken(data.accessToken);
 
       await queryClient.invalidateQueries({ queryKey: ["user"] });
 
+      Cookies.set("accessToken", data.accessToken, {
+        expires: 15 * 60 * 1000,
+        secure: isSecureContext,
+        sameSite: "strict",
+        path: "/",
+      });
       toast.success("Đăng nhập thành công!");
-      console.log("hi123", data.user.roles);
+
+      const redirectParam =
+        searchParams.get("callbackUrl") ?? searchParams.get("next");
+      const safeRedirect =
+        redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
 
       if (data.user.roles.includes("admin")) {
-        console.log("hi", data.user.roles);
-        router.push("/books-admin");
+        router.push("/analitics-admin");
         return;
       }
-      router.push("/");
-      return;
+      router.push(safeRedirect ?? "/");
     },
   });
 
@@ -58,13 +67,12 @@ export default function LoginForm() {
   const isPending = loginMutation.isPending;
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-background">
+    <div className="flex flex-1 items-center justify-center bg-background">
       <div className="w-full max-w-md p-6">
         <header className="space-y-1 text-center">
-          <h2 className="text-2xl font-bold">Đăng Nhập Vào NextBook</h2>
+          <h2 className="text-2xl font-bold">Đăng nhập vào NextBook</h2>
           <p className="text-muted-foreground">
-            Nhập thông tin tài khoản của bạn để truy cập admin@example.com
-            user@example.com 123456
+            Nhập thông tin tài khoản của bạn để truy cập hệ thống.
           </p>
         </header>
 
@@ -74,14 +82,14 @@ export default function LoginForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="Địa chỉ Email"
+                placeholder="Địa chỉ email"
                 autoFocus
                 disabled={isPending}
                 {...register("email")}
                 className={errors.email ? "border-destructive" : ""}
               />
               {errors.email && (
-                <p className="text-sm text-destructive font-medium">
+                <p className="text-sm font-medium text-destructive">
                   {errors.email.message}
                 </p>
               )}
@@ -97,7 +105,7 @@ export default function LoginForm() {
                 className={errors.password ? "border-destructive" : ""}
               />
               {errors.password && (
-                <p className="text-sm text-destructive font-medium">
+                <p className="text-sm font-medium text-destructive">
                   {errors.password.message}
                 </p>
               )}
@@ -107,7 +115,7 @@ export default function LoginForm() {
               <Button
                 variant="link"
                 type="button"
-                className="text-sm p-0 h-auto hover:cursor-pointer text-muted-foreground"
+                className="h-auto p-0 text-sm text-muted-foreground hover:cursor-pointer"
                 onClick={() => router.push("/forgotPassword")}
               >
                 Quên mật khẩu?
@@ -115,7 +123,7 @@ export default function LoginForm() {
             </div>
 
             {loginMutation.isError && (
-              <div className="flex items-center space-x-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center space-x-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3">
                 <AlertCircle className="h-5 w-5 text-destructive" />
                 <p className="text-sm text-destructive">
                   Tên đăng nhập hoặc mật khẩu không chính xác
@@ -123,15 +131,10 @@ export default function LoginForm() {
               </div>
             )}
 
-            <Button
-              className="w-full"
-              size="lg"
-              disabled={isPending}
-              type="submit"
-            >
+            <Button className="w-full" size="lg" disabled={isPending} type="submit">
               {isPending ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                   Đang đăng nhập...
                 </div>
               ) : (
@@ -148,16 +151,16 @@ export default function LoginForm() {
             </Button>
           </div>
 
-          <div className="pt-4"></div>
+          <div className="pt-4" />
           <hr className="border-0.5 border-border" />
 
-          <div className="text-center mt-4">
-            <p className="text-muted-foreground text-sm">
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
               Chưa có tài khoản?{" "}
               <Link
-                prefetch={true}
+                prefetch={false}
                 href="/register"
-                className="text-primary hover:underline font-medium"
+                className="font-medium text-primary hover:underline"
               >
                 Tạo ngay bây giờ
               </Link>
@@ -167,11 +170,17 @@ export default function LoginForm() {
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground">
               Bằng việc tiếp tục, bạn đồng ý với{" "}
-              <Link href="/terms" className="underline hover:text-primary">
+              <Link
+                href="/terms"
+                className="underline hover:text-primary -foreground"
+              >
                 Điều khoản Dịch vụ
               </Link>{" "}
               và{" "}
-              <Link href="/privacy" className="underline hover:text-primary">
+              <Link
+                href="/privacy"
+                className="underline hover:text-primary -foreground"
+              >
                 Chính sách Bảo mật
               </Link>{" "}
               của chúng tôi.
@@ -180,5 +189,13 @@ export default function LoginForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<div className="min-h-[300px] w-full" />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
