@@ -33,14 +33,20 @@ export default function AuthorProfile({
       {/* Avatar Section */}
       <div className="flex shrink-0 flex-col items-center md:items-start">
         <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-background bg-muted shadow-sm md:h-52 md:w-52 lg:h-64 lg:w-64">
-          <Image
-            src={avatar!}
-            alt={author.name}
-            fill
-            sizes="(max-width: 768px) 160px, 256px"
-            priority
-            className="object-cover"
-          />
+          {avatar ? (
+            <Image
+              src={avatar}
+              alt={author.name}
+              fill
+              sizes="(max-width: 768px) 160px, 256px"
+              priority
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-slate-200 text-4xl font-bold text-slate-500">
+              {author.name?.charAt(0).toUpperCase() || "?"}
+            </div>
+          )}
         </div>
       </div>
 

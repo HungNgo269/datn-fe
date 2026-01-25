@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ChevronLeft, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useBookSubmit } from "@/app/feature/books/hooks/useBookSubmit";
 import { BookFormState } from "@/app/feature/books-upload/schema/uploadBookSchema";
@@ -13,6 +14,7 @@ import { BookForm } from "@/app/feature/books-upload/components/BookForm";
 
 export default function CreateBookPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { submitBook, isSubmitting, statusMessage, error } = useBookSubmit();
 
@@ -24,12 +26,14 @@ export default function CreateBookPage() {
         toast.success(
           "Upload sách thành công! Hãy chờ một chút để hệ thống cập nhật sách."
         );
+        // Invalidate books query to refresh the list
+        await queryClient.invalidateQueries({ queryKey: ["books"] });
         router.push("/books-admin");
       } else {
         toast.error(result?.error || "Có lỗi xảy ra trong quá trình upload.");
       }
     },
-    [submitBook, router]
+    [submitBook, router, queryClient]
   );
 
   const handleCancel = useCallback(() => {

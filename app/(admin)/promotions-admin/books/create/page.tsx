@@ -92,7 +92,6 @@ export default function CreateBookPromotionPage() {
       maxDiscountValue: type === "PERCENTAGE" && maxDiscountValue ? maxDiscountValue : undefined,
     };
 
-    console.log("Submitting payload:", dto);
     createMutation.mutate(dto);
   }, [
     name,

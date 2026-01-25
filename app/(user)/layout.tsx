@@ -22,10 +22,10 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
       {/* Main Content */}
       <div className="flex-1 w-full min-h-screen">
         <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12 ">
-          <div className="flex gap-6 lg:gap-8">
+          <div className="flex gap-6 lg:gap-8 mt-8">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:block w-72 xl:w-80 shrink-0">
-              <div className="sticky top-24">
+              <div className="sticky top-0">
                 <AccountSidebar />
               </div>
             </aside>

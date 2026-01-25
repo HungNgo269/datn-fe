@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { Suspense, useCallback, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, RefreshCw } from "lucide-react";
@@ -31,13 +31,23 @@ function FavoriteBooksSectionContent() {
     refetch();
   }, [refetch]);
 
-  useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [router, user]);
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (!user) return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+
+  if (!isMounted) return null;
+
+  if (!user) {
+    return (
+      <div className="flex min-h-[200px] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
 
   const favorites = data?.data ?? [];
   const meta = data?.meta;

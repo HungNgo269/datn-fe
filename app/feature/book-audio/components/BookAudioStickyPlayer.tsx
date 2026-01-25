@@ -57,8 +57,13 @@ export default function BookAudioStickyPlayer() {
   const [isChapterListOpen, setIsChapterListOpen] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [isSpeedPopoverOpen, setIsSpeedPopoverOpen] = useState<boolean>(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState<boolean>(false);
+  const isLoadingAudio = useBookAudioStore((state) => state.isLoading);
+  const loadingMessage = useBookAudioStore((state) => state.loadingMessage);
+  const setLoading = useBookAudioStore((state) => state.setLoading);
   const [audioError, setAudioError] = useState<string | null>(null);
+  
+  // const [isLoadingAudio, setIsLoadingAudio] = useState<boolean>(false);
+  // const [loadingMessage, setLoadingMessage] = useState<string>("Đang tải...");
 
   const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
@@ -113,29 +118,46 @@ export default function BookAudioStickyPlayer() {
   // Handle audio loading with AudioStreamService
   useEffect(() => {
     if (!currentChapter?.id || !currentTrack) {
-      setIsLoadingAudio(false);
+      setLoading(false);
       setAudioError(null);
       return;
     }
 
     let isMounted = true;
-    setIsLoadingAudio(true);
+    setLoading(true, "Đang tải...");
     setAudioError(null);
     
-    // Pause current audio before loading new one
+    // Pause and fully reset current audio before loading new one
     if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current.removeAttribute("src");
+        audioRef.current.load();
     }
 
     const loadAudio = async () => {
         try {
             const { audioStreamService } = await import("../services/AudioStreamService");
-            const source = await audioStreamService.getAudioSource(currentChapter.id);
+            const source = await audioStreamService.getAudioSource(
+                currentChapter.id,
+                false,
+                (state) => {
+                    if (!isMounted) return;
+                    if (state === 'synthesizing') {
+                        setLoading(true, "Đang tạo giọng đọc...");
+                    } else if (state === 'loading') {
+                        setLoading(true, "Đang tải audio...");
+                    } else {
+                        setLoading(true, "Đang tải...");
+                    }
+                },
+                String(playRequestId)
+            );
             
             if (!isMounted) return;
 
             if (audioRef.current) {
                 audioRef.current.src = source.url;
+                audioRef.current.load();
                 audioRef.current.playbackRate = playbackSpeed;
                 audioRef.current.volume = volume / 100;
                 
@@ -161,12 +183,19 @@ export default function BookAudioStickyPlayer() {
             console.error("Audio load error:", error);
             if (isMounted) {
                 // If 403, it might be expired URL (though service handles refresh, maybe it failed)
-                setAudioError("Không thể tải audio. Vui lòng thử lại.");
+                // Use error message from service if available (e.g. 503 from backend)
+                const errorMessage = error.message?.includes("404") 
+                    ? "Chưa có audio cho chương này"
+                    : error.message?.includes("Service Unavailable") 
+                        ? "Hệ thống đang bận, vui lòng thử lại sau" 
+                        : "Không thể tải audio. Vui lòng thử lại.";
+                    
+                setAudioError(errorMessage);
                 pauseTrack();
             }
         } finally {
             if (isMounted) {
-                setIsLoadingAudio(false);
+                setLoading(false);
             }
         }
     };
@@ -246,16 +275,22 @@ export default function BookAudioStickyPlayer() {
     
     // Only try to recover if we have a source and haven't retried too many times
     if (e.currentTarget.src && retryCount < 1) {
-       console.log("Attempting to recover audio...");
        setRetryCount(prev => prev + 1);
        
        // Force reload with fresh URL
        const reloadAudio = async () => {
          try {
-           setIsLoadingAudio(true);
+           setLoading(true, "Đang thử lại...");
            const { audioStreamService } = await import("../services/AudioStreamService");
            if (currentChapter?.id) {
-             const source = await audioStreamService.getAudioSource(currentChapter.id, true); // Force network
+             const source = await audioStreamService.getAudioSource(
+                 currentChapter.id, 
+                 true, // Force network
+                 (state) => {
+                     setLoading(true, state === 'synthesizing' ? "Đang tạo giọng đọc..." : "Đang tải lại...");
+                 },
+                 String(playRequestId)
+             ); 
              if (audioRef.current) {
                 audioRef.current.src = source.url;
                 audioRef.current.load();
@@ -267,7 +302,7 @@ export default function BookAudioStickyPlayer() {
             setAudioError("Lỗi khi phát audio");
             useBookAudioStore.getState().pauseTrack();
          } finally {
-            setIsLoadingAudio(false);
+            setLoading(false);
          }
        };
        reloadAudio();
@@ -373,7 +408,7 @@ export default function BookAudioStickyPlayer() {
                 {isLoadingAudio ? (
                   <span className="flex items-center gap-1">
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    Đang tải...
+                    {loadingMessage}
                   </span>
                 ) : audioError ? (
                   <span className="text-rose-500">{audioError}</span>

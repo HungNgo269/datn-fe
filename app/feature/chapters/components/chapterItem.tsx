@@ -90,6 +90,7 @@ export function ChapterItem({
     (state) => state.currentTrack?.chapters?.[state.currentChapterIndex]?.id
   );
   const isPlaying = useBookAudioStore((state) => state.isPlaying);
+  const isLoading = useBookAudioStore((state) => state.isLoading);
   
   // Get actions individually to avoid creating new object references on every render
   const startPlayback = useBookAudioStore((state) => state.startPlayback);
@@ -134,9 +135,9 @@ export function ChapterItem({
       }
     }
 
-    // Otherwise (or if not found), start new playback with full list
-    const validAudioChapters =
-      allChapters?.filter((c) => c.audio || c.hasAudio) || [];
+    // For TTS support, we allow all chapters to be played
+    // Filter to ensure we have valid chapter data, but don't strictly require pre-existing audio
+    const validAudioChapters = allChapters || []; // Use all available chapters
 
     const chaptersToPlay =
       validAudioChapters.length > 0
@@ -214,10 +215,10 @@ export function ChapterItem({
         />
 
         <div className="flex justify-center w-[40px]">
-          {chapter.audio || chapter.hasAudio ? (
+          {true ? (
             <button
               onClick={handlePlayAudio}
-              disabled={isLocked}
+              disabled={isLocked || (isCurrentChapter && isLoading)}
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-full transition-all border",
                 isChapterPlaying
@@ -226,7 +227,9 @@ export function ChapterItem({
                 isLocked && "opacity-0 pointer-events-none"
               )}
             >
-              {isChapterPlaying ? (
+              {isCurrentChapter && isLoading ? (
+                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : isChapterPlaying ? (
                 <Pause className="h-3.5 w-3.5 fill-current" />
               ) : (
                 <Play className="h-3.5 w-3.5 fill-current translate-x-[0.5px]" />

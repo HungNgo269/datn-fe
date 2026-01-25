@@ -10,6 +10,7 @@ interface TrendingBookContentProps {
 export default function TrendingBookContent({
   books,
 }: TrendingBookContentProps) {
+
   return (
     <div className="space-y-3">
       {books.map((book: BookCardProps, index) => (
@@ -37,8 +38,8 @@ export default function TrendingBookContent({
             </Link>
             <div className="flex flex-row items-center overflow-hidden max-w-full">
               <div className="text-xs text-muted-foreground truncate">
-                {book.authors.map((authorEntry, index) => {
-                  const { author } = authorEntry;
+                {book.authors.map((authorEntry: any, index) => {
+                  const author = authorEntry.author || authorEntry;
                   const authorHref = buildAuthorHref(author.name, author.slug);
 
                   return (

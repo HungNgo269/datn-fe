@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn, getValidImageUrl } from "@/lib/utils";
@@ -60,7 +62,14 @@ const NAV_LINKS = [
 
 export function AccountSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
-  const user = useAuthStore((state) => state.user);
+  const userStore = useAuthStore((state) => state.user);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const user = isMounted ? userStore : null;
   
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -146,10 +155,10 @@ export function AccountSidebar({ className }: { className?: string }) {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-100",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/10"
               )}
             >
               {link.icon}

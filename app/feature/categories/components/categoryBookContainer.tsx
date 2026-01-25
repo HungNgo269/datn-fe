@@ -22,7 +22,7 @@ export default function BookCategoryClient({
 
   const [selectedCategory, setSelectedCategory] = useState(defaultCategoryId);
   const [books, setBooks] = useState(booksIni);
-
+  console.log("CategoryBookContainer", books);
   const [isPending, startTransition] = useTransition();
   const categoriesById = useMemo(() => {
     return new Map(categories.map((category) => [category.id, category]));

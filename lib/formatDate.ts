@@ -13,7 +13,6 @@ export function safeParseDate(dateInput: DateInput): Date | null {
 }
 //  (DD/MM/YYYY)
 export function formatDate(dateInput: DateInput): string {
-  console.log("dateinput", dateInput);
   const date = safeParseDate(dateInput);
   if (!date) return "";
   return new Intl.DateTimeFormat("en-GB", {

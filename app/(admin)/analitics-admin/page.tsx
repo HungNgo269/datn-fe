@@ -326,8 +326,8 @@
 // }
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Users, DollarSign, Eye, UserPlus } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Users, DollarSign, Eye, UserPlus, Loader2 } from "lucide-react";
 import {
   AnalyticData,
   TimeRange,
@@ -340,140 +340,115 @@ import {
   ViewsChart,
 } from "@/app/feature/analytics/components/Charts";
 import { getDeltaLabelVi } from "@/app/feature/analytics/helper/getDeltaLabel";
+import {
+  getAnalytics,
+  AnalyticsPeriod,
+  AnalyticsResponseDto,
+} from "@/app/feature/analytics/api/analytics.api";
+import { toast } from "sonner";
 
-// Helper to generate daily data points with Vietnamese date format
-const generateDailyData = (daysCount: number, startDate: Date): AnalyticData[] => {
-  const data: AnalyticData[] = [];
-  const months = ["thg 1", "thg 2", "thg 3", "thg 4", "thg 5", "thg 6", "thg 7", "thg 8", "thg 9", "thg 10", "thg 11", "thg 12"];
-  
-  for (let i = 0; i < daysCount; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
-    
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const name = `${day} ${month}`;
-    
-    // Generate realistic looking data with some variation
-    const baseActive = 500 + Math.sin(i * 0.3) * 150 + Math.random() * 100;
-    const baseRevenue = 12000000 + Math.sin(i * 0.25) * 4000000 + Math.random() * 2000000;
-    const baseViews = 4500 + Math.sin(i * 0.35) * 1500 + Math.random() * 500;
-    const baseNewUsers = 120 + Math.sin(i * 0.28) * 40 + Math.random() * 20;
-    
-    data.push({
-      name,
-      activeUsers: Math.round(baseActive),
-      revenue: Math.round(baseRevenue),
-      views: Math.round(baseViews),
-      newUsers: Math.round(baseNewUsers),
-    });
-  }
-  return data;
+// Map frontend time range to backend period
+const TIME_RANGE_TO_PERIOD: Record<TimeRange, AnalyticsPeriod> = {
+  "7days": AnalyticsPeriod.SEVEN_DAYS,
+  "30days": AnalyticsPeriod.THIRTY_DAYS,
+  "3months": AnalyticsPeriod.NINETY_DAYS,
 };
 
-// Generate data for each time range
-// Using January 17, 2026 as reference (current date based on context)
-const today = new Date(2026, 0, 17); // Jan 17, 2026
-
-const generate7DaysData = (): AnalyticData[] => {
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 6); // 7 days ago
-  return generateDailyData(7, startDate);
-};
-
-const generate30DaysData = (): AnalyticData[] => {
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 29); // 30 days ago
-  return generateDailyData(30, startDate);
-};
-
-const generate3MonthsData = (): AnalyticData[] => {
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 89); // 90 days ago
-  return generateDailyData(90, startDate);
-};
-
-const ANALYTICS_DATA: Record<TimeRange, AnalyticData[]> = {
-  "7days": generate7DaysData(),
-  "30days": generate30DaysData(),
-  "3months": generate3MonthsData(),
-};
-
-// Tick interval for each time range (how many labels to skip)
+// Tick interval configuration
 const TICK_INTERVALS: Record<TimeRange, number> = {
-  "7days": 0,    // Show all 7 days
-  "30days": 4,   // Show every 5th day (~6 labels)
-  "3months": 13, // Show every 14th day (~7 labels)
-};
-
-const calcTotals = (series: AnalyticData[]) =>
-  series.reduce(
-    (acc, curr) => ({
-      revenue: acc.revenue + curr.revenue,
-      views: acc.views + curr.views,
-      newUsers: acc.newUsers + curr.newUsers,
-      totalActive: acc.totalActive + curr.activeUsers,
-    }),
-    { revenue: 0, views: 0, newUsers: 0, totalActive: 0 }
-  );
-
-// Mock revenue breakdown (in real app, this would come from API)
-const REVENUE_BREAKDOWN: Record<TimeRange, { bookSales: number; subscription: number }> = {
-  "7days": { bookSales: 68000000, subscription: 38400000 },
-  "30days": { bookSales: 320000000, subscription: 140000000 },
-  "3months": { bookSales: 4200000000, subscription: 1800000000 },
-};
-
-const calcDeltaPercent = (current: number, previous: number): number => {
-  if (previous === 0) return 0;
-  return ((current - previous) / previous) * 100;
+  "7days": 0,
+  "30days": 4,
+  "3months": 13,
 };
 
 export default function AnalyticPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>("30days");
   const [chartType, setChartType] = useState<"active" | "views" | "revenue">(
-    "active"
+    "revenue"
   );
-  const data = useMemo(() => ANALYTICS_DATA[timeRange], [timeRange]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsResponseDto | null>(null);
+
   const deltaLabel = getDeltaLabelVi(timeRange);
 
-  const summary = useMemo(() => {
-    const totals = calcTotals(data);
-    return {
-      ...totals,
-      avgActive: Math.round(totals.totalActive / data.length),
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const period = TIME_RANGE_TO_PERIOD[timeRange];
+        const response = await getAnalytics(period);
+        setAnalyticsData(response);
+      } catch (error) {
+        console.error("Failed to fetch analytics:", error);
+        toast.error("Không thể tải dữ liệu phân tích. Vui lòng thử lại sau.");
+      } finally {
+        setIsLoading(false);
+      }
     };
-  }, [data]);
 
-  const previousSummary = useMemo(() => {
-    const totals = calcTotals(data);
-    return {
-      revenue: Math.round(totals.revenue * 0.9),
-      views: Math.round(totals.views * 1.05),
-      newUsers: Math.round(totals.newUsers * 0.95),
-      totalActive: Math.round(totals.totalActive * 1.02),
-    };
-  }, [data]);
+    fetchData();
+  }, [timeRange]);
 
-  const revenueDelta = calcDeltaPercent(
-    summary.revenue,
-    previousSummary.revenue
-  );
-  const activeDelta = calcDeltaPercent(
-    summary.avgActive,
-    Math.round(previousSummary.totalActive / data.length)
-  );
-  const viewsDelta = calcDeltaPercent(summary.views, previousSummary.views);
-  const newUsersDelta = calcDeltaPercent(
-    summary.newUsers,
-    previousSummary.newUsers
-  );
+  const chartData: AnalyticData[] = useMemo(() => {
+    if (!analyticsData) return [];
+
+    const { revenueByDate, viewsByDate, activeUsersByDate, newUsersByDate } = analyticsData;
+
+    // Use revenueByDate as the base iteration array as it should cover the dates
+    return revenueByDate.map((revItem) => {
+      const date = revItem.date;
+      const viewItem = viewsByDate.find((i) => i.date === date);
+      const userItem = newUsersByDate.find((i) => i.date === date);
+      const activeItem = activeUsersByDate?.find((i) => i.date === date);
+
+      // Parse date for display name (e.g., "15 thg 1")
+      const dateObj = new Date(date);
+      const day = dateObj.getDate();
+      const month = dateObj.getMonth() + 1;
+      const name = `${day} thg ${month}`;
+
+      return {
+        name,
+        revenue: revItem.bookPurchases + revItem.subscriptions,
+        views: viewItem?.views || 0,
+        newUsers: userItem?.newUsers || 0,
+        activeUsers: activeItem?.activeUsers || 0,
+      };
+    });
+  }, [analyticsData]);
 
   const timeRangeLabels: Record<TimeRange, string> = {
     "7days": "7 ngày qua",
     "30days": "30 ngày qua",
     "3months": "3 tháng qua",
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-slate-600">Đang tải dữ liệu phân tích...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="text-center">
+                <p className="text-slate-600">Không có dữ liệu.</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                >
+                    Tải lại trang
+                </button>
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-8 relative overflow-y-auto">
@@ -512,35 +487,35 @@ export default function AnalyticPage() {
           <StatCard
             title="Doanh thu"
             value={
-              new Intl.NumberFormat("vi-VN").format(summary.revenue) + " VND"
+              new Intl.NumberFormat("vi-VN").format(analyticsData.revenue.current) + " VND"
             }
             icon={DollarSign}
             colorClass="bg-gradient-to-br from-emerald-500 to-teal-500"
-            deltaPercent={revenueDelta}
+            deltaPercent={analyticsData.revenue.growthRate}
             deltaLabel={deltaLabel}
           />
           <StatCard
             title="Người dùng hoạt động"
-            value={summary.avgActive}
+            value={analyticsData.activeUsers?.current || 0}
             icon={Users}
             colorClass="bg-gradient-to-br from-sky-500 to-indigo-500"
-            deltaPercent={activeDelta}
+            deltaPercent={analyticsData.activeUsers?.growthRate || 0}
             deltaLabel={deltaLabel}
           />
           <StatCard
             title="Lượt xem"
-            value={summary.views.toLocaleString()}
+            value={analyticsData.views.current.toLocaleString()}
             icon={Eye}
             colorClass="bg-gradient-to-br from-amber-500 to-orange-500"
-            deltaPercent={viewsDelta}
+            deltaPercent={analyticsData.views.growthRate}
             deltaLabel={deltaLabel}
           />
           <StatCard
             title="Người dùng mới"
-            value={summary.newUsers}
+            value={analyticsData.newUsers.current}
             icon={UserPlus}
             colorClass="bg-gradient-to-br from-pink-500 to-rose-500"
-            deltaPercent={newUsersDelta}
+            deltaPercent={analyticsData.newUsers.growthRate}
             deltaLabel={deltaLabel}
           />
         </div>
@@ -594,22 +569,22 @@ export default function AnalyticPage() {
 
             <div className="h-[350px]">
               {chartType === "active" ? (
-                <ActiveUsersChart data={data} tickInterval={TICK_INTERVALS[timeRange]} />
+                <ActiveUsersChart data={chartData} tickInterval={TICK_INTERVALS[timeRange]} />
               ) : chartType === "views" ? (
-                <ViewsChart data={data} tickInterval={TICK_INTERVALS[timeRange]} />
+                <ViewsChart data={chartData} tickInterval={TICK_INTERVALS[timeRange]} />
               ) : (
                 <div className="flex h-full gap-6">
                   {/* Main Revenue Chart */}
                   <div className="flex-1 h-full">
-                    <RevenueChart data={data} tickInterval={TICK_INTERVALS[timeRange]} />
+                    <RevenueChart data={chartData} tickInterval={TICK_INTERVALS[timeRange]} />
                   </div>
                   {/* Revenue Breakdown Donut Chart */}
                   <div className="w-48 h-full flex flex-col bg-slate-50/50 rounded-xl border border-slate-200/80 p-3">
                     <h4 className="text-sm font-semibold text-slate-700 mb-2 text-center">Nguồn doanh thu</h4>
                     <div className="flex-1">
                       <RevenueBreakdownChart
-                        bookSalesRevenue={REVENUE_BREAKDOWN[timeRange].bookSales}
-                        subscriptionRevenue={REVENUE_BREAKDOWN[timeRange].subscription}
+                        bookSalesRevenue={analyticsData.revenueBreakdown.bookPurchases}
+                        subscriptionRevenue={analyticsData.revenueBreakdown.subscriptions}
                       />
                     </div>
                   </div>

@@ -30,7 +30,7 @@ export function BookAudioChapterList({
     return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   };
 
-  // Filter chapters to only show those with audio (duration > 0)
+  // Show all chapters for TTS support
   const chaptersWithAudio = useMemo(() => {
     if (!currentTrack?.chapters) return [];
     
@@ -133,7 +133,7 @@ export function BookAudioChapterList({
                     {chapter.title}
                   </p>
                   <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground mt-1">
-                     <span className="tabular-nums">{formatDuration(chapter.duration)}</span>
+                     {/* <span className="tabular-nums">{formatDuration(chapter.duration)}</span> */}
                      {chapter.date && (
                          <>
                             <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />

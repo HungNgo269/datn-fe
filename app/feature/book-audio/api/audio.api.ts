@@ -15,7 +15,14 @@ export interface ChapterAudioResponse {
  * @returns Promise with the audio data including URL
  */
 export async function getChapterAudio(chapterId: string | number) {
-  return handleRequest<ChapterAudioResponse>(() =>
-    axiosClient.get(`/audio/chapter/${chapterId}`)
-  );
+  // Return the URL directly so AudioStreamService can handle the binary stream/redirection
+  // validation keys (id, status etc) are mocked as they are not available without a fetch,
+  // but AudioStreamService primarily needs the URL.
+  return {
+    id: 0,
+    chapterId: Number(chapterId),
+    status: 'success',
+    url: `${process.env.NEXT_PUBLIC_API_URL}/audio/chapter/${chapterId}`,
+    duration: 0
+  };
 }

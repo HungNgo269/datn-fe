@@ -1,12 +1,12 @@
 ﻿"use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import { useAuthStore } from "@/app/store/useAuthStore";
 
 export function ChangePasswordForm() {
   const user = useAuthStore((state) => state.user);
-  const router = useRouter();
+
 
   const {
     register,
@@ -48,13 +48,23 @@ export function ChangePasswordForm() {
     changePasswordMutation.mutate(data);
   };
 
-  useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [router, user]);
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (!user) return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+
+  if (!user && isMounted) {
+    return (
+      <div className="flex justify-center p-8">
+        <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (!isMounted) return null;
+
 
   const isPending = changePasswordMutation.isPending;
 

@@ -57,19 +57,12 @@ interface BookAudioState {
     payload: { id: string; title: string; episode?: string; coverImage: string; duration?: number }
   ) => void;
   updateChapterDuration: (chapterId: string, duration: number) => void;
+  
+  // Loading State
+  isLoading: boolean;
+  loadingMessage: string;
+  setLoading: (isLoading: boolean, message?: string) => void;
 }
-
-// Mock chapters for demo
-export const MOCK_CHAPTERS: AudioChapter[] = [
-  { id: "1", title: "Lời tựa", duration: 202000, date: "25/12/2025", isFree: true },
-  { id: "2", title: "Phần thứ nhất: Lịch sử hình thành và phát triển", duration: 693000, date: "25/12/2025", isFree: true },
-  { id: "3", title: "Giai đoạn 2: Xây dựng Chủ nghĩa xã hội", duration: 987000, date: "25/12/2025", isFree: true },
-  { id: "4", title: "Giai đoạn 3: Tiền Đổi mới (1975 - 1986)", duration: 1781000, date: "25/12/2025", isFree: false },
-  { id: "5", title: "Giai đoạn 4: Đổi mới và hội nhập (1986 - nay)", duration: 1500000, date: "25/12/2025", isFree: false },
-  { id: "6", title: "Giai đoạn 5: Kỷ nguyên mới", duration: 506000, date: "25/12/2025", isFree: false },
-  { id: "7", title: "Phần thứ hai: Ngành khoa học và công nghệ", duration: 1145000, date: "25/12/2025", isFree: false },
-  { id: "8", title: "Lời kết", duration: 85000, date: "25/12/2025", isFree: true },
-];
 
 export const useBookAudioStore = create<BookAudioState>((set, get) => ({
   currentTrack: null,
@@ -81,6 +74,11 @@ export const useBookAudioStore = create<BookAudioState>((set, get) => ({
   repeatMode: 0,
   isPurchaseDialogOpen: false,
   purchaseDialogAccessType: "purchase",
+  
+  isLoading: false,
+  loadingMessage: "Đang tải...",
+
+  setLoading: (isLoading, message = "Đang tải...") => set({ isLoading, loadingMessage: message }),
 
   toggleShuffle: () => set((state) => ({ isShuffleOn: !state.isShuffleOn })),
   

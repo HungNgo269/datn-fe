@@ -47,72 +47,123 @@ export function PurchasedBooksSection() {
   const purchases = data ?? [];
 
   return (
-    <section className="space-y-4 rounded-2xl p-6">
-      <header>
-        <p className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+    <section className="space-y-6 rounded-2xl p-6">
+      <header className="flex flex-col gap-1">
+        <div className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-primary">
           <ShoppingBag className="h-4 w-4" />
-          Sách đã mua
-        </p>
-        <h2 className="mt-1 text-2xl font-semibold text-foreground">
-          Sách bạn sở hữu
+          <span>Sách đã mua</span>
+        </div>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          Bộ sưu tập của bạn
         </h2>
+        <p className="text-muted-foreground">
+          Quản lý và đọc lại những cuốn sách bạn đã sở hữu
+        </p>
       </header>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">
-          Đang tải danh sách mua...
-        </p>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="aspect-[2/3] animate-pulse rounded-xl bg-muted/40"
+            />
+          ))}
+        </div>
       ) : isError ? (
-        <p className="text-sm text-destructive">
-          Không thể tải danh sách mua.
-        </p>
+        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/5 text-center">
+          <p className="font-medium text-destructive">
+            Không thể tải danh sách sách đã mua
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Vui lòng thử lại sau giây lát
+          </p>
+        </div>
       ) : purchases.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Bạn chưa mua cuốn sách nào.
-        </p>
+        <div className="flex min-h-[400px] flex-col items-center justify-center space-y-6 rounded-3xl border border-dashed border-border/60 bg-muted/5 p-12 text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/20 text-muted-foreground">
+            <ShoppingBag className="h-10 w-10" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-foreground">
+              Chưa có cuốn sách nào
+            </h3>
+            <p className="max-w-xs text-muted-foreground mx-auto">
+              Khám phá kho sách khổng lồ và bắt đầu xây dựng thư viện cá nhân của riêng bạn.
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            Khám phá ngay
+          </Link>
+        </div>
       ) : (
-        <ul className="space-y-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {purchases.map((purchase) => (
-            <li
+            <div
               key={purchase.id}
-              className="rounded-xl border border-border/60 p-4"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/60 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-slate-900/40 dark:border-white/10"
             >
-              <div className="flex gap-4">
+              {/* Glassmorphism Background Layer */}
+              <div className="absolute inset-0 z-0 bg-gradient-to-br from-white/60 to-white/30 backdrop-blur-md dark:from-slate-800/40 dark:to-slate-900/10" />
+
+              {/* Card Content */}
+              <div className="relative z-10 flex flex-1 flex-col p-4">
+                {/* Book Cover */}
                 <Link
                   prefetch={false}
                   href={`/books/${purchase.book.slug}`}
-                  className="block h-24 w-16 shrink-0 overflow-hidden rounded-md border border-border/60"
+                  className="relative mx-auto mb-5 block aspect-[2/3] w-full max-w-[180px] overflow-hidden rounded-lg shadow-md transition-shadow duration-300 group-hover:shadow-2xl"
                   aria-label={purchase.book.title}
                 >
                   <ImageCard
                     bookImage={purchase.book.coverImage ?? undefined}
                     bookName={purchase.book.title}
                   />
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <span className="rounded-full bg-white/20 px-4 py-2 text-xs font-medium text-white backdrop-blur-sm border border-white/30">
+                      Đọc ngay
+                    </span>
+                  </div>
                 </Link>
 
-                <div className="min-w-0 flex-1">
+                {/* Info */}
+                <div className="flex flex-1 flex-col text-center">
                   <Link
                     prefetch={false}
                     href={`/books/${purchase.book.slug}`}
-                    className="block"
+                    className="group/title block"
                   >
-                    <h3 className="line-clamp-2 text-base font-semibold text-foreground hover:underline">
+                    <h3 className="line-clamp-2 text-lg font-bold leading-tight text-foreground transition-colors group-hover/title:text-primary">
                       {purchase.book.title}
                     </h3>
                   </Link>
-
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Mua vào {formatPurchaseDate(purchase.purchasedAt)}
-                  </p>
-
-                  <p className="text-sm text-muted-foreground">
-                    Giá: {formatPrice(getBookPrice(purchase))}
-                  </p>
+                  
+                  <div className="mt-auto space-y-3 pt-4">
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+                    
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Đã mua</span>
+                      <span className="font-medium text-foreground">
+                        {formatPurchaseDate(purchase.purchasedAt)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Giá</span>
+                      <span className="font-semibold text-primary">
+                        {formatPrice(getBookPrice(purchase))}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );

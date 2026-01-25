@@ -1,8 +1,8 @@
 ﻿"use client";
 
-import { ReactNode, useEffect, useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Clock, Mail, ShieldCheck, UserRound, CalendarDays, KeyRound } from "lucide-react";
-import { useRouter } from "next/navigation";
+
 import { format } from "date-fns";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,18 +22,24 @@ const formatDate = (value?: string | Date | null) => {
 
 export function AccountProfilePanel() {
   const user = useAuthStore((state) => state.user);
-  const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [router, user]);
+    setIsMounted(true);
+  }, []);
 
-  if (!user) return null;
+  const createdDate = useMemo(() => formatDate(user?.createdAt), [user?.createdAt]);
+  const lastLogin = useMemo(() => formatDate(user?.lastLoginAt), [user?.lastLoginAt]);
 
-  const createdDate = useMemo(() => formatDate(user.createdAt), [user.createdAt]);
-  const lastLogin = useMemo(() => formatDate(user.lastLoginAt), [user.lastLoginAt]);
+  if (!isMounted) return null;
+
+  if (!user) {
+     return (
+        <div className="flex justify-center p-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary" />
+        </div>
+      );
+  }
 
   return (
     <div className="space-y-6">

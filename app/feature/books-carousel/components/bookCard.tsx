@@ -83,17 +83,21 @@ export default function BookCard({
           </Link>
 
           <div className="truncate text-xs text-muted-foreground ">
-            {book.authors?.map((author, index) => (
-              <span key={author.author.id}>
-                <Link
-                  href={`/authors/${author.author.slug}`}
-                  className="hover:underline"
-                >
-                  {author.author.name}
-                </Link>
-                {index < book.authors.length - 1 && ", "}
-              </span>
-            ))}
+            {book.authors?.map((authorEntry: any, index) => {
+              const author = authorEntry.author || authorEntry;
+
+              return (
+                <span key={author.id}>
+                  <Link
+                    href={`/authors/${author.slug}`}
+                    className="hover:underline"
+                  >
+                    {author.name}
+                  </Link>
+                  {index < book.authors.length - 1 && ", "}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>

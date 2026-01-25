@@ -45,7 +45,7 @@ export function SubscriptionWarningModal({
           </DialogTitle>
 
           <p className="text-base text-muted-foreground">
-            Để đọc hết nội dung cuốn sách này bạn cần nâng cấp gói hội viên Waka
+            Để đọc hết nội dung cuốn sách này bạn cần nâng cấp gói hội viên
           </p>
 
           <div className="relative w-32 h-44 rounded-lg overflow-hidden shadow-xl border border-border bg-muted">

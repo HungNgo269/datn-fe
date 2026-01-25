@@ -10,11 +10,9 @@ export default async function NewBookList() {
   } catch {
     books = [];
   }
-
   if (!books?.length) {
     return null;
   }
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex w-full flex-row items-center justify-between gap-2">

@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import ImageCard from "@/app/share/components/ui/image/ImageCard";
+import { BookBadge } from "../../books-carousel/components/BookBadge";
 import { Book } from "../../books/types/books.type";
+import { BookCategoryEntry } from "../types/new-book.types";
 import { sanitizeRichHtml } from "@/lib/sanitizeHtml";
 
 interface NewBookCardProps {
@@ -27,7 +29,6 @@ export default function NewBookCard({ book }: NewBookCardProps) {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
   return (
     <div className="flex flex-col  rounded-xl overflow-hidden  h-full">
       {/* Image */}
@@ -37,12 +38,19 @@ export default function NewBookCard({ book }: NewBookCardProps) {
         className="relative aspect-[4/3] overflow-hidden group"
       >
 
-        <div className="absolute inset-0">
-          <ImageCard
-            bookImage={book.coverImage}
-            bookName={book.title}
-          />
-        </div>
+          <div className="absolute inset-0">
+            <ImageCard
+              bookImage={book.coverImage}
+              bookName={book.title}
+            />
+             <BookBadge 
+              accessType={book.accessType} 
+              price={book.price}
+              size="lg"
+              isOnPromotion={book.isOnPromotion}
+              discountPercent={book.discountPercent}
+            />
+          </div>
       </Link>
 
       {/* Content */}
@@ -77,16 +85,19 @@ export default function NewBookCard({ book }: NewBookCardProps) {
         {/* Category tags */}
         {isMounted && displayCategories.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-auto pt-2">
-            {displayCategories.map((catEntry) => (
-              <Link
-                key={catEntry.category.id}
-                href={catEntry.category.slug ? `/books?category=${catEntry.category.slug}&page=1` : "#"}
-                className="rounded-md bg-muted/80 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
-                prefetch={false}
-              >
-                #{catEntry.category.name}
-              </Link>
-            ))}
+            {displayCategories.map((catEntry: BookCategoryEntry) => {
+              const category = 'category' in catEntry ? catEntry.category : catEntry;
+              return (
+                <Link
+                  key={category.id}
+                  href={category.slug ? `/books?category=${category.slug}&page=1` : "#"}
+                  className="rounded-md bg-muted/80 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+                  prefetch={false}
+                >
+                  #{category.name}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

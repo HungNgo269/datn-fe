@@ -5,7 +5,6 @@ import { Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   useBookAudioStore,
-  MOCK_CHAPTERS,
   type AudioChapter,
 } from "@/app/store/useBookAudioStore";
 import { cn } from "@/lib/utils";

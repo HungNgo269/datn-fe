@@ -22,13 +22,12 @@ export default async function TrendingBook({
   searchParamKey = "trendingPeriod",
 }: TrendingBookProps) {
   const normalizedPeriod = normalizeTimeFrame(period, DEFAULT_TIMEFRAME);
-
   try {
     const books = await getTrendingBooksAction({
       period: normalizedPeriod,
       limit,
     });
-
+    console.log("getTrendingBooksAction", books);
     if (!books?.length) {
       return (
         <div className="flex flex-col gap-2 ">

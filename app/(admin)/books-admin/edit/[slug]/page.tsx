@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Option } from "@/components/ui/AsyncCreatableSelect";
 import { getBookBySlug } from "@/app/feature/books/api/books.api";
@@ -17,6 +18,7 @@ import { BookForm } from "@/app/feature/books-upload/components/BookForm";
 export default function EditBookPage() {
   const { slug } = useParams<{ slug: string | string[] }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const bookSlug = Array.isArray(slug) ? slug[0] : slug;
   
   const [isLoading, setIsLoading] = useState(true);
@@ -98,12 +100,13 @@ export default function EditBookPage() {
 
       if (result?.success) {
         toast.success("Cập nhật sách thành công!");
+        await queryClient.invalidateQueries({ queryKey: ["books"] });
         router.push("/books-admin");
       } else {
         toast.error(result?.error || "Có lỗi xảy ra khi cập nhật.");
       }
     },
-    [initialFormData, router, submitBook]
+    [initialFormData, router, submitBook, queryClient]
   );
 
   const handleCancel = useCallback(() => {
