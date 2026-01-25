@@ -9,6 +9,7 @@ import type {
   ReaderBookmark,
   ReaderNote,
 } from "@/app/types/book.types";
+import { NOTE_HIGHLIGHT_COLORS } from "../utils/readerHighlights";
 import { useOutsideClick } from "@/lib/hooks/useOutsideClick";
 
 interface ReaderChaptersListProps {
@@ -35,6 +36,10 @@ const NOTE_COLOR_CLASSES: Record<NoteColor, string> = {
 
 const getNoteColorClass = (color?: NoteColor) =>
   NOTE_COLOR_CLASSES[color ?? "yellow"];
+
+const getNoteHighlightStyle = (color?: NoteColor) => ({
+  backgroundColor: NOTE_HIGHLIGHT_COLORS[color ?? "yellow"],
+});
 
 export default function ReaderChaptersList({
   chapters,
@@ -192,7 +197,12 @@ export default function ReaderChaptersList({
                     </button>
                   </div>
                   <p className="line-clamp-2 italic text-muted-foreground">
-                    “{note.selectedText}”
+                    <span
+                      className="rounded px-1"
+                      style={getNoteHighlightStyle(note.color)}
+                    >
+                      “{note.selectedText}”
+                    </span>
                   </p>
                   <p className="line-clamp-3 text-foreground">{note.note}</p>
                   <div className="flex items-center justify-between text-muted-foreground/80">

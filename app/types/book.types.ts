@@ -7,6 +7,7 @@ export interface ReaderBookmark {
   bookCoverImage?: string | null;
   chapterSlug?: string | null;
   chapterTitle?: string | null;
+  selectorPath?: string | null;
   page: number;
   createdAt: string;
 }

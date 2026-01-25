@@ -7,6 +7,7 @@ import ReaderChaptersList from "./ReaderChaptersList";
 import ReaderFrame from "./ReaderFrame";
 import ReaderNoteDialog from "./ReaderNoteDialog";
 import ReaderPageNavigation from "./ReaderPageNavigation";
+import ReaderPageProgress from "./ReaderPageProgress";
 import ReaderSettings, { THEMES } from "./readerSetting";
 import ReaderTopBar from "./ReaderTopBar";
 import { useAuthStore } from "@/app/store/useAuthStore";
@@ -18,6 +19,7 @@ import { useChapterStream } from "../hook/useChapterStream";
 import { useChapterPrefetch } from "../hook/useChapterPrefetch";
 import { useReaderNavigation } from "../hook/useReaderNavigation";
 import { useReaderInteraction } from "../hook/useReaderInteraction";
+import { resolvePageFromSelector } from "../utils/readerPosition";
 import {
   ReaderBlockingOverlay,
   ReaderStreamError,
@@ -72,8 +74,8 @@ export default function IframeBookReader({
   const {
     currentChapterTitle,
     resolvedNextChapterSlug,
-    // previousChapterSlug, // Not used directly in render
     goToNextChapter,
+    goToPreviousChapter,
     handleBackToBook,
     handleChapterClick,
   } = useReaderNavigation({
@@ -84,6 +86,7 @@ export default function IframeBookReader({
   });
 
   const [ready, setReady] = useState(false);
+  const [layoutVersion, setLayoutVersion] = useState(0);
   const [openPanel, setOpenPanel] = useState<"settings" | "chapters" | null>(
     null
   );
@@ -273,7 +276,66 @@ export default function IframeBookReader({
     iframeRef,
     ready,
     isStreamLoading,
+    layoutVersion,
   });
+
+  const resolvedBookmarks = useMemo(() => {
+    if (!ready) return bookBookmarks;
+    const iframe = iframeRef.current;
+    if (!iframe) return bookBookmarks;
+
+    return bookBookmarks.map((bookmark) => {
+      if (bookmark.chapterSlug && bookmark.chapterSlug !== chapterSlug) {
+        return bookmark;
+      }
+      if (!bookmark.selectorPath) return bookmark;
+      const resolvedPage = resolvePageFromSelector(
+        iframe,
+        bookmark.selectorPath,
+        readMode
+      );
+      if (!resolvedPage || resolvedPage === bookmark.page) return bookmark;
+      return { ...bookmark, page: resolvedPage };
+    });
+  }, [
+    bookBookmarks,
+    chapterSlug,
+    fontId,
+    fontSize,
+    layoutVersion,
+    readMode,
+    ready,
+    totalPages,
+  ]);
+
+  const resolvedNotes = useMemo(() => {
+    if (!ready) return bookNotes;
+    const iframe = iframeRef.current;
+    if (!iframe) return bookNotes;
+
+    return bookNotes.map((note) => {
+      if (note.chapterSlug && note.chapterSlug !== chapterSlug) {
+        return note;
+      }
+      if (!note.selectorPath) return note;
+      const resolvedPage = resolvePageFromSelector(
+        iframe,
+        note.selectorPath,
+        readMode
+      );
+      if (!resolvedPage || resolvedPage === note.page) return note;
+      return { ...note, page: resolvedPage };
+    });
+  }, [
+    bookNotes,
+    chapterSlug,
+    fontId,
+    fontSize,
+    layoutVersion,
+    readMode,
+    ready,
+    totalPages,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -312,6 +374,7 @@ export default function IframeBookReader({
     if (currentPage !== 1) return;
     if (totalPages >= target) {
       goToPage(target);
+      restoreTargetRef.current = 1;
     }
   }, [currentPage, goToPage, totalPages]);
   
@@ -326,26 +389,12 @@ export default function IframeBookReader({
 
   const handlePreviousPage = useCallback(() => {
     const isFirstPage = currentPage <= 1;
-    // We can't rely on simple logic here for going back to prev chapter last page
-    // but the original logic just called goToPreviousChapter which navigates to the chapter
-    // It didn't handle landing on the *last* page of previous chapter. 
-    // The hook useReaderNavigation provides goToPreviousChapter.
-    // Let's implement previous navigation correctly.
     if (isFirstPage) {
-       // Need to import useReaderNavigation's goToPreviousChapter from hook return
-       // We only destructured goToNextChapter. Let's destructure goToPreviousChapter too.
-       // (See component destructuring above)
-       const { goToPreviousChapter } = useReaderNavigation({
-            chapters,
-            chapterSlug,
-            bookSlug,
-            nextChapterSlug,
-        });
-        goToPreviousChapter();
+      goToPreviousChapter();
     } else {
       prev();
     }
-  }, [currentPage, chapters, chapterSlug, bookSlug, nextChapterSlug, prev]);
+  }, [currentPage, goToPreviousChapter, prev]);
 
   const canNavigateForward =
     (totalPages > 0 && currentPage < totalPages) ||
@@ -357,12 +406,31 @@ export default function IframeBookReader({
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (readMode !== "paged") return;
-      if (e.key === "ArrowRight") handleNextPage();
-      if (e.key === "ArrowLeft") handlePreviousPage();
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNextPage();
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePreviousPage();
+      }
     };
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [handleNextPage, handlePreviousPage, readMode]);
+    const iframeWindow = ready ? iframeRef.current?.contentWindow : null;
+    iframeWindow?.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      iframeWindow?.removeEventListener("keydown", handleKey);
+    };
+  }, [handleNextPage, handlePreviousPage, iframeRef, layoutVersion, readMode, ready]);
 
   useEffect(() => {
     if (!ready || !isPositionRestored) return;
@@ -411,6 +479,7 @@ export default function IframeBookReader({
 
   const handleIframeLoad = useCallback(() => {
     setReady(true);
+    setLayoutVersion((prev) => prev + 1);
     const doc = iframeRef.current?.contentDocument;
     if (!doc) return;
 
@@ -442,14 +511,6 @@ export default function IframeBookReader({
   const showStreamProgress = shouldStream && isStreamLoading;
   const showStreamSkeleton = showStreamProgress && !hasStreamedContent;
   const showStreamError = Boolean(streamError);
-
-  // We need goToPreviousChapter in scope for handlePreviousPage
-  const { goToPreviousChapter } = useReaderNavigation({
-    chapters,
-    chapterSlug,
-    bookSlug,
-    nextChapterSlug,
-  });
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-muted transition-colors duration-300">
@@ -490,14 +551,23 @@ export default function IframeBookReader({
         {showStreamError ? <ReaderStreamError onRetry={handleRetry} /> : null}
 
         {readMode === "paged" && (
-          <ReaderPageNavigation
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPrev={handlePreviousPage}
-            onNext={handleNextPage}
-            canGoPrev={canNavigateBackward}
-            canGoNext={canNavigateForward}
-          />
+          <>
+            <ReaderPageNavigation
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPrev={handlePreviousPage}
+              onNext={handleNextPage}
+              canGoPrev={canNavigateBackward}
+              canGoNext={canNavigateForward}
+            />
+            <ReaderPageProgress
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onChangePage={goToPage}
+              themeBg={containerBg}
+              isDarkTheme={themeId === "dark" || themeId === "gray"}
+            />
+          </>
         )}
 
         {showBlockingOverlay && <ReaderBlockingOverlay />}
@@ -523,8 +593,8 @@ export default function IframeBookReader({
           currentPage={currentPage}
           onClose={closePanels}
           onChapterClick={handleChapterClick}
-          bookmarks={bookBookmarks}
-          notes={bookNotes}
+          bookmarks={resolvedBookmarks}
+          notes={resolvedNotes}
           onBookmarkSelect={(bookmark) => {
             if (bookmark.chapterSlug && bookmark.chapterSlug !== chapterSlug) {
               // Navigate to the correct chapter first, then the page
@@ -534,7 +604,16 @@ export default function IframeBookReader({
                 );
               }
             } else {
-              goToPage(bookmark.page);
+              const iframe = iframeRef.current;
+              const resolvedPage =
+                iframe && bookmark.selectorPath
+                  ? resolvePageFromSelector(
+                      iframe,
+                      bookmark.selectorPath,
+                      readMode
+                    )
+                  : null;
+              goToPage(resolvedPage ?? bookmark.page);
             }
           }}
           onNoteSelect={(note) => {
@@ -546,7 +625,12 @@ export default function IframeBookReader({
                 );
               }
             } else {
-              goToPage(note.page);
+              const iframe = iframeRef.current;
+              const resolvedPage =
+                iframe && note.selectorPath
+                  ? resolvePageFromSelector(iframe, note.selectorPath, readMode)
+                  : null;
+              goToPage(resolvedPage ?? note.page);
             }
           }}
           onRemoveBookmark={removeBookmarkFromStore}

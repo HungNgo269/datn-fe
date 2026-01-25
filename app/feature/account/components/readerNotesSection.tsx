@@ -6,7 +6,8 @@ import { StickyNote, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useReaderDataStore } from "@/app/store/useReaderDataStore";
-import type { ReaderNote } from "@/app/types/book.types";
+import type { NoteColor, ReaderNote } from "@/app/types/book.types";
+import { NOTE_HIGHLIGHT_COLORS } from "@/app/feature/reader/utils/readerHighlights";
 
 const getTimestamp = (value?: string) => {
   if (!value) return 0;
@@ -19,6 +20,10 @@ const formatDateSafe = (value?: string) => {
   if (!timestamp) return null;
   return format(timestamp, "dd/MM/yyyy");
 };
+
+const getNoteHighlightStyle = (color?: NoteColor) => ({
+  backgroundColor: NOTE_HIGHLIGHT_COLORS[color ?? "yellow"],
+});
 
 export function ReaderNotesSection() {
   const userId = useAuthStore((state) => state.user?.id ?? null);
@@ -134,7 +139,12 @@ function NoteListItem({
       </div>
       {note.selectedText && (
         <p className="leading-relaxed text-muted-foreground italic">
-          "{note.selectedText}"
+          <span
+            className="rounded px-1"
+            style={getNoteHighlightStyle(note.color)}
+          >
+            "{note.selectedText}"
+          </span>
         </p>
       )}
       <p className="leading-relaxed text-foreground">{note.note}</p>

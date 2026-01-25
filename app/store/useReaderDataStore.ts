@@ -56,11 +56,14 @@ export const useReaderDataStore = create<ReaderDataState>()(
       readMode: getDefaultReadMode(),
       toggleBookmark(payload) {
         set((state) => {
+          const selectorPath = payload.selectorPath ?? null;
           const matcher = (bookmark: ReaderBookmark) =>
             bookmark.userId === payload.userId &&
             bookmark.bookSlug === payload.bookSlug &&
             bookmark.chapterSlug === (payload.chapterSlug ?? null) &&
-            bookmark.page === payload.page;
+            ((selectorPath && bookmark.selectorPath
+              ? bookmark.selectorPath === selectorPath
+              : bookmark.page === payload.page));
 
           const exists = state.bookmarks.find(matcher);
 
@@ -78,6 +81,7 @@ export const useReaderDataStore = create<ReaderDataState>()(
             chapterSlug: payload.chapterSlug ?? null,
             chapterTitle: payload.chapterTitle ?? null,
             bookCoverImage: payload.bookCoverImage ?? null,
+            selectorPath,
             id: createId(),
             createdAt: new Date().toISOString(),
           };

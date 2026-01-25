@@ -6,6 +6,11 @@ import {
   applyNoteHighlights as applyReaderNoteHighlights,
   highlightSelection as highlightReaderSelection,
 } from "../utils/readerHighlights";
+import {
+  captureBookmarkAnchorPath,
+  captureSelectionAnchorPath,
+  resolvePageFromSelector,
+} from "../utils/readerPosition";
 import { useRouter } from "next/navigation";
 
 interface UseReaderInteractionProps {
@@ -21,6 +26,7 @@ interface UseReaderInteractionProps {
   iframeRef: RefObject<HTMLIFrameElement | null>;
   ready: boolean;
   isStreamLoading: boolean;
+  layoutVersion: number;
 }
 
 export function useReaderInteraction({
@@ -36,6 +42,7 @@ export function useReaderInteraction({
   iframeRef,
   ready,
   isStreamLoading,
+  layoutVersion,
 }: UseReaderInteractionProps) {
   const router = useRouter();
   const bookmarksStore = useReaderDataStore((state) => state.bookmarks);
@@ -44,11 +51,17 @@ export function useReaderInteraction({
   const addNoteToStore = useReaderDataStore((state) => state.addNote);
   const removeBookmarkFromStore = useReaderDataStore((state) => state.removeBookmark);
   const removeNoteFromStore = useReaderDataStore((state) => state.removeNote);
+  const fontSize = useReaderDataStore((state) => state.fontSize);
+  const fontId = useReaderDataStore((state) => state.fontId);
+  const readMode = useReaderDataStore((state) => state.readMode);
   const updateContinueReading = useReaderDataStore(
     (state) => state.updateContinueReading
   );
 
   const [selectedText, setSelectedText] = useState("");
+  const [selectedAnchorPath, setSelectedAnchorPath] = useState<string | null>(
+    null
+  );
   const [showNoteDialog, setShowNoteDialog] = useState(false);
 
   const bookBookmarks = useMemo(() => {
@@ -67,12 +80,30 @@ export function useReaderInteraction({
   }, [bookSlug, notesStore, userId]);
 
   const isBookmarked = useMemo(() => {
-    return bookBookmarks.some(
-      (bookmark) =>
-        bookmark.page === currentPage &&
-        bookmark.chapterSlug === (chapterSlug || null)
-    );
-  }, [bookBookmarks, currentPage, chapterSlug]);
+    const iframe = iframeRef.current;
+    return bookBookmarks.some((bookmark) => {
+      if (bookmark.chapterSlug !== (chapterSlug || null)) return false;
+      if (bookmark.selectorPath && iframe && ready) {
+        const resolvedPage = resolvePageFromSelector(
+          iframe,
+          bookmark.selectorPath,
+          readMode
+        );
+        if (resolvedPage) return resolvedPage === currentPage;
+      }
+      return bookmark.page === currentPage;
+    });
+  }, [
+    bookBookmarks,
+    chapterSlug,
+    currentPage,
+    fontId,
+    fontSize,
+    iframeRef,
+    layoutVersion,
+    readMode,
+    ready,
+  ]);
 
   const applyNoteHighlights = useCallback(
     (doc: Document, notes: typeof bookNotes) => {
@@ -90,14 +121,29 @@ export function useReaderInteraction({
     if (!ready || isStreamLoading || !iframeRef.current?.contentDocument)
       return;
     applyNoteHighlights(iframeRef.current.contentDocument, bookNotes);
-  }, [applyNoteHighlights, bookNotes, isStreamLoading, ready, iframeRef]);
+  }, [
+    applyNoteHighlights,
+    bookNotes,
+    isStreamLoading,
+    layoutVersion,
+    ready,
+    iframeRef,
+  ]);
 
   // Handle text selection in iframe
   useEffect(() => {
     if (!ready || !iframeRef.current?.contentWindow) return;
     const handleSelection = () => {
       const selection = iframeRef.current?.contentWindow?.getSelection();
-      setSelectedText(selection?.toString().trim() || "");
+      const selectionText = selection?.toString().trim() || "";
+      setSelectedText(selectionText);
+      if (selectionText && iframeRef.current) {
+        setSelectedAnchorPath(
+          captureSelectionAnchorPath(iframeRef.current)
+        );
+      } else {
+        setSelectedAnchorPath(null);
+      }
     };
     const doc = iframeRef.current.contentWindow.document;
     doc.addEventListener("mouseup", handleSelection);
@@ -106,7 +152,7 @@ export function useReaderInteraction({
       doc.removeEventListener("mouseup", handleSelection);
       doc.removeEventListener("keyup", handleSelection);
     };
-  }, [ready, iframeRef]);
+  }, [ready, layoutVersion, iframeRef]);
 
   // Update continue reading on changes
   useEffect(() => {
@@ -141,6 +187,36 @@ export function useReaderInteraction({
     if (!bookSlug) {
       return;
     }
+    const iframe = iframeRef.current;
+    const selectorPath = iframe ? captureBookmarkAnchorPath(iframe) : null;
+    const currentChapter = chapterSlug ?? null;
+    const chapterBookmarks = bookBookmarks.filter(
+      (bookmark) => bookmark.chapterSlug === currentChapter
+    );
+
+    let matched = selectorPath
+      ? chapterBookmarks.find((bookmark) => bookmark.selectorPath === selectorPath)
+      : undefined;
+
+    if (!matched) {
+      matched = chapterBookmarks.find((bookmark) => {
+        if (bookmark.selectorPath && iframe && ready) {
+          const resolvedPage = resolvePageFromSelector(
+            iframe,
+            bookmark.selectorPath,
+            readMode
+          );
+          if (resolvedPage) return resolvedPage === currentPage;
+        }
+        return bookmark.page === currentPage;
+      });
+    }
+
+    if (matched) {
+      removeBookmarkFromStore(matched.id);
+      return;
+    }
+
     toggleBookmark({
       userId,
       bookId: bookId ?? null,
@@ -149,6 +225,7 @@ export function useReaderInteraction({
       bookCoverImage: bookCoverImage ?? null,
       chapterSlug: chapterSlug || null,
       chapterTitle: chapterTitle ?? null,
+      selectorPath,
       page: currentPage,
     });
   }, [
@@ -156,9 +233,14 @@ export function useReaderInteraction({
     bookId,
     bookSlug,
     bookTitle,
+    bookBookmarks,
     chapterSlug,
     chapterTitle,
     currentPage,
+    iframeRef,
+    readMode,
+    ready,
+    removeBookmarkFromStore,
     title,
     toggleBookmark,
     userId,
@@ -169,6 +251,12 @@ export function useReaderInteraction({
       if (!bookSlug || !selectedText || !noteText.trim()) {
         return;
       }
+      const selectorPath =
+        selectedAnchorPath ??
+        (iframeRef.current?.contentWindow != null
+          ? captureSelectionAnchorPath(iframeRef.current) ??
+            captureBookmarkAnchorPath(iframeRef.current)
+          : null);
       addNoteToStore({
         userId,
         bookSlug,
@@ -179,6 +267,7 @@ export function useReaderInteraction({
         selectedText,
         note: noteText.trim(),
         color,
+        selectorPath,
         bookId: null,
       });
       const doc = iframeRef.current?.contentDocument;
@@ -186,6 +275,7 @@ export function useReaderInteraction({
         highlightSelection(doc, color);
       }
       setSelectedText("");
+      setSelectedAnchorPath(null);
       setShowNoteDialog(false);
       iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
     },
@@ -197,6 +287,7 @@ export function useReaderInteraction({
       chapterTitle,
       currentPage,
       highlightSelection,
+      selectedAnchorPath,
       selectedText,
       title,
       userId,
@@ -205,13 +296,29 @@ export function useReaderInteraction({
   );
 
   const handleNoteClick = useCallback(() => {
-    if (selectedText) setShowNoteDialog(true);
-    else toast.error("Vui lòng bôi đen văn bản để tạo ghi chú");
-  }, [selectedText]);
+    const liveSelection = iframeRef.current?.contentWindow
+      ?.getSelection()
+      ?.toString()
+      .trim();
+    const nextSelection = liveSelection || selectedText;
+    const nextAnchorPath =
+      (liveSelection && iframeRef.current
+        ? captureSelectionAnchorPath(iframeRef.current)
+        : selectedAnchorPath) ??
+      (iframeRef.current ? captureBookmarkAnchorPath(iframeRef.current) : null);
+    if (nextSelection) {
+      setSelectedText(nextSelection);
+      setSelectedAnchorPath(nextAnchorPath);
+      setShowNoteDialog(true);
+      return;
+    }
+    toast.error("Vui lòng bôi đen văn bản để tạo ghi chú");
+  }, [iframeRef, selectedAnchorPath, selectedText]);
 
   const handleNoteDialogClose = useCallback(() => {
     setShowNoteDialog(false);
     setSelectedText("");
+    setSelectedAnchorPath(null);
     iframeRef.current?.contentWindow?.getSelection()?.removeAllRanges();
   }, [iframeRef]);
 

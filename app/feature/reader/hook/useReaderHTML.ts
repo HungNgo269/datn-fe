@@ -46,10 +46,10 @@ export function useReaderHtml({
           width: 100% !important;
           box-sizing: border-box !important;
 
-          padding: 40px calc(var(--reader-padding) / 2) !important;
+          padding:  calc(var(--reader-paddingTOP) ) calc(var(--reader-paddingX) / 2) calc(var(--reader-paddingBOT) ) calc(var(--reader-paddingX) / 2) !important;
 
-          column-width: calc(100vw - var(--reader-padding) - 1px) !important;
-          column-gap: var(--reader-padding) !important;
+          column-width: calc(100vw - var(--reader-paddingX) - 1px) !important;
+          column-gap: var(--reader-paddingX) !important;
           column-fill: auto !important;
 
           font-size: ${fontSize}px !important;
@@ -80,7 +80,7 @@ export function useReaderHtml({
           width: 100% !important;
           box-sizing: border-box !important;
 
-          padding: 40px calc(var(--reader-padding) / 2) !important;
+          padding:  calc(var(--reader-paddingTOP) ) calc(var(--reader-paddingX) / 2) calc(var(--reader-paddingBOT) ) calc(var(--reader-paddingX) / 2) !important;
 
           column-width: auto !important;
           column-gap: 0 !important;
@@ -99,13 +99,21 @@ export function useReaderHtml({
     const injectionStyles = `
       <style>
         :root {
-          --reader-padding: 20px; 
+          --reader-paddingX: 20px; 
+          --reader-paddingTOP: 10px; 
+          --reader-paddingBOT: 15px; 
+
         }
         @media (min-width: 768px) {
-          :root { --reader-padding: 400px; }
+          :root { --reader-paddingX: 400px; }
+          :root { --reader-paddingTOP: 40px; }
+          :root { --reader-paddingBOT: 60px; }
         }
         @media (min-width: 1280px) {
-          :root { --reader-padding: 800px; }
+          :root { --reader-paddingX: 800px; }
+          :root { --reader-paddingTOP: 80px; }
+          :root { --reader-paddingBOT: 120px; }
+
         }
         ${layoutStyles}
 

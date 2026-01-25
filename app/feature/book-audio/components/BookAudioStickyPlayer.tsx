@@ -136,8 +136,8 @@ export default function BookAudioStickyPlayer() {
 
     const loadAudio = async () => {
         try {
-            const { audioStreamService } = await import("../services/AudioStreamService");
-            const source = await audioStreamService.getAudioSource(
+            const { getAudioSource } = await import("../services/AudioStreamService");
+            const source = await getAudioSource(
                 currentChapter.id,
                 false,
                 (state) => {
@@ -281,9 +281,9 @@ export default function BookAudioStickyPlayer() {
        const reloadAudio = async () => {
          try {
            setLoading(true, "Đang thử lại...");
-           const { audioStreamService } = await import("../services/AudioStreamService");
+           const { getAudioSource } = await import("../services/AudioStreamService");
            if (currentChapter?.id) {
-             const source = await audioStreamService.getAudioSource(
+             const source = await getAudioSource(
                  currentChapter.id, 
                  true, // Force network
                  (state) => {
